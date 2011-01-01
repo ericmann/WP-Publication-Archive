@@ -1,0 +1,49 @@
+.publication-archive {
+	font-family: arial,sans-serif;
+	font-size: 11px;
+	line-height:1.4;
+	}
+
+.publication_title {
+	font-weight: bold;
+	padding-bottom: 3px;
+	color:#F46B4F;
+	}
+
+.publication_authors {
+	padding-bottom: 1px;
+	}
+
+.publication_authors .date {
+	padding-left: 5px;
+	color: #666666;
+	}
+
+.publication_download {
+	color:#990000;
+	}
+.publication_summary {
+	padding-left: 20px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	}
+
+.publication_summary .title, .publication_keywords .title, .publication_categories .title{
+	font-weight: bold;
+	padding-right: 5px;
+	color: #666666;
+	}
+
+.publication_keywords {
+	padding-left: 20px;
+	padding-bottom: 3px;
+	}
+
+.publication_categories {
+	padding-left: 20px;
+	padding-bottom: 3px;
+	}
+	
+.single-publication {
+	margin-bottom:20px;
+	}
