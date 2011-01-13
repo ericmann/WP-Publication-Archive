@@ -3,7 +3,7 @@
 Plugin Name: WP Publication Archive
 Plugin URI: http://jumping-duck.com/wordpress
 Description: Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
-Version: 2.0
+Version: 2.0.1
 Author: Eric Mann
 Author URI: http://eamann.com
 License: GPL2
@@ -33,5 +33,5 @@ require_once('includes/class.wp-publication-archive.php');
 $wpa = new WP_Publication_Archive();
 
 function wp_publication_archive() {
-	return $wpa::shortcode_handler();
+	return $wpa->shortcode_handler();
 }
