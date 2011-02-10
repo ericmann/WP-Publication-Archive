@@ -69,7 +69,6 @@ class WP_Publication_Archive {
 			wp_enqueue_script( 'media-upload' );
 			wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
-			wp_enqueue_style( 'wp-publication-archive-admin', plugins_url('/admin.css', __FILE__), '', '2.0', 'all' );
 		} else {
 			wp_enqueue_style( 'wp-publication-archive-frontend', plugins_url('/front-end.css', __FILE__), '', '2.0', 'all' );
 		}
@@ -156,6 +155,11 @@ class WP_Publication_Archive {
 		global $post;
 		
 		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
+		echo "<style type=\"text/css\">
+#edit-slug-box {
+	display: none;
+	}
+</style>";
 		echo '<p>Please provide the abosulte url of the file (including the <code>http://</code>):</p>';
 		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
 		echo '<input class="button" id="upload_doc_button" type="button" value="Upload Publication" alt="Upload Publication" />';
@@ -182,7 +186,7 @@ jQuery(document).ready(function() {
 			return $post_id;
 		}
 	
-		if( !wp_verify_nonce( $_POST['wpa_nonce'], plugin_basename(__FILE__) )) {
+		if( !isset($_POST['wpa_nonce']) || !wp_verify_nonce( $_POST['wpa_nonce'], plugin_basename(__FILE__) )) {
 			return $post_id;
 		}
 		
@@ -200,14 +204,25 @@ jQuery(document).ready(function() {
 	}
 	
 	public static function shortcode_handler() {
+		global $post;
+		
 		require_once('class.mimetype.php');
 		$mime = new mimetype();
 		$downloadroot = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__)) . 'openfile.php?file=';
+		
+		if(isset($_GET['paged'])) {
+			$paged = (int)$_GET['paged'];
+			$offset = 10 * ($paged - 1);
+		} else {
+			$paged = 1;
+			$offset = 0;
+		}
 		
 		$list = '<div class="publication-archive">';
 	
 		// Get publications
 		$args = array(
+			'offset' => $offset,
 			'numberposts' => 10,
 			'post_type' => 'publication',
 			'orderby' => 'post_date',
@@ -252,7 +267,7 @@ jQuery(document).ready(function() {
 					$authors .= $author->name;
 				}
 			} else {
-				$authors = $false;
+				$authors = false;
 			}
 			
 			$list .= '<div class="single-publication">';
@@ -302,7 +317,29 @@ jQuery(document).ready(function() {
 		}
 		
 		$list .= '</div>';
-
+		
+		if( wp_count_posts( 'publication' )->publish > 10 ) {
+			$list .= '<div id="navigation">';
+			
+			if($offset > 0) {
+				$list .= '<div class="nav-previous">';
+				$list .= '<a href="' . get_permalink($post->ID) . '&paged=' . ($paged - 1) . '">';
+				$list .= '&laquo; Previous';
+				$list .= '</a>';
+				$list .= '</div>';
+			}
+			
+			if($offset + 10 < wp_count_posts( 'publication' )->publish ) {
+				$list .= '<div class="nav-next">';
+				$list .= '<a href="' . get_permalink($post->ID) . '&paged=' . ($paged + 1) . '">';
+				$list .= 'Next &raquo;';
+				$list .= '</a>';
+				$list .= '</div>';
+			}
+			
+			$list .= '</div>';
+		}
+		
 		return $list;
 	}
 }
