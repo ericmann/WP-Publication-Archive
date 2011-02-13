@@ -238,5 +238,4 @@ class mimetype {
 		"xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       ); 
    } 
-} 
-?> 
+}
