@@ -52,7 +52,7 @@ class WP_Publication_Archive {
 	);
 	
 	public static function get_image( $doctype ) {
-		$path = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__));
+		$path = WP_PUB_ARCH_IMG_URL . '/';
 		if( ! isset( WP_Publication_Archive::$mimetypes[$doctype] ) ) {
 			return $path . 'icons/' . 'unknown.png';
 		}
@@ -201,13 +201,26 @@ jQuery(document).ready(function() {
 		return $post_id;
 	}
 
-	public static function shortcode_handler() {
+	public static function shortcode_handler( $atts ) {
+		extract( shortcode_atts( array(
+				'categories' => ''
+				), $atts ) );
+		
 		global $post;
 		
 		require_once('class.mimetype.php');
 		$mime = new mimetype();
-		$downloadroot = WP_PLUGIN_URL . '/' . str_replace( basename( __FILE__), "", plugin_basename(__FILE__) ) . 'includes/openfile.php?file=';
-		
+		$downloadroot = WP_PUB_ARCH_INC_URL . '/includes/openfile.php?file=';
+
+		// Create an array of category IDs based on the categories fed in.
+		$catFilter = array();
+		$catList = explode(',', $categories);
+		foreach( $catList as $catName ){
+			$id = get_cat_id( trim( $catName ) );
+			if( 0 !== $id )
+				$catFilter[] = $id;
+		}
+
 		if(isset($_GET['paged'])) {
 			$paged = (int)$_GET['paged'];
 			$offset = 10 * ($paged - 1);
@@ -215,9 +228,9 @@ jQuery(document).ready(function() {
 			$paged = 1;
 			$offset = 0;
 		}
-		
+
 		$list = '<div class="publication-archive">';
-	
+
 		// Get publications
 		$args = array(
 			'offset' => $offset,
@@ -225,7 +238,8 @@ jQuery(document).ready(function() {
 			'post_type' => 'publication',
 			'orderby' => 'post_date',
 			'order' => 'DESC',
-			'post_status' => 'publish'
+			'post_status' => 'publish',
+			'category__in' => $catFilter
 		);
 		
 		$publications = get_posts( $args );
