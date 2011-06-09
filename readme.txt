@@ -3,7 +3,7 @@ Contributors: ericmann
 Donate link: http://jumping-duck.com/wordpress
 Tags: document management, pdf, doc, archive
 Requires at least: 3.0
-Tested up to: 3.1
+Tested up to: 3.2
 Stable tag: 2.1.1
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
@@ -48,15 +48,15 @@ By default, the plug-in contains icons for several common file types.  The icons
 
 All other file types will feature a generic "file" icon.
 
-= Why does the archive only list 10 files? =
-
-We're still working on pagination ... so right now you can only list 10 files from the archive.  In the future, you will be able to list an arbitrary number of posts.
-
 == Screenshots ==
 
 No screenshots are available at this time.
 
 == Changelog ==
+
+= 2.2 =
+* Add pagination for more than 10 publications
+* Add filter to shortcode
 
 = 2.1.1 =
 * Remove an extra space that was throwing a PHP parsing error
@@ -83,12 +83,15 @@ No screenshots are available at this time.
 
 == Upgrade Notice ==
 
+= 2.2 =
+This version will *only* work with PHP 5 or above!
+
 = 2.0 =
 Upgrading from 1.1 or 1.1.1 to 2.0 will *not* automatically transfer your publications to the new system.  
 
 == Licenses ==
 
-WP Publication Archive is licensed under the GNU General Public License, version 3.
+WP Publication Archive is licensed under the GNU General Public License, version 3 or, at your discretion, any later version.
 
 This system was based on the original wp-publications-archive plug-in published by Luis Lino and Siemens Networks, S.A. at http://code.google.com/p/wp-publications-archive/.
 
