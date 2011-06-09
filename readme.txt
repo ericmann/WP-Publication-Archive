@@ -4,7 +4,7 @@ Donate link: http://jumping-duck.com/wordpress
 Tags: document management, pdf, doc, archive
 Requires at least: 3.0
 Tested up to: 3.2
-Stable tag: 2.1.1
+Stable tag: 2.2
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
 
@@ -56,7 +56,7 @@ No screenshots are available at this time.
 
 = 2.2 =
 * Add pagination for more than 10 publications
-* Add filter to shortcode
+* Add category filter to shortcode
 
 = 2.1.1 =
 * Remove an extra space that was throwing a PHP parsing error
