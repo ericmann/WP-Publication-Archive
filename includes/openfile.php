@@ -1,17 +1,44 @@
 <?php
-require_once('class.mimetype.php');
+if ( ! isset($_GET['file']) )
+	die();
+
+require_once('../lib/class.mimetype.php');
 $mime = new mimetype();
 
 $fPath = $_GET['file'];
-
 $fType = $mime->getType( $fPath );
-
 $fName = basename($fPath);
 
 $origname = preg_replace('/_#_#\d*/','',$fName);
 
-header('Content-type: "'.$fType.'"');
+$fContent = fetch_content( $fPath );
 
-header('Content-Disposition: attachment; filename="'.$origname.'"');
+output_content( $fContent, $origname );
 
-readfile($fPath); 
+function fetch_content( $url ) {
+	$ch = curl_init();
+	curl_setopt( $ch, CURLOPT_URL, $url );
+	curl_setopt( $ch, CURLOPT_HEADER, 0 );
+
+	ob_start();
+
+	curl_exec( $ch );
+	curl_close( $ch );
+
+	$fContent = ob_get_contents();
+	
+	ob_end_clean();
+	
+	return $fContent;
+}
+
+function output_content( $content, $name ) {
+	header( "Expires: Wed, 9 Nov 1983 05:00:00 GMT" );
+	header( "Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT" );
+	header( "Content-Disposition: attachment; filename=" . $name );
+	header( "Content-type: application/octet-stream" );
+	header( "Content-Transfer-Encoding: binary" );
+
+	echo $content;
+}
+?>

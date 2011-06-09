@@ -52,12 +52,11 @@ class WP_Publication_Archive {
 	);
 	
 	public static function get_image( $doctype ) {
-		$path = WP_PUB_ARCH_IMG_URL . '/';
 		if( ! isset( WP_Publication_Archive::$mimetypes[$doctype] ) ) {
-			return $path . 'icons/' . 'unknown.png';
+			return WP_PUB_ARCH_IMG_URL . '/icons/unknown.png';
 		}
 		
-		return $path . 'icons/' . WP_Publication_Archive::$mimetypes[$doctype] . '.png';
+		return WP_PUB_ARCH_IMG_URL . '/icons/' . WP_Publication_Archive::$mimetypes[$doctype] . '.png';
 	}
 
 	public static function enqueue_scripts_and_styles() {
@@ -66,7 +65,7 @@ class WP_Publication_Archive {
 			wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
 		} else {
-			wp_enqueue_style( 'wp-publication-archive-frontend', plugins_url( '/includes/front-end.css', __FILE__ ), '', '2.0', 'all' );
+			wp_enqueue_style( 'wp-publication-archive-frontend', WP_PUB_ARCH_INC_URL . '/front-end.css', '', '2.0', 'all' );
 		}
 	}
 
@@ -210,7 +209,7 @@ jQuery(document).ready(function() {
 		
 		require_once('class.mimetype.php');
 		$mime = new mimetype();
-		$downloadroot = WP_PUB_ARCH_INC_URL . '/includes/openfile.php?file=';
+		$downloadroot = WP_PUB_ARCH_INC_URL . '/openfile.php?file=';
 
 		// Create an array of category IDs based on the categories fed in.
 		$catFilter = array();
