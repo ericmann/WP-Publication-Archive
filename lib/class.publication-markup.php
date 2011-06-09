@@ -1,8 +1,4 @@
 <?php
-class WP_Publication_Archive_List {
-	
-}
-
 class WP_Publication_Archive_Item {
 	var $ID;
 	var $title;
@@ -163,3 +159,4 @@ class WP_Publication_Archive_Item {
 		echo $this->get_the_categories();
 	}
 }
+?>
