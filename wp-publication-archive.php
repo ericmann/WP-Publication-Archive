@@ -29,9 +29,19 @@ License: GPLv3
 	Luis Lino, Siemens Networks, S.A. - http://code.google.com/p/wp-publications-archive/
 */
 
-require_once('includes/class.wp-publication-archive.php');
-$wpa = new WP_Publication_Archive();
+if ( ! defined('WP_PUB_ARCH_INC_URL') )
+	define( 'WP_PUB_ARCH_INC_URL', WP_PLUGIN_URL . '/wp-publication-archive/includes' );
+if ( ! defined('WP_PUB_ARCH_IMG_URL') )
+	define( 'WP_PUB_ARCH_IMG_URL', WP_PLUGIN_URL . '/wp-publication-archive/images' );
+if ( ! defined('WP_PUB_ARCH_LIB_URL') )
+	define( 'WP_PUB_ARCH_LIB_URL', WP_PLUGIN_URL . '/wp-publication-archive/lib' );
 
-function wp_publication_archive() {
-	return $wpa->shortcode_handler();
-}
+require_once('lib/class.wp-publication-archive.php');
+
+add_action( 'init',         array( 'WP_Publication_Archive', 'register_publication' ) );
+add_action( 'init',         array( 'WP_Publication_Archive', 'register_author' ) );
+add_action( 'init',         array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
+add_action( 'save_post',    array( 'WP_Publication_Archive', 'save_meta' ) );
+
+add_shortcode( 'wp-publication-archive', array( 'WP_Publication_Archive', 'shortcode_handler' ) );
+?>

@@ -51,45 +51,41 @@ class WP_Publication_Archive {
 		'application/x-tar' => 'zip'
 	);
 	
-	static function get_image( $doctype ) {
+	public static function get_image( $doctype ) {
 		$path = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__));
-		if( ! isset( self::$mimetypes[$doctype] ) ) {
+		if( ! isset( WP_Publication_Archive::$mimetypes[$doctype] ) ) {
 			return $path . 'icons/' . 'unknown.png';
 		}
 		
-		return $path . 'icons/' . self::$mimetypes[$doctype] . '.png';
+		return $path . 'icons/' . WP_Publication_Archive::$mimetypes[$doctype] . '.png';
 	}
 
-	function WP_Publication_Archive() {
-		add_action( 'init', array( &$this, 'setup' ) );
-		
-		add_action( 'save_post', array( &$this, 'save_meta' ) );
-		
+	public static function enqueue_scripts_and_styles() {
 		if( is_admin() ) {
 			wp_enqueue_script( 'media-upload' );
 			wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
 		} else {
-			wp_enqueue_style( 'wp-publication-archive-frontend', plugins_url('/front-end.css', __FILE__), '', '2.0', 'all' );
+			wp_enqueue_style( 'wp-publication-archive-frontend', plugins_url( '/includes/front-end.css', __FILE__ ), '', '2.0', 'all' );
 		}
-		
-		add_shortcode( 'wp-publication-archive', array( &$this, 'shortcode_handler' ) );
 	}
-	
-	function setup() {
+
+	public static function register_publication() {
+		$labels = array(
+			'name'                  => __( 'Publications' ),
+			'singular_name'         => __( 'Publication' ),
+			'add_new_item'          => __( 'Add New Publication' ),
+			'edit_item'             => __( 'Edit Publication' ),
+			'new_item'              => __( 'New Publication' ),
+			'view_item'             => __( 'View Publication' ),
+			'search_items'          => __( 'Search Publications' ),
+			'not_found'             => __( 'No publications found' ),
+			'not_found_in_trash'    => __( 'No publications found in trash' )
+		);
+
 		register_post_type( 'publication',
 			array(
-				'labels' => array(
-					'name' => __( 'Publications' ),
-					'singular_name' => __( 'Publication' ),
-					'add_new_item' => __( 'Add New Publication' ),
-					'edit_item' => __( 'Edit Publication' ),
-					'new_item' => __( 'New Publication' ),
-					'view_item' => __( 'View Publication' ),
-					'search_items' => __( 'Search Publications' ),
-					'not_found' => __( 'No publications found' ),
-					'not_found_in_trash' => __( 'No publications found in trash' )
-				),
+				'labels' => $labels,
 				'capability_type' => 'post',
 				'public' => true,
 				'menu_position' => 20,
@@ -101,13 +97,15 @@ class WP_Publication_Archive {
 					'post_tag'
 				),
 				'exclude_from_search' => true,
-				'register_meta_box_cb' => array( &$this, 'pub_meta_boxes' ),
+				'register_meta_box_cb' => array( 'WP_Publication_Archive', 'pub_meta_boxes' ),
 				'rewrite' => false,
 				'can_export' => true,
-				'menu_icon' => WP_PLUGIN_URL . '/' . str_replace( basename( __FILE__ ), '', plugin_basename( __FILE__ ) ) . 'cabinet.png'
+				'menu_icon' => WP_PUB_ARCH_IMG_URL . '/cabinet.png'
 			)
 		);
-	
+	}
+
+	public static function register_author() {
 		$labels = array(
 			'name' => __( 'Authors' ),
 			'singular_name' => __( 'Author' ),
@@ -120,7 +118,7 @@ class WP_Publication_Archive {
 			'new_item_name' => __( 'New Author Name' ),
 		    'menu_name' => __( 'Authors' ),
 		);
-	
+
 		register_taxonomy(
 			'publication-author',
 			array( 'publication' ),
@@ -133,15 +131,15 @@ class WP_Publication_Archive {
 			)
 		);
 	}
-	
-	function pub_meta_boxes() {
-		add_meta_box( 'publication_desc', 'Summary', array( &$this, 'doc_desc_box' ), 'publication', 'normal', 'high', '' );	
-		add_meta_box( 'publication_uri', 'Publication', array( &$this, 'doc_uri_box' ), 'publication', 'normal', 'high', '' );
+
+	public static function pub_meta_boxes() {
+		add_meta_box( 'publication_desc', 'Summary', array( 'WP_Publication_Archive', 'doc_desc_box' ), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_uri', 'Publication', array( 'WP_Publication_Archive', 'doc_uri_box' ), 'publication', 'normal', 'high', '' );
 		
 		remove_meta_box( 'slugdiv', 'publication', 'core' );
 	}
-	
-	function doc_desc_box() {
+
+	public static function doc_desc_box() {
 		global $post;
 		
 		$desc = get_post_meta( $post->ID, 'wpa_doc_desc', true );
@@ -151,7 +149,7 @@ class WP_Publication_Archive {
 		echo '<textarea id="wpa_doc_desc" name="wpa_doc_desc" rows="5" style="width:100%">' . $desc . '</textarea>';
 	}
 	
-	function doc_uri_box() {
+	public static function doc_uri_box() {
 		global $post;
 		
 		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
@@ -179,8 +177,8 @@ jQuery(document).ready(function() {
 });
 </script>\r\n";
 	}
-	
-	function save_meta( $post_id ) {
+
+	public static function save_meta( $post_id ) {
 		$post = get_post( $post_id );
 		if( $post->post_type != 'publication' ) {
 			return $post_id;
@@ -202,13 +200,13 @@ jQuery(document).ready(function() {
 		
 		return $post_id;
 	}
-	
+
 	public static function shortcode_handler() {
 		global $post;
 		
 		require_once('class.mimetype.php');
 		$mime = new mimetype();
-		$downloadroot = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__)) . 'openfile.php?file=';
+		$downloadroot = WP_PLUGIN_URL . '/' . str_replace( basename( __FILE__), "", plugin_basename(__FILE__) ) . 'includes/openfile.php?file=';
 		
 		if(isset($_GET['paged'])) {
 			$paged = (int)$_GET['paged'];
