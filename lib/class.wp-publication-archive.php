@@ -341,3 +341,4 @@ jQuery(document).ready(function() {
 		return $list;
 	}
 }
+?>
