@@ -206,10 +206,6 @@ jQuery(document).ready(function() {
 				), $atts ) );
 		
 		global $post;
-		
-		require_once('class.mimetype.php');
-		$mime = new mimetype();
-		$downloadroot = WP_PUB_ARCH_INC_URL . '/openfile.php?file=';
 
 		// Create an array of category IDs based on the categories fed in.
 		$catFilter = array();
@@ -220,8 +216,8 @@ jQuery(document).ready(function() {
 				$catFilter[] = $id;
 		}
 
-		if(isset($_GET['paged'])) {
-			$paged = (int)$_GET['paged'];
+		if(isset($_GET['wpa-paged'])) {
+			$paged = (int)$_GET['wpa-paged'];
 			$offset = 10 * ($paged - 1);
 		} else {
 			$paged = 1;
@@ -245,85 +241,15 @@ jQuery(document).ready(function() {
 		
 		// Create publication list
 		foreach( $publications as $publication ) {
-			$summary = get_post_meta( $publication->ID, 'wpa_doc_desc', true );
-			$uri = get_post_meta ( $publication->ID, 'wpa_upload_doc', true );
-			
-			$tags = wp_get_post_tags( $publication->ID );
-			if( count( $tags ) > 0 ) {
-				$keywords = '';
-				foreach( $tags as $tag ) {
-					if($keywords != '') $keywords .= ', ';
-					$keywords .= $tag->name;
-				}
-			} else {
-				$keywords = false;
-			}
-			
-			$cats = get_the_category ( $publication->ID );
-			if( count( $cats ) > 0 ) {
-				$categories = '';
-				foreach( $cats as $cat ) {
-					if($categories != '') $categories .= ', ';
-					$categories .= $cat->name;
-				}
-			} else {
-				$categories = false;
-			}
-			
-			$auths = wp_get_post_terms( $publication->ID, 'publication-author' );
-			if( count( $auths ) > 0 ) {
-				$authors = '';
-				foreach( $auths as $author ) {
-					if($authors != '') $authors .= ', ';
-					$authors .= $author->name;
-				}
-			} else {
-				$authors = false;
-			}
-			
+			$pub = new WP_Publication_Archive_Item( $publication->ID, $publication->post_title, $publication->post_date );
+
 			$list .= '<div class="single-publication">';
-		
-			$list .= '<div class="publication_title">';
-			$list .= $publication->post_title;
-			$list .= '</div>';
-			
-			$list .= '<div class="publication_authors">';
-			if( $authors ) {
-				$list .= '<span class="author-list">' . $authors . '</span>';
-			}
-			$list .= '<span class="date">(' . date( 'F j, Y', strtotime( $publication->post_date ) ) . ')</span>';
-			$list .= '</div>';
-			
-			if( $uri != 'http://' && $uri != '' ) {
-				$list .= '<div class="publication_download">';
-				$list .= '<span class="title">Download: </span>';
-				$list .= '<span class="description"><a href="' . $downloadroot . $uri . '">';
-				$list .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( $mime->getType( $uri ) ) . '" />Download</a>';
-				$list .= '</span>';
-				$list .= '</div>';
-			}
-			
-			if( $summary != '' ) {
-				$list .= '<div class="publication_summary">';
-				$list .= '<span class="title">Summary: </span>';
-				$list .= '<span class="description">' . $summary . '</span>';
-				$list .= '</div>';
-			}
-			
-			if( $keywords ) {
-				$list .= '<div class="publication_keywords">';
-				$list .= '<span class="title">Keywords: </span>';
-				$list .= '<span class="description">' . $keywords . '</span>';
-				$list .= '</div>';
-			}
-			
-			if( $categories ) {
-				$list .= '<div class="publication_categories">';
-				$list .= '<span class="title">Categories: </span>';
-				$list .= '<span class="description">' . $categories . '</span>';
-				$list .= '</div>';
-			}
-			
+				$list .= $pub->get_the_title();
+				$list .= $pub->get_the_authors();
+				$list .= $pub->get_the_uri();
+				$list .= $pub->get_the_summary();
+				$list .= $pub->get_the_keywords();
+				$list .= $pub->get_the_categories();
 			$list .= "</div>";
 		}
 		
@@ -331,10 +257,13 @@ jQuery(document).ready(function() {
 		
 		if( wp_count_posts( 'publication' )->publish > 10 ) {
 			$list .= '<div id="navigation">';
-			
+
+			$next = add_query_arg( 'wpa-paged', $paged + 1, get_permalink($post->ID) );
+			$prev = add_query_arg( 'wpa-paged', $paged - 1, get_permalink($post->ID) );
+
 			if($offset > 0) {
 				$list .= '<div class="nav-previous">';
-				$list .= '<a href="' . get_permalink($post->ID) . '&paged=' . ($paged - 1) . '">';
+				$list .= '<a href="' . $prev . '">';
 				$list .= '&laquo; Previous';
 				$list .= '</a>';
 				$list .= '</div>';
@@ -342,7 +271,7 @@ jQuery(document).ready(function() {
 			
 			if($offset + 10 < wp_count_posts( 'publication' )->publish ) {
 				$list .= '<div class="nav-next">';
-				$list .= '<a href="' . get_permalink($post->ID) . '&paged=' . ($paged + 1) . '">';
+				$list .= '<a href="' . $next . '">';
 				$list .= 'Next &raquo;';
 				$list .= '</a>';
 				$list .= '</div>';
@@ -352,6 +281,11 @@ jQuery(document).ready(function() {
 		}
 		
 		return $list;
+	}
+
+	public static function query_vars( $public_vars ) {
+		$public_vars[] = 'wpa-paged';
+		return $public_vars;
 	}
 }
 ?>
