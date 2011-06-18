@@ -81,25 +81,34 @@ class WP_Publication_Archive_Item {
 		echo $this->get_the_authors();
 	}
 
+	public function get_the_link() {
+		$downloadroot = WP_PUB_ARCH_INC_URL . '/openfile.php?file=';
+
+		$uri = apply_filters( 'wpa-uri', $this->uri, $this->ID );
+
+		if ( 'http://' == $uri || '' == $uri )
+			return '';
+
+		return $downloadroot . $uri;
+	}
+
 	public function get_the_uri() {
 		require_once('class.mimetype.php');
 		$mime = new mimetype();
-
-		$downloadroot = WP_PUB_ARCH_INC_URL . '/openfile.php?file=';
 
 		$before = '<div class="publication_download">';
 		$before .= '<span class="title">Download: </span>';
 		$before .= '<span class="descrition"><a href="';
 
-		$uri = apply_filters( 'wpa-uri', $this->uri, $this->ID );
+		$uri = $this->get_the_link();
 
 		$after = '">';
 		$after .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( $mime->getType( $uri ) ) . '" />Download</a>';
 		$after .= '</span>';
 		$after .= '</div>';
 
-		if ( $uri != 'http://' && $uri != '' ) {
-			return $before . $downloadroot . $uri . $after;
+		if ( $uri != '' ) {
+			return $before . $uri . $after;
 		}
 
 		return $uri;

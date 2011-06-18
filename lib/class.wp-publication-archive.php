@@ -95,9 +95,7 @@ class WP_Publication_Archive {
 					'category',
 					'post_tag'
 				),
-				'exclude_from_search' => true,
 				'register_meta_box_cb' => array( 'WP_Publication_Archive', 'pub_meta_boxes' ),
-				'rewrite' => false,
 				'can_export' => true,
 				'menu_icon' => WP_PUB_ARCH_IMG_URL . '/cabinet.png'
 			)
@@ -286,6 +284,14 @@ jQuery(document).ready(function() {
 	public static function query_vars( $public_vars ) {
 		$public_vars[] = 'wpa-paged';
 		return $public_vars;
+	}
+
+	public static function publication_link( $permalink, $post ) {
+		if( 'publication' != $post->post_type )
+			return $permalink;
+
+		$pub = new WP_Publication_Archive_Item( $post->ID, $post->post_title, $post->post_date );
+		return $pub->get_the_link();
 	}
 }
 ?>
