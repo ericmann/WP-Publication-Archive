@@ -4,13 +4,18 @@ Donate link: http://jumping-duck.com/wordpress
 Tags: document management, pdf, doc, archive
 Requires at least: 3.0
 Tested up to: 3.2
-Stable tag: 2.2
+Stable tag: 2.3
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
 
 == Description ==
 
-WP Publication Archive adds a custom content type for storing, tagging, and categorizing downloadable content external to standard WordPress posts and pages.  You can add downloadable PDF files, Word documents, and PowerPoint presentations.  These files will be stored in the standard WordPress uploads directory but will be managed separately through a custom post type interface in the WordPress admin area.
+WP Publication Archive adds a custom content type for storing, tagging, and categorizing downloadable content external to
+standard WordPress posts and pages.  You can add downloadable PDF files, Word documents, and PowerPoint presentations.
+These files will be stored in the standard WordPress uploads directory but will be managed separately through a custom
+post type interface in the WordPress admin area.
+
+*This plugin requires PHP5*
 
 == Installation ==
 
@@ -53,6 +58,9 @@ All other file types will feature a generic "file" icon.
 No screenshots are available at this time.
 
 == Changelog ==
+
+= 2.3 =
+* Add publications to standard WordPress search results
 
 = 2.2 =
 * Add pagination for more than 10 publications
