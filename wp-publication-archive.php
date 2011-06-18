@@ -42,12 +42,13 @@ add_option( 'wp-publication-archive-core', '2.0', '', 'no' );
 require_once( 'lib/class.wp-publication-archive.php' );
 require_once( 'lib/class.publication-markup.php' );
 
-add_action( 'init',         array( 'WP_Publication_Archive', 'register_publication' ) );
-add_action( 'init',         array( 'WP_Publication_Archive', 'register_author' ) );
-add_action( 'init',         array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
-add_action( 'save_post',    array( 'WP_Publication_Archive', 'save_meta' ) );
+add_action( 'init',             array( 'WP_Publication_Archive', 'register_publication' ) );
+add_action( 'init',             array( 'WP_Publication_Archive', 'register_author' ) );
+add_action( 'init',             array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
+add_action( 'save_post',        array( 'WP_Publication_Archive', 'save_meta' ) );
 
-add_filter( 'query_vars',   array( 'WP_Publication_Archive', 'query_vars' ) );
+add_filter( 'post_type_link',   array( 'WP_Publication_Archive', 'publication_link' ), 10, 2 );
+add_filter( 'query_vars',       array( 'WP_Publication_Archive', 'query_vars' ) );
 
 add_shortcode( 'wp-publication-archive', array( 'WP_Publication_Archive', 'shortcode_handler' ) );
 ?>
