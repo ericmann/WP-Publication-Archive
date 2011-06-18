@@ -293,5 +293,22 @@ jQuery(document).ready(function() {
 		$pub = new WP_Publication_Archive_Item( $post->ID, $post->post_title, $post->post_date );
 		return $pub->get_the_link();
 	}
+
+	public static function the_content() {
+		global $post;
+		if( 'publication' != $post->post_type )
+			return $post->post_content;
+
+		$pub = new WP_Publication_Archive_Item( $post->ID, $post->post_title, $post->post_date );
+		return $pub->summary;
+	}
+
+	public static function the_title( $title, $id ) {
+		$post = &get_post( $id );
+		if( 'publication' != $post->post_type )
+			return $title;
+
+		return $title . " (Download Publication)";
+	}
 }
 ?>

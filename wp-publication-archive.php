@@ -49,6 +49,8 @@ add_action( 'save_post',        array( 'WP_Publication_Archive', 'save_meta' ) )
 
 add_filter( 'post_type_link',   array( 'WP_Publication_Archive', 'publication_link' ), 10, 2 );
 add_filter( 'query_vars',       array( 'WP_Publication_Archive', 'query_vars' ) );
+add_filter( 'the_content',      array( 'WP_Publication_Archive', 'the_content' ) );
+add_filter( 'the_title',        array( 'WP_Publication_Archive', 'the_title' ), 10, 2 );
 
 add_shortcode( 'wp-publication-archive', array( 'WP_Publication_Archive', 'shortcode_handler' ) );
 ?>
