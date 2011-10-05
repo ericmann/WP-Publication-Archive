@@ -253,7 +253,7 @@ jQuery(document).ready(function() {
 		
 		$list .= '</div>';
 		
-		if( wp_count_posts( 'publication' )->publish > 10 ) {
+		if( count( $publications ) > 10 ) {
 			$list .= '<div id="navigation">';
 
 			$next = add_query_arg( 'wpa-paged', $paged + 1, get_permalink($post->ID) );
