@@ -294,10 +294,10 @@ jQuery(document).ready(function() {
 		return $pub->get_the_link();
 	}
 
-	public static function the_content() {
+	public static function the_content( $content ) {
 		global $post;
 		if( 'publication' != $post->post_type )
-			return $post->post_content;
+			return $content;
 
 		$pub = new WP_Publication_Archive_Item( $post->ID, $post->post_title, $post->post_date );
 		return $pub->summary;
