@@ -152,7 +152,7 @@ class WP_Publication_Archive_Item {
 	}
 
 	public function get_the_categories() {
-		$before = '<div class="publication_categoris">';
+		$before = '<div class="publication_categories">';
 		$before .= '<span class="title">Categories: </span>';
 		$before .= '<span class="description">';
 

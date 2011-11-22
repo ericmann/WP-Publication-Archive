@@ -4,7 +4,7 @@ Donate link: http://jumping-duck.com/wordpress
 Tags: document management, pdf, doc, archive
 Requires at least: 3.0
 Tested up to: 3.2
-Stable tag: 2.3
+Stable tag: 2.3.1
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
 
@@ -59,6 +59,10 @@ No screenshots are available at this time.
 
 == Changelog ==
 
+= 2.3.1 =
+* URGENT SECURITY UPDATE
+* Fix some outstanding bugs
+
 = 2.3 =
 * Add publications to standard WordPress search results
 
@@ -90,6 +94,9 @@ No screenshots are available at this time.
 * Original release of WP Publications Archive by Luis Lino
 
 == Upgrade Notice ==
+
+= 2.3.1 =
+URGENT SECURITY UPDATE!!!
 
 = 2.2 =
 This version will *only* work with PHP 5 or above!
