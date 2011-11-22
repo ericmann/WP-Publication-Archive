@@ -1,6 +1,9 @@
 <?php
 if ( ! isset($_GET['file']) )
 	die();
+	
+if ( strpos( $_GET['file'], (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] ) === false )
+	die();
 
 require_once('../lib/class.mimetype.php');
 $mime = new mimetype();

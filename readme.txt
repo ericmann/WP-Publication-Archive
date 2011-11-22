@@ -28,12 +28,11 @@ post type interface in the WordPress admin area.
 
 = How do I upload a new file? =
 
-There are two ways to upload files:
+Use the built-in media uploader on the "Add Publication" screen.  This is a change from previous versions where you could manually specify the full URL of the attachment.  That format exposed your site to a potential security vulnerability and has been removed.
 
-1. Upload a file via FTP to any location on your server
-1. Use the built-in media uploader on the "Add Publication" screen
+= OK, will I be able to use remote files in the future? =
 
-Whether you use FTP or the built-in uploader, make sure you use the *full URL* of the file, otherwise WordPress won't know where to find it.
+Absolutely!  A future version will better handle fully-qualified filenames and once again allow for remote URLs.  Unfortunately, that version might take a few more months to polish enough for release ...
 
 = How do I list my publications? =
 
