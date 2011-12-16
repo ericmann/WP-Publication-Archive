@@ -4,7 +4,7 @@ Donate link: http://jumping-duck.com/wordpress
 Tags: document management, pdf, doc, archive
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 2.3.2
+Stable tag: 2.3.2.1
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
 
@@ -38,6 +38,14 @@ Absolutely!  A future version will better handle fully-qualified filenames and o
 
 You can display a list of publications either by includeing the [wp-publication-archive] shortcode on a post/page or by placing <?php wp_publication_archive(); ?> in your theme template files.  WordPress will render your publication list automatically.
 
+= Can I filter the list by category =
+
+Yes!  Just include `categories="cat-1,cat2"` in your shortcode where "cat-1" and "cat-2" are the *slugs* of the categories you want to display.
+
+= Can I filter the list by author? =
+
+Yes!  Just include `author="author-name"` in your shortcode where "author-name" is the *slug* of the author you want to display.
+
 = What File Types are Available =
 
 By default, the plug-in contains icons for several common file types.  The icons include:
@@ -57,6 +65,9 @@ All other file types will feature a generic "file" icon.
 No screenshots are available at this time.
 
 == Changelog ==
+
+= 2.3.2.1 =
+* Add "author" filter to shortcode
 
 = 2.3.2 =
 * Fixes pagination bug

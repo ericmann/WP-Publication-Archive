@@ -200,7 +200,8 @@ jQuery(document).ready(function() {
 
 	public static function shortcode_handler( $atts ) {
 		extract( shortcode_atts( array(
-				'categories' => ''
+				'categories' => '',
+				'author' => ''
 				), $atts ) );
 		
 		global $post;
@@ -236,7 +237,15 @@ jQuery(document).ready(function() {
 			'post_status' => 'publish',
 			'category__in' => $catFilter
 		);
-		
+
+		if('' != $author) {
+			$args['tax_query'] = array(array(
+				'taxonomy' => 'publication-author',
+				'field' => 'slug',
+				'terms' => $author
+			));
+		}
+
 		$publications = get_posts( $args );
 
 		$args['numberposts'] = -1;
