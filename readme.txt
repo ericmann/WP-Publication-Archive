@@ -3,8 +3,8 @@ Contributors: ericmann
 Donate link: http://jumping-duck.com/wordpress
 Tags: document management, pdf, doc, archive
 Requires at least: 3.0
-Tested up to: 3.2
-Stable tag: 2.3.1
+Tested up to: 3.3
+Stable tag: 2.3.2
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
 
@@ -57,6 +57,10 @@ All other file types will feature a generic "file" icon.
 No screenshots are available at this time.
 
 == Changelog ==
+
+= 2.3.2 =
+* Fixes pagination bug
+* Fixes issue where some installations could not load files starting with "http://"
 
 = 2.3.1 =
 * URGENT SECURITY UPDATE
