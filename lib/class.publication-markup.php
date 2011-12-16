@@ -15,6 +15,9 @@ class WP_Publication_Archive_Item {
 		$this->summary = get_post_meta( $this->ID, 'wpa_doc_desc', true );
 		$this->uri = get_post_meta( $this->ID, 'wpa_upload_doc', true );
 
+		$this->uri = str_replace('http://', 'http|', $this->uri);
+		$this->uri = str_replace('https://', 'https|', $this->uri);
+
 		$tags = wp_get_post_tags( $this->ID );
 		if ( count( $tags ) > 0 ) {
 			$this->keywords = '';
@@ -86,7 +89,7 @@ class WP_Publication_Archive_Item {
 
 		$uri = apply_filters( 'wpa-uri', $this->uri, $this->ID );
 
-		if ( 'http://' == $uri || '' == $uri )
+		if ( 'http|' == $uri || '' == $uri )
 			return '';
 
 		return $downloadroot . $uri;

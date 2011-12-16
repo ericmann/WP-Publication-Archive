@@ -2,13 +2,14 @@
 if ( ! isset($_GET['file']) )
 	die();
 	
-if ( strpos( $_GET['file'], (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] ) === false )
+if ( strpos( $_GET['file'], (isset($_SERVER['HTTPS']) ? 'https|' : 'http|') . $_SERVER['SERVER_NAME'] ) === false )
 	die();
 
 require_once('../lib/class.mimetype.php');
 $mime = new mimetype();
 
-$fPath = $_GET['file'];
+$fPath = str_replace('http|', 'http://', $_GET['file']);
+$fPath = str_replace('https|', 'https://', $fPath);
 $fType = $mime->getType( $fPath );
 $fName = basename($fPath);
 
