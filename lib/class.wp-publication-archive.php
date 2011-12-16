@@ -215,7 +215,7 @@ jQuery(document).ready(function() {
 				$catFilter[] = $id;
 		}
 
-		$pubs_per_page = apply_filters( 'wpa-pubs_per_page', 2 );
+		$pubs_per_page = apply_filters( 'wpa-pubs_per_page', 10 );
 
 		if(isset($_GET['wpa-paged'])) {
 			$paged = (int)$_GET['wpa-paged'];
