@@ -214,9 +214,11 @@ jQuery(document).ready(function() {
 				$catFilter[] = $id;
 		}
 
+		$pubs_per_page = apply_filters( 'wpa-pubs_per_page', 2 );
+
 		if(isset($_GET['wpa-paged'])) {
 			$paged = (int)$_GET['wpa-paged'];
-			$offset = 10 * ($paged - 1);
+			$offset = $pubs_per_page * ($paged - 1);
 		} else {
 			$paged = 1;
 			$offset = 0;
@@ -227,7 +229,7 @@ jQuery(document).ready(function() {
 		// Get publications
 		$args = array(
 			'offset' => $offset,
-			'numberposts' => 10,
+			'numberposts' => $pubs_per_page,
 			'post_type' => 'publication',
 			'orderby' => 'post_date',
 			'order' => 'DESC',
@@ -236,6 +238,9 @@ jQuery(document).ready(function() {
 		);
 		
 		$publications = get_posts( $args );
+
+		$args['numberposts'] = -1;
+		$total_pubs = count( get_posts( $args ) );
 		
 		// Create publication list
 		foreach( $publications as $publication ) {
@@ -252,8 +257,8 @@ jQuery(document).ready(function() {
 		}
 		
 		$list .= '</div>';
-		
-		if( count( $publications ) > 10 ) {
+
+		if( $total_pubs > $pubs_per_page ) {
 			$list .= '<div id="navigation">';
 
 			$next = add_query_arg( 'wpa-paged', $paged + 1, get_permalink($post->ID) );
@@ -267,7 +272,7 @@ jQuery(document).ready(function() {
 				$list .= '</div>';
 			}
 			
-			if($offset + 10 < wp_count_posts( 'publication' )->publish ) {
+			if($offset + $pubs_per_page < $total_pubs ) {
 				$list .= '<div class="nav-next">';
 				$list .= '<a href="' . $next . '">';
 				$list .= 'Next &raquo;';
@@ -277,7 +282,7 @@ jQuery(document).ready(function() {
 			
 			$list .= '</div>';
 		}
-		
+
 		return $list;
 	}
 
