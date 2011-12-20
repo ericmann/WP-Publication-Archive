@@ -8,12 +8,14 @@ class WP_Publication_Archive_Item {
 	var $keywords;
 	var $categories;
 	var $authors;
+	var $upload_image;
 
 	public function __construct() {
 		@list($this->ID, $this->title, $this->date) = func_get_args();
 
 		$this->summary = get_post_meta( $this->ID, 'wpa_doc_desc', true );
 		$this->uri = get_post_meta( $this->ID, 'wpa_upload_doc', true );
+		$this->upload_image = get_post_meta( $this->ID, 'upload_image', true );
 
 		$this->uri = str_replace('http://', 'http|', $this->uri);
 		$this->uri = str_replace('https://', 'https|', $this->uri);
@@ -94,6 +96,25 @@ class WP_Publication_Archive_Item {
 
 		return $downloadroot . $uri;
 	}
+	
+	public function get_the_thumb() {
+		$before = '<div class="publication-thumb">';
+		$before .= '<img src="';
+		$after = '" />';
+		$after .= '</div>';
+
+		$thumb =  apply_filters( 'upload_image', $this->upload_image, $this->ID );
+    
+    if ( $thumb != '' ) {
+		  return $before . $thumb . $after;
+	  }
+	  
+	  return $thumb;
+	}
+	
+	public function the_thumb() {
+		echo $this->get_the_thumb();
+	}
 
 	public function get_the_uri() {
 		require_once('class.mimetype.php');
@@ -101,7 +122,7 @@ class WP_Publication_Archive_Item {
 
 		$before = '<div class="publication_download">';
 		$before .= '<span class="title">Download: </span>';
-		$before .= '<span class="descrition"><a href="';
+		$before .= '<span class="description"><a href="';
 
 		$uri = $this->get_the_link();
 
@@ -122,7 +143,6 @@ class WP_Publication_Archive_Item {
 
 	public function get_the_summary() {
 		$before = '<div class="publication_summary">';
-		$before .= '<span class="title">Summary: </span>';
 		$before .= '<span class="description">';
 
 		$after = '</span></div>';
