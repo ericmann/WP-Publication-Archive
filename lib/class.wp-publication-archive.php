@@ -71,15 +71,15 @@ class WP_Publication_Archive {
 
 	public static function register_publication() {
 		$labels = array(
-			'name'                  => __( 'Publications' ),
-			'singular_name'         => __( 'Publication' ),
-			'add_new_item'          => __( 'Add New Publication' ),
-			'edit_item'             => __( 'Edit Publication' ),
-			'new_item'              => __( 'New Publication' ),
-			'view_item'             => __( 'View Publication' ),
-			'search_items'          => __( 'Search Publications' ),
-			'not_found'             => __( 'No publications found' ),
-			'not_found_in_trash'    => __( 'No publications found in trash' )
+			'name'                  => __( 'Free Projects' ),
+			'singular_name'         => __( 'Free Project' ),
+			'add_new_item'          => __( 'Add Free Project' ),
+			'edit_item'             => __( 'Edit Projects' ),
+			'new_item'              => __( 'New Project' ),
+			'view_item'             => __( 'View Project' ),
+			'search_items'          => __( 'Search Free Projects' ),
+			'not_found'             => __( 'No free projects found' ),
+			'not_found_in_trash'    => __( 'No free projects found in trash' )
 		);
 
 		register_post_type( 'publication',
@@ -87,7 +87,7 @@ class WP_Publication_Archive {
 				'labels' => $labels,
 				'capability_type' => 'post',
 				'public' => true,
-				'menu_position' => 20,
+				'menu_position' => 150,
 				'supports' => array(
 					'title'
 				),
@@ -132,6 +132,7 @@ class WP_Publication_Archive {
 	public static function pub_meta_boxes() {
 		add_meta_box( 'publication_desc', 'Summary', array( 'WP_Publication_Archive', 'doc_desc_box' ), 'publication', 'normal', 'high', '' );
 		add_meta_box( 'publication_uri', 'Publication', array( 'WP_Publication_Archive', 'doc_uri_box' ), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_thumb', 'Thumb', array( 'WP_Publication_Archive', 'doc_thumb_box' ), 'publication', 'normal', 'high', '');
 		
 		remove_meta_box( 'slugdiv', 'publication', 'core' );
 	}
@@ -144,6 +145,55 @@ class WP_Publication_Archive {
 		wp_nonce_field( plugin_basename(__FILE__), 'wpa_nonce' );
 		echo '<p>Provide a short description of the publication:</p>';
 		echo '<textarea id="wpa_doc_desc" name="wpa_doc_desc" rows="5" style="width:100%">' . $desc . '</textarea>';
+	}
+	
+	/* A Trip Function */
+	public static function doc_thumb_box() {
+    global $post;
+    
+    $thumb = get_post_meta( $post->ID, 'upload_image', true );
+
+    function my_admin_scripts() {
+    wp_enqueue_script('media-upload');
+    wp_enqueue_script('thickbox');
+    wp_enqueue_script('my-upload');
+    }
+
+    function my_admin_styles() {
+    wp_enqueue_style('thickbox');
+    }
+
+    if (isset($_GET['page']) && $_GET['page'] == 'my_plugin_page') {
+    add_action('admin_print_scripts', 'my_admin_scripts');
+    add_action('admin_print_styles', 'my_admin_styles');
+    }
+
+    echo 'Enter an URL or upload an image for the thumb.';
+    echo '<br />';
+    echo '<br />';
+    echo '<label for="upload_image">';
+    echo '<input id="upload_image" type="text" size="36" name="upload_image" value=" ' . $thumb . '" />';
+    echo '<input id="upload_image_button" type="button" value="Upload Thumb" />';
+
+    
+    echo "<script type=\"text/javascript\">
+    jQuery(document).ready(function() {
+
+    jQuery('#upload_image_button').click(function() {
+     formfield = jQuery('#upload_image').attr('name');
+     tb_show('', 'media-upload.php?type=image&amp;TB_iframe=true');
+     return false;
+    });
+
+    window.send_to_editor = function(html) {
+     imgurl = jQuery('img',html).attr('src');
+     jQuery('#upload_image').val(imgurl);
+     tb_remove();
+    }
+
+    });
+    </script>\r\n";
+    
 	}
 	
 	public static function doc_uri_box() {
@@ -191,9 +241,11 @@ jQuery(document).ready(function() {
 		
 		$description = $_POST['wpa_doc_desc'];
 		$uri = $_POST['wpa_upload_doc'];
+		$thumb = $_POST['upload_image'];
 			
 		update_post_meta( $post_id, 'wpa_doc_desc', $description );
 		update_post_meta( $post_id, 'wpa_upload_doc', $uri );
+		update_post_meta( $post_id, 'upload_image', $thumb);
 		
 		return $post_id;
 	}
@@ -256,12 +308,11 @@ jQuery(document).ready(function() {
 			$pub = new WP_Publication_Archive_Item( $publication->ID, $publication->post_title, $publication->post_date );
 
 			$list .= '<div class="single-publication">';
+			  $list .= $pub->get_the_thumb();
 				$list .= $pub->get_the_title();
-				$list .= $pub->get_the_authors();
 				$list .= $pub->get_the_uri();
 				$list .= $pub->get_the_summary();
 				$list .= $pub->get_the_keywords();
-				$list .= $pub->get_the_categories();
 			$list .= "</div>";
 		}
 		
