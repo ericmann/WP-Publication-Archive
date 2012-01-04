@@ -161,17 +161,17 @@ class WP_Publication_Archive {
 		echo '<input class="button" id="upload_doc_button" type="button" value="Upload Publication" alt="Upload Publication" />';
 		echo "<script type=\"text/javascript\">
 jQuery(document).ready(function() {
-	jQuery('#upload_doc_button').click(function() {
+	jQuery('#upload_doc_button').on('click', function() {
+		window.send_to_editor = function(html) {
+			var docurl = jQuery(html).attr('href');
+			jQuery('#wpa_upload_doc').val(docurl);
+			tb_remove();
+		};
+
 		formfield = jQuery('#wpa_upload_doc').attr('name');		
 		tb_show('Upload Publication', 'media-upload.php?TB_iframe=1&width=640&height=263');
 		return false;
 	});
-	
-	window.send_to_editor = function(html) {
-		var docurl = jQuery(html).attr('href');
-		jQuery('#wpa_upload_doc').val(docurl);
-		tb_remove();
-	}
 });
 </script>\r\n";
 	}
@@ -190,19 +190,17 @@ jQuery(document).ready(function() {
 
 		echo "<script type=\"text/javascript\">
 	jQuery(document).ready(function() {
-		jQuery('#wpa-upload_image_button').click(function() {
+		jQuery('#wpa-upload_image_button').on('click', function() {
+			window.send_to_editor = function(html) {
+				var imgurl = jQuery('img',html).attr('src');
+				jQuery('#wpa-upload_image').val(imgurl);
+				tb_remove();
+			}
+
 			formfield = jQuery('#upload_image').attr('name');
-
-			tb_show('', 'media-upload.php?type=image&amp;TB_iframe=true');
-
+			tb_show('Upload Thumbnail Image', 'media-upload.php?type=image&amp;TB_iframe=true');
 			return false;
 		});
-
-		window.send_to_editor = function(html) {
-			imgurl = $('img',html).attr('src');
-			jQuery('#wpa-upload_image').val(imgurl);
-			tb_remove();
-		}
 	});
 </script>\r\n";
 	}
