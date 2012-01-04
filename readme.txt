@@ -66,6 +66,9 @@ No screenshots are available at this time.
 
 == Changelog ==
 
+= 2.3.4 =
+* Add thumbnail support
+
 = 2.3.3 =
 * Immediate fix to a typo
 

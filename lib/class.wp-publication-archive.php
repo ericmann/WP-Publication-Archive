@@ -132,6 +132,7 @@ class WP_Publication_Archive {
 	public static function pub_meta_boxes() {
 		add_meta_box( 'publication_desc', 'Summary', array( 'WP_Publication_Archive', 'doc_desc_box' ), 'publication', 'normal', 'high', '' );
 		add_meta_box( 'publication_uri', 'Publication', array( 'WP_Publication_Archive', 'doc_uri_box' ), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_thumb', 'Thumbnail', array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
 		
 		remove_meta_box( 'slugdiv', 'publication', 'core' );
 	}
@@ -175,6 +176,37 @@ jQuery(document).ready(function() {
 </script>\r\n";
 	}
 
+	public static function doc_thumb_box() {
+		global $post;
+
+		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
+
+		echo 'Enter an URL or upload an image for the thumb.';
+		echo '<br />';
+		echo '<br />';
+		echo '<label for="wpa-upload_image">';
+		echo '<input id="wpa-upload_image" type="text" size="36" name="wpa-upload_image" value=" ' . $thumb . '" />';
+		echo '<input id="wpa-upload_image_button" type="button" value="Upload Thumb" />';
+
+		echo "<script type=\"text/javascript\">
+	jQuery(document).ready(function() {
+		jQuery('#wpa-upload_image_button').click(function() {
+			formfield = jQuery('#upload_image').attr('name');
+
+			tb_show('', 'media-upload.php?type=image&amp;TB_iframe=true');
+
+			return false;
+		});
+
+		window.send_to_editor = function(html) {
+			imgurl = $('img',html).attr('src');
+			jQuery('#wpa-upload_image').val(imgurl);
+			tb_remove();
+		}
+	});
+</script>\r\n";
+	}
+
 	public static function save_meta( $post_id ) {
 		$post = get_post( $post_id );
 		if( $post->post_type != 'publication' ) {
@@ -191,9 +223,11 @@ jQuery(document).ready(function() {
 		
 		$description = $_POST['wpa_doc_desc'];
 		$uri = $_POST['wpa_upload_doc'];
+		$thumbnail = $_POST['wpa-upload_image'];
 			
 		update_post_meta( $post_id, 'wpa_doc_desc', $description );
 		update_post_meta( $post_id, 'wpa_upload_doc', $uri );
+		update_post_meta( $post_id, 'wpa-upload_image', $thumbnail );
 		
 		return $post_id;
 	}
@@ -256,6 +290,7 @@ jQuery(document).ready(function() {
 			$pub = new WP_Publication_Archive_Item( $publication->ID, $publication->post_title, $publication->post_date );
 
 			$list .= '<div class="single-publication">';
+				$list .= $pub->get_the_thumbnail();
 				$list .= $pub->get_the_title();
 				$list .= $pub->get_the_authors();
 				$list .= $pub->get_the_uri();

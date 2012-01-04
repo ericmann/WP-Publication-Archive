@@ -8,12 +8,14 @@ class WP_Publication_Archive_Item {
 	var $keywords;
 	var $categories;
 	var $authors;
+	var $upload_image;
 
 	public function __construct() {
 		@list($this->ID, $this->title, $this->date) = func_get_args();
 
 		$this->summary = get_post_meta( $this->ID, 'wpa_doc_desc', true );
 		$this->uri = get_post_meta( $this->ID, 'wpa_upload_doc', true );
+		$this->upload_image = get_post_meta( $this->ID, 'wpa_upload_image', true );
 
 		$this->uri = str_replace('http://', 'http|', $this->uri);
 		$this->uri = str_replace('https://', 'https|', $this->uri);
@@ -56,12 +58,27 @@ class WP_Publication_Archive_Item {
 		$before = '<div class="publication_title">';
 		$after = '</div>';
 
-		$title =  apply_filters( 'wpa-title', $this->title, $this->ID );
+		$title = apply_filters( 'wpa-title', $this->title, $this->ID );
 
 		return $before . $title . $after;
 	}
 	public function the_title() {
 		echo $this->get_the_title();
+	}
+
+	public function get_the_thumbnail() {
+		$before = '<div class="publication_thumbnail">';
+		$after = '</div>';
+
+		$thumb = apply_filters( 'wpa-upload_image', $this->upload_image, $this->ID );
+
+		if ( '' ==$thumb )
+			return '';
+
+		return $before . '<img src="' . $thumb . '" />' . $after;
+	}
+	public function the_thumbnail() {
+		echo $this->get_the_thumbnail();
 	}
 
 	public function get_the_authors() {
@@ -101,7 +118,7 @@ class WP_Publication_Archive_Item {
 
 		$before = '<div class="publication_download">';
 		$before .= '<span class="title">Download: </span>';
-		$before .= '<span class="descrition"><a href="';
+		$before .= '<span class="description"><a href="';
 
 		$uri = $this->get_the_link();
 
