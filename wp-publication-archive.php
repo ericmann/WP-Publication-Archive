@@ -6,15 +6,14 @@ Description: Allows users to upload, manage, search, and download publications, 
 Version: 2.3.4
 Author: Eric Mann
 Author URI: http://eamann.com
-License: GPLv3
+License: GPLv2
 */
 
 /*  Copyright 2010-2011  Eric Mann, Jumping Duck Media
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, version 3 or, at
- * your discretion, any later version, as published by the Free
- * Software Foundation.
+ * it under the terms of the GNU General Public License, version 2, as 
+ * published by the Free Software Foundation.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
