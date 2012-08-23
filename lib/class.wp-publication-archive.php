@@ -238,15 +238,6 @@ jQuery(document).ready(function() {
 		
 		global $post;
 
-		// Create an array of category IDs based on the categories fed in.
-		$catFilter = array();
-		$catList = explode(',', $categories);
-		foreach( $catList as $catName ){
-			$id = get_cat_id( trim( $catName ) );
-			if( 0 !== $id )
-				$catFilter[] = $id;
-		}
-
 		$pubs_per_page = apply_filters( 'wpa-pubs_per_page', 10 );
 
 		if(isset($_GET['wpa-paged'])) {
@@ -257,8 +248,6 @@ jQuery(document).ready(function() {
 			$offset = 0;
 		}
 
-		$list = '<div class="publication-archive">';
-
 		// Get publications
 		$args = array(
 			'offset' => $offset,
@@ -266,9 +255,25 @@ jQuery(document).ready(function() {
 			'post_type' => 'publication',
 			'orderby' => 'post_date',
 			'order' => 'DESC',
-			'post_status' => 'publish',
-			'category__in' => $catFilter
+			'post_status' => 'publish'
 		);
+
+		if ( '' != $categories ) {
+			// Create an array of category IDs based on the categories fed in.
+			$catFilter = array();
+			$catList = explode(',', $categories);
+			foreach( $catList as $catName ){
+				$id = get_cat_id( trim( $catName ) );
+				if( 0 !== $id )
+					$catFilter[] = $id;
+			}
+			// if no categories matched categories in the database, report failure
+			if ( empty( $catFilter ) ) {
+				$error_msg = "<div class='publication-archive'><p>". __(' Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories.' ) . "</p><p>" . __( 'You passed: ', 'wp-publication-archive' ) . "<code>$categories</code></p></div>";
+				return $error_msg;
+			}
+			$args['category'] = implode( ',', $catFilter );
+		}
 
 		if('' != $author) {
 			$args['tax_query'] = array(array(
@@ -284,6 +289,7 @@ jQuery(document).ready(function() {
 		$total_pubs = count( get_posts( $args ) );
 		
 		// Create publication list
+		$list = '<div class="publication-archive">';
 		foreach( $publications as $publication ) {
 			$pub = new WP_Publication_Archive_Item( $publication->ID, $publication->post_title, $publication->post_date );
 
