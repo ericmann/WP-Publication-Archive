@@ -287,6 +287,32 @@ jQuery(document).ready(function() {
 
 		$args['numberposts'] = -1;
 		$total_pubs = count( get_posts( $args ) );
+
+		// Report if there are no publications matching filters
+		if ( 0 == $total_pubs ) {
+			$error_msg = "<p>" . __( 'There are no publications to display' );
+			if ( '' != $author ) 
+				$error_msg .= __( ' by ' ) . "$author";
+			if ( '' != $categories ) {
+				// There is probably a better way to do this…
+				$error_msg .= __( ' categorized ' );
+				$catList = explode ( ',', $categories );
+				$catNum = count( $catList );
+				$x = 3; // number of terms necessary for grammar to require commas after each term
+				if ( $catNum > 2 ) $x = 1;
+				 for ( $i = 0; $i < $catNum; $i++ ) {
+					if ( $catNum > 1 && $i == ( $catNum - 1 ) ) $error_msg .= 'or ';
+					$error_msg .= $catList[$i];
+					if ( $i < ( $catNum - $x ) ) { 
+						$error_msg .= ', ';
+					} else if ( $i < ( $catNum - 1 ) ) { 
+						$error_msg .= ' ';
+					}
+				}
+			}
+			$error_msg .= ".</p>";
+			return $error_msg;
+		}
 		
 		// Create publication list
 		$list = '<div class="publication-archive">';
