@@ -1,10 +1,10 @@
 === WP Publication Archive ===
 Contributors: ericmann
-Donate link: http://jumping-duck.com/wordpress
+Donate link: http://jumping-duck.com/wordpress/plugins
 Tags: document management, pdf, doc, archive
-Requires at least: 3.0
-Tested up to: 3.3
-Stable tag: 2.3.4
+Requires at least: 3.4
+Tested up to: 3.5
+Stable tag: 2.5
 License GPLv2
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
@@ -30,10 +30,6 @@ post type interface in the WordPress admin area.
 = How do I upload a new file? =
 
 Use the built-in media uploader on the "Add Publication" screen.  This is a change from previous versions where you could manually specify the full URL of the attachment.  That format exposed your site to a potential security vulnerability and has been removed.
-
-= OK, will I be able to use remote files in the future? =
-
-Absolutely!  A future version will better handle fully-qualified filenames and once again allow for remote URLs.  Unfortunately, that version might take a few more months to polish enough for release ...
 
 = How do I list my publications? =
 
@@ -66,6 +62,10 @@ All other file types will feature a generic "file" icon.
 No screenshots are available at this time.
 
 == Changelog ==
+
+= 2.5 =
+* Removed antiquated openfile.php (allow direct file downloads)
+* Add advanced search shortcode
 
 = 2.3.4 =
 * Add thumbnail support
