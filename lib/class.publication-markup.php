@@ -72,7 +72,7 @@ class WP_Publication_Archive_Item {
 
 		$thumb = apply_filters( 'wpa-upload_image', $this->upload_image, $this->ID );
 
-		if ( '' ==$thumb )
+		if ( '' == trim( $thumb ) )
 			return '';
 
 		return $before . '<img src="' . $thumb . '" />' . $after;

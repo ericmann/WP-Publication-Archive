@@ -34,6 +34,7 @@
 define( 'WP_PUB_ARCH_INC_URL', plugin_dir_url( __FILE__ ) . 'includes' );
 define( 'WP_PUB_ARCH_IMG_URL', plugin_dir_url( __FILE__ ) . 'images' );
 define( 'WP_PUB_ARCH_LIB_URL', plugin_dir_url( __FILE__ ) . 'lib' );
+define( 'WP_PUB_ARCH_DIR', dirname( __FILE__) . '/' );
 
 require_once( 'lib/class.mimetype.php' );
 require_once( 'lib/class.wp-publication-archive.php' );

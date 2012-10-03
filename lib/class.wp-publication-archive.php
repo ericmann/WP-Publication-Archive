@@ -1,4 +1,9 @@
 <?php
+/**
+ * This class contains all of the functionality for the WP Publication Archive Plugin.
+ *
+ * All methods are static, so this class should not be instantiated.
+ */
 class WP_Publication_Archive {
 
 	public static $mimetypes = array(
@@ -76,7 +81,6 @@ class WP_Publication_Archive {
 	/**
 	 * Filter WordPress' request so that we can send a redirect to the file if it's requested.
 	 *
-	 * @uses apply_filters() Calls deprecated 'wpa-uri' to get the download URL.
 	 * @uses apply_filters() Calls 'wppa_download_url' to get the download URL.
 	 * @since 2.5
 	 */
@@ -93,7 +97,6 @@ class WP_Publication_Archive {
 		$uri = str_replace( 'http|', 'http://', $uri );
 		$uri = str_replace( 'https|', 'https://', $uri );
 
-		$uri = apply_filters( 'wpa-uri', $uri, $wp_query->post->ID );
 		$uri = apply_filters( 'wppa_download_url', $uri );
 
 		header( 'HTTP/1.1 303 See Other' );
@@ -278,19 +281,33 @@ jQuery(document).ready(function() {
 		return $post_id;
 	}
 
+	/**
+	 * Handle the 'wp-publication-archive' shortcode and provided filters.
+	 *
+	 * @param array $atts Shortcode arguments.
+	 *
+	 * @return string Shortcode output.
+	 * @uses apply_filters() Calls 'wwpa_list_limit' to get the number of publications listed on each page.
+	 */
 	public static function shortcode_handler( $atts ) {
-		extract( shortcode_atts( array(
-				'categories' => '',
-				'author' => ''
-				), $atts ) );
-		
 		global $post;
 
-		$pubs_per_page = apply_filters( 'wpa-pubs_per_page', 10 );
+		/**
+		 * @var string $categories List of category slugs to filter.
+		 * @var string $author Author slug to filter.
+		 * @var number $limit Number of publications per page.
+		 */
+		extract( shortcode_atts( array(
+				'categories' => '',
+				'author'     => '',
+		        'limit'      => 10
+				), $atts ) );
 
-		if(isset($_GET['wpa-paged'])) {
+		$limit = apply_filters( 'wppa_list_limit', $limit );
+
+		if ( isset( $_GET['wpa-paged'] ) ) {
 			$paged = (int)$_GET['wpa-paged'];
-			$offset = $pubs_per_page * ($paged - 1);
+			$offset = $limit * ( $paged - 1 );
 		} else {
 			$paged = 1;
 			$offset = 0;
@@ -298,37 +315,37 @@ jQuery(document).ready(function() {
 
 		// Get publications
 		$args = array(
-			'offset' => $offset,
-			'numberposts' => $pubs_per_page,
-			'post_type' => 'publication',
-			'orderby' => 'post_date',
-			'order' => 'DESC',
+			'offset'      => $offset,
+			'numberposts' => $limit,
+			'post_type'   => 'publication',
+			'orderby'     => 'post_date',
+			'order'       => 'DESC',
 			'post_status' => 'publish'
 		);
 
 		if ( '' != $categories ) {
 			// Create an array of category IDs based on the categories fed in.
 			$catFilter = array();
-			$catList = explode(',', $categories);
-			foreach( $catList as $catName ){
+			$catList = explode( ',', $categories );
+			foreach( $catList as $catName ) {
 				$id = get_cat_id( trim( $catName ) );
 				if( 0 !== $id )
 					$catFilter[] = $id;
 			}
 			// if no categories matched categories in the database, report failure
 			if ( empty( $catFilter ) ) {
-				$error_msg = "<div class='publication-archive'><p>". __(' Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories.' ) . "</p><p>" . __( 'You passed: ', 'wp-publication-archive' ) . "<code>$categories</code></p></div>";
+				$error_msg = "<div class='publication-archive'><p>". __(' Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories.', 'wppa_translate' ) . "</p><p>" . __( 'You passed: ', 'wppa_translate' ) . "<code>$categories</code></p></div>";
 				return $error_msg;
 			}
 			$args['category'] = implode( ',', $catFilter );
 		}
 
 		if('' != $author) {
-			$args['tax_query'] = array(array(
+			$args['tax_query'] = array( array(
 				'taxonomy' => 'publication-author',
-				'field' => 'slug',
-				'terms' => $author
-			));
+				'field'    => 'slug',
+				'terms'    => $author
+			) );
 		}
 
 		$publications = get_posts( $args );
@@ -338,12 +355,12 @@ jQuery(document).ready(function() {
 
 		// Report if there are no publications matching filters
 		if ( 0 == $total_pubs ) {
-			$error_msg = "<p>" . __( 'There are no publications to display' );
+			$error_msg = "<p>" . __( 'There are no publications to display', 'wppa_translate' );
 			if ( '' != $author ) 
-				$error_msg .= __( ' by ' ) . "$author";
+				$error_msg .= __( ' by ', 'wppa_translate' ) . $author;
 			if ( '' != $categories ) {
 				// There is probably a better way to do this…
-				$error_msg .= __( ' categorized ' );
+				$error_msg .= __( ' categorized ', 'wppa_translate' );
 				$catList = explode ( ',', $categories );
 				$catNum = count( $catList );
 				$x = 3; // number of terms necessary for grammar to require commas after each term
@@ -361,51 +378,38 @@ jQuery(document).ready(function() {
 			$error_msg .= ".</p>";
 			return $error_msg;
 		}
-		
-		// Create publication list
-		$list = '<div class="publication-archive">';
-		foreach( $publications as $publication ) {
-			$pub = new WP_Publication_Archive_Item( $publication->ID, $publication->post_title, $publication->post_date );
 
-			$list .= '<div class="single-publication">';
-				$list .= $pub->get_the_thumbnail();
-				$list .= $pub->get_the_title();
-				$list .= $pub->get_the_authors();
-				$list .= $pub->get_the_uri();
-				$list .= $pub->get_the_summary();
-				$list .= $pub->get_the_keywords();
-				$list .= $pub->get_the_categories();
-			$list .= "</div>";
-		}
-		
-		$list .= '</div>';
-
-		if( $total_pubs > $pubs_per_page ) {
-			$list .= '<div id="navigation">';
-
-			$next = add_query_arg( 'wpa-paged', $paged + 1, get_permalink($post->ID) );
-			$prev = add_query_arg( 'wpa-paged', $paged - 1, get_permalink($post->ID) );
-
-			if($offset > 0) {
-				$list .= '<div class="nav-previous">';
-				$list .= '<a href="' . $prev . '">';
-				$list .= '&laquo; Previous';
-				$list .= '</a>';
-				$list .= '</div>';
-			}
-			
-			if($offset + $pubs_per_page < $total_pubs ) {
-				$list .= '<div class="nav-next">';
-				$list .= '<a href="' . $next . '">';
-				$list .= 'Next &raquo;';
-				$list .= '</a>';
-				$list .= '</div>';
-			}
-			
-			$list .= '</div>';
+		// Get the publication list template
+		$template_name = apply_filters( 'wppa_list_template', 'template.wppa_publication_list.php' );
+		$path = locate_template( $template_name );
+		if ( empty( $path ) ) {
+			$path = WP_PUB_ARCH_DIR . 'includes/' . $template_name;
 		}
 
-		return $list;
+		// Get a global container variable and populate it with our data
+		global $wppa_container;
+		$wppa_container = array(
+			'publications' => $publications,
+			'total_pubs'   => $total_pubs,
+			'limit'        => $limit,
+			'offset'       => $offset,
+			'paged'        => $paged,
+			'post'         => $post
+		);
+
+		// Start a buffer to capture the HTML output of the shortcode.
+		ob_start();
+
+		include( $path );
+
+		$output = ob_get_contents();
+
+		ob_end_clean();
+
+		// Because globals are evil, clean up afterwards.
+		unset( $wppa_container );
+
+		return $output;
 	}
 
 	/**

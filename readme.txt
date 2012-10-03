@@ -63,7 +63,7 @@ No screenshots are available at this time.
 
 = 2.5 =
 * Removed antiquated openfile.php (allow direct file downloads)
-* Add advanced search shortcode
+* Made the publication list template-ready.
 
 = 2.3.4 =
 * Add thumbnail support
