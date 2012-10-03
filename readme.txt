@@ -16,8 +16,6 @@ standard WordPress posts and pages.  You can add downloadable PDF files, Word do
 These files will be stored in the standard WordPress uploads directory but will be managed separately through a custom
 post type interface in the WordPress admin area.
 
-*This plugin requires PHP5*
-
 == Installation ==
 
 1. Upload the entire `wp-publication-archive` folder to the `/wp-content/plugins/` directory

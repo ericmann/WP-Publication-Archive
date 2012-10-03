@@ -35,6 +35,7 @@ define( 'WP_PUB_ARCH_INC_URL', plugin_dir_url( __FILE__ ) . 'includes' );
 define( 'WP_PUB_ARCH_IMG_URL', plugin_dir_url( __FILE__ ) . 'images' );
 define( 'WP_PUB_ARCH_LIB_URL', plugin_dir_url( __FILE__ ) . 'lib' );
 
+require_once( 'lib/class.mimetype.php' );
 require_once( 'lib/class.wp-publication-archive.php' );
 require_once( 'lib/class.publication-markup.php' );
 
@@ -47,6 +48,9 @@ update_option( 'wp-publication-archive-core', 2, '', 'no' );
  */
 function wppa_init() {
 	load_plugin_textdomain( 'wppa_translate', false, dirname( dirname( plugin_basename( __FILE__) ) ) . '/lang/' );
+
+	WP_Publication_Archive::register_author();
+	WP_Publication_Archive::register_publication();
 
 	add_rewrite_endpoint( 'wppa_download', EP_ALL );
 }
@@ -95,16 +99,16 @@ function wppa_deactivate() {
 register_deactivation_hook( __FILE__, 'wppa_deactivate' );
 
 // Wireup actions
-add_action( 'init',             array( 'WP_Publication_Archive', 'register_publication' ) );
-add_action( 'init',             array( 'WP_Publication_Archive', 'register_author' ) );
-add_action( 'init',             array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
-add_action( 'save_post',        array( 'WP_Publication_Archive', 'save_meta' ) );
+add_action( 'init',              'wppa_init' );
+add_action( 'init',              array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
+add_action( 'save_post',         array( 'WP_Publication_Archive', 'save_meta' ) );
+add_action( 'template_redirect', array( 'WP_Publication_Archive', 'download_file' ) );
 
 // Wireup filters
-add_filter( 'post_type_link',   array( 'WP_Publication_Archive', 'publication_link' ), 10, 2 );
-add_filter( 'query_vars',       array( 'WP_Publication_Archive', 'query_vars' ) );
-add_filter( 'the_content',      array( 'WP_Publication_Archive', 'the_content' ) );
-add_filter( 'the_title',        array( 'WP_Publication_Archive', 'the_title' ), 10, 2 );
+//add_filter( 'post_type_link', array( 'WP_Publication_Archive', 'publication_link' ), 10, 2 );
+add_filter( 'query_vars',     array( 'WP_Publication_Archive', 'query_vars' ) );
+add_filter( 'the_content',    array( 'WP_Publication_Archive', 'the_content' ) );
+//add_filter( 'the_title',      array( 'WP_Publication_Archive', 'the_title' ), 10, 2 );
 
 // Wireup shortcodes
 add_shortcode( 'wp-publication-archive', array( 'WP_Publication_Archive', 'shortcode_handler' ) );

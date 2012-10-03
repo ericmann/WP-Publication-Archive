@@ -50,7 +50,58 @@ class WP_Publication_Archive {
 		'application/x-rar-compressed' => 'zip',
 		'application/x-tar' => 'zip'
 	);
-	
+
+	/**
+	 * Generate a link for a particular file download.
+	 *
+	 * @param int $publication_id Optional ID of the publication for which to retrieve a download link.
+	 *
+	 * @return string Download link.
+	 * @since 2.5
+	 */
+	public static function get_download_link( $publication_id = 0 ) {
+		$permalink = get_permalink( $publication_id );
+
+		$structure = get_option( 'permalink_structure' );
+
+		if ( empty( $structure ) ) {
+			$new = add_query_arg( 'wppa_download', 1, $permalink );
+		} else {
+			$new = trailingslashit( $permalink ) . 'wppa_download/1';
+		}
+
+		return $new;
+	}
+
+	/**
+	 * Filter WordPress' request so that we can send a redirect to the file if it's requested.
+	 *
+	 * @uses apply_filters() Calls deprecated 'wpa-uri' to get the download URL.
+	 * @uses apply_filters() Calls 'wppa_download_url' to get the download URL.
+	 * @since 2.5
+	 */
+	public static function download_file() {
+		global $wp_query;
+
+		// If this isn't the right kind of request, bail.
+		if ( ! isset( $wp_query->query_vars['wppa_download'] ) )
+			return;
+
+		$uri = get_post_meta( $wp_query->post->ID, 'wpa_upload_doc', true );
+
+		// Strip the old http| and https| if they're there
+		$uri = str_replace( 'http|', 'http://', $uri );
+		$uri = str_replace( 'https|', 'https://', $uri );
+
+		$uri = apply_filters( 'wpa-uri', $uri, $wp_query->post->ID );
+		$uri = apply_filters( 'wppa_download_url', $uri );
+
+		header( 'HTTP/1.1 303 See Other' );
+		header( 'Location: ' . $uri );
+
+		exit();
+	}
+
 	public static function get_image( $doctype ) {
 		if( ! isset( WP_Publication_Archive::$mimetypes[$doctype] ) ) {
 			return WP_PUB_ARCH_IMG_URL . '/icons/unknown.png';
@@ -71,15 +122,15 @@ class WP_Publication_Archive {
 
 	public static function register_publication() {
 		$labels = array(
-			'name'                  => __( 'Publications' ),
-			'singular_name'         => __( 'Publication' ),
-			'add_new_item'          => __( 'Add New Publication' ),
-			'edit_item'             => __( 'Edit Publication' ),
-			'new_item'              => __( 'New Publication' ),
-			'view_item'             => __( 'View Publication' ),
-			'search_items'          => __( 'Search Publications' ),
-			'not_found'             => __( 'No publications found' ),
-			'not_found_in_trash'    => __( 'No publications found in trash' )
+			'name'                  => __( 'Publications', 'wppa_translate' ),
+			'singular_name'         => __( 'Publication', 'wppa_translate' ),
+			'add_new_item'          => __( 'Add New Publication', 'wppa_translate' ),
+			'edit_item'             => __( 'Edit Publication', 'wppa_translate' ),
+			'new_item'              => __( 'New Publication', 'wppa_translate' ),
+			'view_item'             => __( 'View Publication', 'wppa_translate' ),
+			'search_items'          => __( 'Search Publications', 'wppa_translate' ),
+			'not_found'             => __( 'No publications found', 'wppa_translate' ),
+			'not_found_in_trash'    => __( 'No publications found in trash', 'wppa_translate' )
 		);
 
 		register_post_type( 'publication',
@@ -87,6 +138,8 @@ class WP_Publication_Archive {
 				'labels' => $labels,
 				'capability_type' => 'post',
 				'public' => true,
+				'publicly_queryable' => true,
+				'has_archive' => true,
 				'menu_position' => 20,
 				'supports' => array(
 					'title'
@@ -151,11 +204,6 @@ class WP_Publication_Archive {
 		global $post;
 		
 		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
-		echo "<style type=\"text/css\">
-#edit-slug-box {
-	display: none;
-	}
-</style>";
 		echo '<p>Please provide the abosulte url of the file (including the <code>http://</code>):</p>';
 		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
 		echo '<input class="button" id="upload_doc_button" type="button" value="Upload Publication" alt="Upload Publication" />';
@@ -360,8 +408,16 @@ jQuery(document).ready(function() {
 		return $list;
 	}
 
+	/**
+	 * Register new query variables.
+	 *
+	 * @param array $public_vars Query variables.
+	 *
+	 * @return array Query variables.
+	 */
 	public static function query_vars( $public_vars ) {
 		$public_vars[] = 'wpa-paged';
+		$public_vars[] = 'wppa_downloads';
 		return $public_vars;
 	}
 

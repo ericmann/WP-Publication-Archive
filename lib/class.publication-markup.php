@@ -101,19 +101,16 @@ class WP_Publication_Archive_Item {
 		echo $this->get_the_authors();
 	}
 
+	/**
+	 * Get the download link for the current publication.
+	 *
+	 * @return string Download link.
+	 */
 	public function get_the_link() {
-		$downloadroot = WP_PUB_ARCH_INC_URL . '/openfile.php?file=';
-
-		$uri = apply_filters( 'wpa-uri', $this->uri, $this->ID );
-
-		if ( 'http|' == $uri || '' == $uri )
-			return '';
-
-		return $downloadroot . $uri;
+		return WP_Publication_Archive::get_download_link( $this->ID );
 	}
 
 	public function get_the_uri() {
-		require_once('class.mimetype.php');
 		$mime = new mimetype();
 
 		$before = '<div class="publication_download">';
