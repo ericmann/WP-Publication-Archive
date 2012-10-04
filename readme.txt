@@ -64,6 +64,7 @@ No screenshots are available at this time.
 = 2.5 =
 * Removed antiquated openfile.php (allow direct file downloads)
 * Made the publication list template-ready.
+* Change the "download" link to a pair of "download" or "open" links.
 
 = 2.3.4 =
 * Add thumbnail support

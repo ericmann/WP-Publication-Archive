@@ -107,28 +107,28 @@ class WP_Publication_Archive_Item {
 	 * @return string Download link.
 	 */
 	public function get_the_link() {
-		return WP_Publication_Archive::get_download_link( $this->ID );
+		return WP_Publication_Archive::get_open_link( $this->ID );
 	}
 
 	public function get_the_uri() {
 		$mime = new mimetype();
 
-		$before = '<div class="publication_download">';
-		$before .= '<span class="title">Download: </span>';
-		$before .= '<span class="description"><a href="';
-
 		$uri = $this->get_the_link();
+		if ( '' == trim( $uri ) )
+			return '';
 
-		$after = '">';
-		$after .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( $mime->getType( $uri ) ) . '" />Download</a>';
-		$after .= '</span>';
-		$after .= '</div>';
+		$output = '<div class="publication_download">';
+		$output .= '<span class="title">Download: </span>';
+		$output .= '<span class="description">';
+		$output .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( $mime->getType( $this->uri ) ) . '" /> ';
+		$output .= '<a href="' . WP_Publication_Archive::get_open_link( $this->ID ) . '">';
+		$output .= __( 'Open', 'wppa_translate' ) . '</a> | ';
+		$output .= '<a href="' . WP_Publication_Archive::get_download_link( $this->ID ) . '">';
+		$output .= __( 'Download', 'wppa_translate' ) . '</a>';
+		$output .= '</span>';
+		$output .= '</div>';
 
-		if ( $uri != '' ) {
-			return $before . $uri . $after;
-		}
-
-		return $uri;
+		return $output;
 	}
 	public function the_uri() {
 		echo $this->get_the_uri();

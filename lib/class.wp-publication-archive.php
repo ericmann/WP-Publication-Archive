@@ -57,6 +57,41 @@ class WP_Publication_Archive {
 	);
 
 	/**
+	 * Generate a link with a given endpoint.
+	 *
+	 * @param int    $publication_id Optional ID of the publication for which to generate a link.
+	 * @param string $endpoint       Optional endpoint name.
+	 *
+	 * @return string Download/Open link.
+	 * @since 2.5
+	 */
+	private static function get_link( $publication_id = 0, $endpoint = 'wppa_open' ) {
+		$permalink = get_permalink( $publication_id );
+
+		$structure = get_option( 'permalink_structure' );
+
+		if ( empty( $structure ) ) {
+			$new = add_query_arg( $endpoint, 1, $permalink );
+		} else {
+			$new = trailingslashit( $permalink ) . $endpoint . '/1';
+		}
+
+		return $new;
+	}
+
+	/**
+	 * Generate a link for a particular file download.
+	 *
+	 * @param int $publication_id Optional ID of the publication for which to retrieve a download link.
+	 *
+	 * @return string Open link.
+	 * @since 2.5
+	 */
+	public static function get_open_link( $publication_id = 0 ) {
+		return WP_Publication_Archive::get_link( $publication_id, 'wppa_open' );
+	}
+
+	/**
 	 * Generate a link for a particular file download.
 	 *
 	 * @param int $publication_id Optional ID of the publication for which to retrieve a download link.
@@ -65,17 +100,34 @@ class WP_Publication_Archive {
 	 * @since 2.5
 	 */
 	public static function get_download_link( $publication_id = 0 ) {
-		$permalink = get_permalink( $publication_id );
+		return WP_Publication_Archive::get_link( $publication_id, 'wppa_download' );
+	}
 
-		$structure = get_option( 'permalink_structure' );
+	/**
+	 * Filter WordPress' request so that we can send a redirect to the file if it's requested.
+	 *
+	 * @uses apply_filters() Calls 'wppa_download_url' to get the download URL.
+	 * @since 2.5
+	 */
+	public static function open_file() {
+		global $wp_query;
 
-		if ( empty( $structure ) ) {
-			$new = add_query_arg( 'wppa_download', 1, $permalink );
-		} else {
-			$new = trailingslashit( $permalink ) . 'wppa_download/1';
-		}
+		// If this isn't the right kind of request, bail.
+		if ( ! isset( $wp_query->query_vars['wppa_open'] ) )
+			return;
 
-		return $new;
+		$uri = get_post_meta( $wp_query->post->ID, 'wpa_upload_doc', true );
+
+		// Strip the old http| and https| if they're there
+		$uri = str_replace( 'http|', 'http://', $uri );
+		$uri = str_replace( 'https|', 'https://', $uri );
+
+		$uri = apply_filters( 'wppa_download_url', $uri );
+
+		header( 'HTTP/1.1 303 See Other' );
+		header( 'Location: ' . $uri );
+
+		exit();
 	}
 
 	/**
@@ -99,10 +151,27 @@ class WP_Publication_Archive {
 
 		$uri = apply_filters( 'wppa_download_url', $uri );
 
-		header( 'HTTP/1.1 303 See Other' );
-		header( 'Location: ' . $uri );
+		// Fetch the file from the remote server.
 
-		exit();
+		$request = wp_remote_get( $uri, array( 'sslverify' => false ) );
+
+		if ( ! is_wp_error( $request ) ) {
+			$file = wp_remote_retrieve_body( $request );
+
+			header( 'HTTP/1.1 200 OK' );
+			header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
+			header( 'Content-Disposition: attachment; filename=' . basename( $uri ) );
+			header( 'Last-Modified: ' . wp_remote_retrieve_header( $request, 'last-modified' ) );
+			header( 'Content-type: ' . wp_remote_retrieve_header( $request, 'content-type' ) );
+			header( 'Content-Transfer-Encoding: binary' );
+
+			echo $file;
+
+			exit();
+		} else {
+			header( 'HTTP/1.1 500 Internal Server Error' );
+			exit();
+		}
 	}
 
 	public static function get_image( $doctype ) {
@@ -288,6 +357,7 @@ jQuery(document).ready(function() {
 	 *
 	 * @return string Shortcode output.
 	 * @uses apply_filters() Calls 'wwpa_list_limit' to get the number of publications listed on each page.
+	 * @uses apply_filters() Calls 'wppa_list_template' to get the shortcode template file.
 	 */
 	public static function shortcode_handler( $atts ) {
 		global $post;
@@ -421,7 +491,8 @@ jQuery(document).ready(function() {
 	 */
 	public static function query_vars( $public_vars ) {
 		$public_vars[] = 'wpa-paged';
-		$public_vars[] = 'wppa_downloads';
+		$public_vars[] = 'wppa_download';
+		$public_vars[] = 'wppa_open';
 		return $public_vars;
 	}
 

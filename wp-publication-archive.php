@@ -54,6 +54,7 @@ function wppa_init() {
 	WP_Publication_Archive::register_publication();
 
 	add_rewrite_endpoint( 'wppa_download', EP_ALL );
+	add_rewrite_endpoint( 'wppa_open', EP_ALL );
 }
 
 /**
@@ -94,6 +95,7 @@ endif;
  */
 function wppa_deactivate() {
 	remove_rewrite_endpoint( 'wppa_download' );
+	remove_rewrite_endpoint( 'wppa_open' );
 
 	flush_rewrite_rules();
 }
@@ -103,6 +105,7 @@ register_deactivation_hook( __FILE__, 'wppa_deactivate' );
 add_action( 'init',              'wppa_init' );
 add_action( 'init',              array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
 add_action( 'save_post',         array( 'WP_Publication_Archive', 'save_meta' ) );
+add_action( 'template_redirect', array( 'WP_Publication_Archive', 'open_file' ) );
 add_action( 'template_redirect', array( 'WP_Publication_Archive', 'download_file' ) );
 
 // Wireup filters
