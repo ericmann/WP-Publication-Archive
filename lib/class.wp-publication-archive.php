@@ -466,6 +466,7 @@ jQuery(document).ready(function() {
 			'paged'        => $paged,
 			'post'         => $post
 		);
+		$wppa_container = apply_filters( 'wppa_publication_list_container', $wppa_container );
 
 		// Start a buffer to capture the HTML output of the shortcode.
 		ob_start();
