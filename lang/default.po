@@ -1,0 +1,126 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Publication Archive\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-10-03 17:09-0800\n"
+"PO-Revision-Date: 2012-10-03 17:10-0800\n"
+"Last-Translator: Eric Mann <eric@eamann.com>\n"
+"Language-Team: Jumping Duck Media <info@jumping-duck.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop;__;_e\n"
+"X-Poedit-Basepath: C:\\xampp\\htdocs\\wp-test\\wp-content\\plugins\\wp-publication-archive\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-Country: USA\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: includes/template.wppa_publication_list.php:47
+msgid "Previous"
+msgstr ""
+
+#: includes/template.wppa_publication_list.php:55
+msgid "Next"
+msgstr ""
+
+#: lib/class.publication-markup.php:125
+msgid "Open"
+msgstr ""
+
+#: lib/class.publication-markup.php:127
+msgid "Download"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:197
+msgid "Publications"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:198
+msgid "Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:199
+msgid "Add New Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:200
+msgid "Edit Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:201
+msgid "New Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:202
+msgid "View Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:203
+msgid "Search Publications"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:204
+msgid "No publications found"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:205
+msgid "No publications found in trash"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:232
+#: lib/class.wp-publication-archive.php:241
+msgid "Authors"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:233
+msgid "Author"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:234
+msgid "Search Authors"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:235
+msgid "Popular Authors"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:236
+msgid "All Authors"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:237
+msgid "Edit Author"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:238
+msgid "Update Author"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:239
+msgid "Add New Author"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:240
+msgid "New Author Name"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:407
+msgid " Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories."
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:407
+msgid "You passed: "
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:428
+msgid "There are no publications to display"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:430
+msgid " by "
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:433
+msgid " categorized "
+msgstr ""
+

@@ -429,7 +429,7 @@ jQuery(document).ready(function() {
 			if ( '' != $author ) 
 				$error_msg .= __( ' by ', 'wppa_translate' ) . $author;
 			if ( '' != $categories ) {
-				// There is probably a better way to do this…
+				// There is probably a better way to do this
 				$error_msg .= __( ' categorized ', 'wppa_translate' );
 				$catList = explode ( ',', $categories );
 				$catNum = count( $catList );
