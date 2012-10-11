@@ -282,10 +282,14 @@ class WP_Publication_Archive {
 		echo "<script type=\"text/javascript\">
 jQuery(document).ready(function() {
 	jQuery('#upload_doc_button').on('click', function() {
+		window.orig_send_to_editor = window.send_to_editor;
 		window.send_to_editor = function(html) {
 			var docurl = jQuery(html).attr('href');
 			jQuery('#wpa_upload_doc').val(docurl);
 			tb_remove();
+
+			// Restore original handler
+			window.send_to_editor = window.orig_send_to_editor;
 		};
 
 		formfield = jQuery('#wpa_upload_doc').attr('name');		
@@ -311,11 +315,15 @@ jQuery(document).ready(function() {
 		echo "<script type=\"text/javascript\">
 	jQuery(document).ready(function() {
 		jQuery('#wpa-upload_image_button').on('click', function() {
+		    window.orig_send_to_editor = window.send_to_editor;
 			window.send_to_editor = function(html) {
 				var imgurl = jQuery('img',html).attr('src');
 				jQuery('#wpa-upload_image').val(imgurl);
 				tb_remove();
-			}
+
+				// Restore original handler
+				window.send_to_editor = window.orig_send_to_editor;
+			};
 
 			formfield = jQuery('#upload_image').attr('name');
 			tb_show('Upload Thumbnail Image', 'media-upload.php?type=image&amp;TB_iframe=true');
