@@ -1,60 +1,19 @@
 <?php
 /**
+ * Core functionality for the WP Publication Archive plugin.
+ *
+ * All functions are static members of this class to allow for easy namespacing.
+ *
+ * @module WP_Publication_Archive
+ * @author Eric Mann
+ */
+
+/**
  * This class contains all of the functionality for the WP Publication Archive Plugin.
  *
  * All methods are static, so this class should not be instantiated.
  */
-class WP_Publication_Archive {
-
-	public static $mimetypes = array(
-		'application/pdf' => 'pdf',
-		'application/postscript' => 'pdf',
-		'application/zip' => 'zip',
-
-		'audio/basic' => 'audio',
-		'audio/mp4' => 'audio',
-		'audio/mpeg' => 'audio',
-		'audio/ogg' => 'audio',
-		'audio/vorbis' => 'audio',
-		'audio/x-ms-wma' => 'audio',
-		'audio/x-ms-wax' => 'audio',
-		'audio/vnd.rn-realaudio' => 'audio',
-		'audio/vnd.wave' => 'audio',
-
-		'image/gif' => 'image',
-		'image/jpeg' => 'image',
-		'image/png' => 'image',
-		'image/svg+xml' => 'image',
-		'image/tiff' => 'image',
-		'image/vnd.microsoft.icon' => 'image',
-
-		'text/cmd' => 'doc',
-		'text/css' => 'doc',
-		'text/csv' => 'data',
-		'text/plain' => 'doc',
-
-		'video/mpeg' => 'video',
-		'video/mp4' => 'video',
-		'video/ogg' => 'video',
-		'video/quicktime' => 'video',
-		'video/webm' => 'video',
-		'video/x-ms-wmv' => 'video',
-
-		'application/vnd.oasis.opendocument.text' => 'doc',
-		'application/vnd.oasis.opendocument.spreadsheet' => 'data',
-		'application/vnd.oasis.opendocument.presentation' => 'doc',
-		'application/vnd.oasis.opendocument.graphics' => 'image',
-		'application/vnd.ms-excel' => 'image',
-		'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'data',
-		'application/vnd.ms-powerpoint' => 'doc',
-		'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'doc',
-		'application/msword' => 'doc',
-		'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'doc',
-
-		'application/x-stuffit' => 'zip',
-		'application/x-rar-compressed' => 'zip',
-		'application/x-tar' => 'zip'
-	);
+final class WP_Publication_Archive {
 
 	/**
 	 * Generate a link with a given endpoint.
@@ -174,14 +133,85 @@ class WP_Publication_Archive {
 		}
 	}
 
+	/**
+	 * Get an image for the publication based on its MIME type.
+	 *
+	 * @uses apply_filters Calls 'wppa_publication_icon' to allow adding icons for unregistered MIME types.
+	 *
+	 * @param string $doctype MIME type of the file.
+	 *
+	 * @return string
+	 */
 	public static function get_image( $doctype ) {
-		if( ! isset( WP_Publication_Archive::$mimetypes[$doctype] ) ) {
-			return WP_PUB_ARCH_IMG_URL . '/icons/unknown.png';
+		switch( $doctype ) {
+			case 'application/pdf':
+			case 'application/postscript':
+				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/pdf.png';
+				break;
+			case 'application/zip':
+			case 'application/x-stuffit':
+			case 'application/x-rar-compressed':
+			case 'application/x-tar':
+				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/zip.png';
+				break;
+			case 'audio/basic':
+			case 'audio/mp4':
+			case 'audio/mpeg':
+			case 'audio/ogg':
+			case 'audio/vorbis':
+			case 'audio/x-ms-wma':
+			case 'audio/x-ms-wax':
+			case 'audio/vnd.rn-realaudio':
+			case 'audio/vnd.wave':
+				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/audio.png';
+				break;
+			case 'image/gif':
+			case 'image/jpeg':
+			case 'image/png':
+			case 'image/svg+xml':
+			case 'image/tiff':
+			case 'image/vnd.microsoft.icon':
+			case 'application/vnd.oasis.opendocument.graphics':
+			case 'application/vnd.ms-excel':
+				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/image.png';
+				break;
+			case 'text/cmd':
+			case 'text/css':
+			case 'text/plain':
+			case 'application/vnd.oasis.opendocument.text':
+			case 'application/vnd.oasis.opendocument.presentation':
+			case 'application/vnd.ms-powerpoint':
+			case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+			case 'application/msword':
+			case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/doc.png';
+				break;
+			case 'text/csv':
+			case 'application/vnd.oasis.opendocument.spreadsheet':
+			case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/data.png';
+				break;
+			case 'video/mpeg':
+			case 'video/mp4':
+			case 'video/ogg':
+			case 'video/quicktime':
+			case 'video/webm':
+			case 'video/x-ms-wmv':
+				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/video.png';
+				break;
+			default:
+				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/unknown.png';
 		}
-		
-		return WP_PUB_ARCH_IMG_URL . '/icons/' . WP_Publication_Archive::$mimetypes[$doctype] . '.png';
+
+		return apply_filters( 'wppa_publication_icon', $image_url, $doctype );
 	}
 
+	/**
+	 * Queue up scripts and styles, based on whether the user is on the admin or the front-end.
+	 *
+	 * @uses wp_enqueue_script()
+	 * @uses wp_enqueue_style()
+	 */
 	public static function enqueue_scripts_and_styles() {
 		if( is_admin() ) {
 			wp_enqueue_script( 'media-upload' );
@@ -192,6 +222,11 @@ class WP_Publication_Archive {
 		}
 	}
 
+	/**
+	 * Register the Publication custom post type.
+	 *
+	 * @uses register_post_type()
+	 */
 	public static function register_publication() {
 		$labels = array(
 			'name'                  => __( 'Publications', 'wppa_translate' ),
@@ -207,79 +242,93 @@ class WP_Publication_Archive {
 
 		register_post_type( 'publication',
 			array(
-				'labels' => $labels,
-				'capability_type' => 'post',
-				'public' => true,
-				'publicly_queryable' => true,
-				'has_archive' => true,
-				'menu_position' => 20,
-				'supports' => array(
-					'title'
-				),
-				'taxonomies' => array(
-					'category',
-					'post_tag'
-				),
-				'register_meta_box_cb' => array( 'WP_Publication_Archive', 'pub_meta_boxes' ),
-				'can_export' => true,
-				'menu_icon' => WP_PUB_ARCH_IMG_URL . '/cabinet.png'
+			     'labels'               => $labels,
+			     'capability_type'      => 'post',
+			     'public'               => true,
+			     'publicly_queryable'   => true,
+			     'has_archive'          => true,
+			     'menu_position'        => 20,
+			     'supports'             => array(
+				     'title'
+			     ),
+			     'taxonomies'           => array(
+				     'category',
+				     'post_tag'
+			     ),
+			     'register_meta_box_cb' => array( 'WP_Publication_Archive', 'pub_meta_boxes' ),
+			     'can_export'           => true,
+			     'menu_icon'            => WP_PUB_ARCH_IMG_URL . '/cabinet.png'
 			)
 		);
 	}
 
+	/**
+	 * Register the publication author taxonomy.
+	 *
+	 * @uses register_taxonomy
+	 * @todo Create a custom meta box to allow listing previously used authors rather than the freeform Tag box.
+	 */
 	public static function register_author() {
 		$labels = array(
-			'name' => __( 'Authors' ),
-			'singular_name' => __( 'Author' ),
-			'search_items' => __( 'Search Authors' ),
-			'popular_items' => __( 'Popular Authors' ),
-			'all_items' => __( 'All Authors' ),
-			'edit_item' => __( 'Edit Author' ),
-			'update_item' => __( 'Update Author' ),
-			'add_new_item' => __( 'Add New Author' ),
-			'new_item_name' => __( 'New Author Name' ),
-		    'menu_name' => __( 'Authors' ),
+			'name'          => __( 'Authors', 'wppa_translate' ),
+			'singular_name' => __( 'Author', 'wppa_translate' ),
+			'search_items'  => __( 'Search Authors', 'wppa_translate' ),
+			'popular_items' => __( 'Popular Authors', 'wppa_translate' ),
+			'all_items'     => __( 'All Authors', 'wppa_translate' ),
+			'edit_item'     => __( 'Edit Author', 'wppa_translate' ),
+			'update_item'   => __( 'Update Author', 'wppa_translate' ),
+			'add_new_item'  => __( 'Add New Author', 'wppa_translate' ),
+			'new_item_name' => __( 'New Author Name', 'wppa_translate' ),
+			'menu_name'     => __( 'Authors', 'wppa_translate' ),
 		);
 
 		register_taxonomy(
 			'publication-author',
 			array( 'publication' ),
 			array(
-				'hierarchical' => false,
-				'labels' => $labels,
-				'label' => 'Authors',
-				'query_var' => false,
-				'rewrite' => false
+			     'hierarchical' => false,
+			     'labels'       => $labels,
+			     'label'        => __( 'Authors', 'wppa_translate' ),
+			     'query_var'    => false,
+			     'rewrite'      => false
 			)
 		);
 	}
 
+	/**
+	 * Register custom meta boxes for the Publication oage.
+	 */
 	public static function pub_meta_boxes() {
-		add_meta_box( 'publication_desc', 'Summary', array( 'WP_Publication_Archive', 'doc_desc_box' ), 'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_uri', 'Publication', array( 'WP_Publication_Archive', 'doc_uri_box' ), 'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_thumb', 'Thumbnail', array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
-		
-		remove_meta_box( 'slugdiv', 'publication', 'core' );
+		add_meta_box( 'publication_desc',  __( 'Summary', 'wppa_translate' ),     array( 'WP_Publication_Archive', 'doc_desc_box' ), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_uri',   __( 'Publication', 'wppa_translate' ), array( 'WP_Publication_Archive', 'doc_uri_box' ),  'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_thumb', __( 'Thumbnail', 'wppa_translate' ),   array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
 	}
 
+	/**
+	 * Build the Publication description meta box
+	 */
 	public static function doc_desc_box() {
 		global $post;
 		
 		$desc = get_post_meta( $post->ID, 'wpa_doc_desc', true );
 		
 		wp_nonce_field( plugin_basename(__FILE__), 'wpa_nonce' );
-		echo '<p>Provide a short description of the publication:</p>';
-		echo '<textarea id="wpa_doc_desc" name="wpa_doc_desc" rows="5" style="width:100%">' . $desc . '</textarea>';
+		echo '<p>' . __( 'Provide a short description of the publication:', 'wppa_translate' ) . '</p>';
+		echo '<textarea id="wpa_doc_desc" name="wpa_doc_desc" rows="5" style="width:100%">' . esc_textarea( $desc ) . '</textarea>';
 	}
-	
+
+	/**
+	 * Build the Publication link box
+	 */
 	public static function doc_uri_box() {
 		global $post;
 		
 		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
-		echo '<p>Please provide the abosulte url of the file (including the <code>http://</code>):</p>';
+		echo '<p>' . _( 'Please provide the abosulte url of the file (including the <code>http://</code>):', 'wppa_translate' ) . '</p>';
 		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
-		echo '<input class="button" id="upload_doc_button" type="button" value="Upload Publication" alt="Upload Publication" />';
-		echo "<script type=\"text/javascript\">
+		echo '<input class="button" id="upload_doc_button" type="button" value="' . __( 'Upload Publication', 'wppa_translate' ) . '" alt="' . __( 'Upload Publication', 'wppa_translate' ) . '" />';
+		?>
+<script type="text/javascript">
 jQuery(document).ready(function() {
 	jQuery('#upload_doc_button').on('click', function() {
 		window.orig_send_to_editor = window.send_to_editor;
@@ -293,26 +342,30 @@ jQuery(document).ready(function() {
 		};
 
 		formfield = jQuery('#wpa_upload_doc').attr('name');		
-		tb_show('Upload Publication', 'media-upload.php?TB_iframe=1&width=640&height=263');
+		tb_show('<?php _e( 'Upload Publication', 'wppa_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263');
 		return false;
 	});
 });
-</script>\r\n";
+</script>\r\n
+<?php
 	}
 
+	/**
+	 * Build the Publication thumbnail image box.
+	 */
 	public static function doc_thumb_box() {
 		global $post;
 
 		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
 
-		echo 'Enter an URL or upload an image for the thumb.';
+		echo _( 'Enter an URL or upload an image for the thumb.', 'wppa_translate' );
 		echo '<br />';
 		echo '<br />';
 		echo '<label for="wpa-upload_image">';
 		echo '<input id="wpa-upload_image" type="text" size="36" name="wpa-upload_image" value=" ' . $thumb . '" />';
-		echo '<input id="wpa-upload_image_button" type="button" value="Upload Thumb" />';
-
-		echo "<script type=\"text/javascript\">
+		echo '<input id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumb', 'wppa_translate' ) . '" />';
+?>
+<script type="text/javascript">
 	jQuery(document).ready(function() {
 		jQuery('#wpa-upload_image_button').on('click', function() {
 		    window.orig_send_to_editor = window.send_to_editor;
@@ -326,30 +379,38 @@ jQuery(document).ready(function() {
 			};
 
 			formfield = jQuery('#upload_image').attr('name');
-			tb_show('Upload Thumbnail Image', 'media-upload.php?type=image&amp;TB_iframe=true');
+			tb_show('<?php _e( 'Upload Thumbnail Image', 'wppa_translate' ); ?>', 'media-upload.php?type=image&amp;TB_iframe=true');
 			return false;
 		});
 	});
-</script>\r\n";
+</script>\r\n
+<?
 	}
 
+	/**
+	 * Save our changes to Publication meta information.
+	 *
+	 * @param int $post_id ID of the Publication we're updating
+	 *
+	 * @return int
+	 */
 	public static function save_meta( $post_id ) {
 		$post = get_post( $post_id );
-		if( $post->post_type != 'publication' ) {
+		if ( $post->post_type != 'publication' ) {
 			return $post_id;
 		}
 	
-		if( !isset($_POST['wpa_nonce']) || !wp_verify_nonce( $_POST['wpa_nonce'], plugin_basename(__FILE__) )) {
+		if ( ! isset( $_POST['wpa_nonce'] ) || ! wp_verify_nonce( $_POST['wpa_nonce'], plugin_basename(__FILE__) ) ) {
 			return $post_id;
 		}
 		
-		if( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return $post_id;
 		}
 		
-		$description = $_POST['wpa_doc_desc'];
-		$uri = $_POST['wpa_upload_doc'];
-		$thumbnail = $_POST['wpa-upload_image'];
+		$description = sanitize_text_field( $_POST['wpa_doc_desc'] );
+		$uri = sanitize_url( $_POST['wpa_upload_doc'] );
+		$thumbnail = sanitize_url( $_POST['wpa-upload_image'] );
 			
 		update_post_meta( $post_id, 'wpa_doc_desc', $description );
 		update_post_meta( $post_id, 'wpa_upload_doc', $uri );
@@ -505,6 +566,15 @@ jQuery(document).ready(function() {
 		return $public_vars;
 	}
 
+	/**
+	 * The post link for Publications is actually link to *open* the file, rather than to open the post page.  Filter
+	 * out requests so we generate the correct link.
+	 *
+	 * @param string $permalink
+	 * @param object $post
+	 *
+	 * @return string
+	 */
 	public static function publication_link( $permalink, $post ) {
 		if( 'publication' != $post->post_type )
 			return $permalink;
@@ -513,6 +583,20 @@ jQuery(document).ready(function() {
 		return $pub->get_the_link();
 	}
 
+	/**
+	 * Filter the content of a Publication.
+	 *
+	 * Since Publications aren't using the regular post editor for their description, we need to hook in to calls
+	 * to `the_content()` to filter out what's stored in the database and replace it with what's stored in the description
+	 * meta field.
+	 *
+	 * We won't use the actual post content for Publications because, eventually, this will contain full-text references
+	 * from the Publication itself to aid in full-text searching within WordPress.
+	 *
+	 * @param string $content Regular post content from the `wp_posts` table.
+	 *
+	 * @return string Actual summary description of the Publication, or unfiltered text if this isn't a Publication.
+	 */
 	public static function the_content( $content ) {
 		global $post;
 		if( 'publication' != $post->post_type )
@@ -522,12 +606,20 @@ jQuery(document).ready(function() {
 		return $pub->summary;
 	}
 
+	/**
+	 * Filter the title to append "(Download Publication)" where necessary.
+	 *
+	 * @param string $title Original title
+	 * @param int    $id    Post ID
+	 *
+	 * @return string
+	 */
 	public static function the_title( $title, $id ) {
-		$post = &get_post( $id );
+		$post = get_post( $id );
 		if( 'publication' != $post->post_type )
 			return $title;
 
-		return $title . " (Download Publication)";
+		return sprintf( __( '%s (Download Publication)', 'wppa_translate' ), $title );
 	}
 }
 ?>
