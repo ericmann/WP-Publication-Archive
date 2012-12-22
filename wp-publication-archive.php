@@ -39,6 +39,7 @@ define( 'WP_PUB_ARCH_DIR', dirname( __FILE__) . '/' );
 require_once( 'lib/class.mimetype.php' );
 require_once( 'lib/class.wp-publication-archive.php' );
 require_once( 'lib/class.publication-markup.php' );
+require_once( 'lib/class.publication-widget.php' );
 
 update_option( 'wp-publication-archive-core', 2, '', 'no' );
 
@@ -107,6 +108,7 @@ add_action( 'init',              array( 'WP_Publication_Archive', 'enqueue_scrip
 add_action( 'save_post',         array( 'WP_Publication_Archive', 'save_meta' ) );
 add_action( 'template_redirect', array( 'WP_Publication_Archive', 'open_file' ) );
 add_action( 'template_redirect', array( 'WP_Publication_Archive', 'download_file' ) );
+add_action( 'widgets_init',		array( 'WP_Publication_Archive', 'register_widget' ) );
 
 // Wireup filters
 add_filter( 'post_type_link',      array( 'WP_Publication_Archive', 'publication_link' ), 10, 2 );
