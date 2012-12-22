@@ -24,15 +24,17 @@ final class WP_Publication_Archive {
 	 * @return string Download/Open link.
 	 * @since 2.5
 	 */
-	private static function get_link( $publication_id = 0, $endpoint = 'wppa_open' ) {
-		$permalink = get_permalink( $publication_id );
+	private static function get_link( $publication_id = 0, $endpoint = 'wppa_open', $permalink = false ) {
+		if ( ! $permalink ) {
+			$permalink = get_permalink( $publication_id );
+		}
 
 		$structure = get_option( 'permalink_structure' );
 
 		if ( empty( $structure ) ) {
 			$new = add_query_arg( $endpoint, 1, $permalink );
 		} else {
-			$new = trailingslashit( $permalink ) . $endpoint . '/1';
+			$new = trailingslashit( $permalink ) . $endpoint;
 		}
 
 		return $new;
@@ -66,6 +68,8 @@ final class WP_Publication_Archive {
 	 * Filter WordPress' request so that we can send a redirect to the file if it's requested.
 	 *
 	 * @uses apply_filters() Calls 'wppa_download_url' to get the download URL.
+	 * @uses apply_filters() Calls 'wppa_mask_url' to check whether the file source URL should be masked.
+	 *
 	 * @since 2.5
 	 */
 	public static function open_file() {
@@ -83,8 +87,27 @@ final class WP_Publication_Archive {
 
 		$uri = apply_filters( 'wppa_download_url', $uri );
 
-		header( 'HTTP/1.1 303 See Other' );
-		header( 'Location: ' . $uri );
+		if ( apply_filters( 'wppa_mask_url', true ) ) {
+			// Fetch the file from the remote server.
+			$request = wp_remote_get( $uri, array( 'sslverify' => false ) );
+
+			if ( ! is_wp_error( $request ) ) {
+				$file = wp_remote_retrieve_body( $request );
+
+				header( 'HTTP/1.1 200 OK' );
+				header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
+				header( 'Last-Modified: ' . wp_remote_retrieve_header( $request, 'last-modified' ) );
+				header( 'Content-type: ' . wp_remote_retrieve_header( $request, 'content-type' ) );
+				header( 'Content-Transfer-Encoding: binary' );
+
+				echo $file;
+			} else {
+				header( 'HTTP/1.1 500 Internal Server Error' );
+			}
+		} else {
+			header( 'HTTP/1.1 303 See Other' );
+			header( 'Location: ' . $uri );
+		}
 
 		exit();
 	}
@@ -110,27 +133,30 @@ final class WP_Publication_Archive {
 
 		$uri = apply_filters( 'wppa_download_url', $uri );
 
-		// Fetch the file from the remote server.
+		if ( apply_filters( 'wppa_mask_url', true ) ) {
+			// Fetch the file from the remote server.
+			$request = wp_remote_get( $uri, array( 'sslverify' => false ) );
 
-		$request = wp_remote_get( $uri, array( 'sslverify' => false ) );
+			if ( ! is_wp_error( $request ) ) {
+				$file = wp_remote_retrieve_body( $request );
 
-		if ( ! is_wp_error( $request ) ) {
-			$file = wp_remote_retrieve_body( $request );
+				header( 'HTTP/1.1 200 OK' );
+				header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
+				header( 'Content-Disposition: attachment; filename=' . basename( $uri ) );
+				header( 'Last-Modified: ' . wp_remote_retrieve_header( $request, 'last-modified' ) );
+				header( 'Content-type: ' . wp_remote_retrieve_header( $request, 'content-type' ) );
+				header( 'Content-Transfer-Encoding: binary' );
 
-			header( 'HTTP/1.1 200 OK' );
-			header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
-			header( 'Content-Disposition: attachment; filename=' . basename( $uri ) );
-			header( 'Last-Modified: ' . wp_remote_retrieve_header( $request, 'last-modified' ) );
-			header( 'Content-type: ' . wp_remote_retrieve_header( $request, 'content-type' ) );
-			header( 'Content-Transfer-Encoding: binary' );
-
-			echo $file;
-
-			exit();
+				echo $file;
+			} else {
+				header( 'HTTP/1.1 500 Internal Server Error' );
+			}
 		} else {
-			header( 'HTTP/1.1 500 Internal Server Error' );
-			exit();
+			header( 'HTTP/1.1 303 See Other' );
+			header( 'Location: ' . $uri );
 		}
+
+		exit();
 	}
 
 	/**
@@ -580,7 +606,7 @@ jQuery(document).ready(function() {
 			return $permalink;
 
 		$pub = new WP_Publication_Archive_Item( $post->ID, $post->post_title, $post->post_date );
-		return $pub->get_the_link();
+		return self::get_link( $pub->ID, 'wppa_open', $permalink );
 	}
 
 	/**
@@ -634,6 +660,10 @@ jQuery(document).ready(function() {
 	 * @since 2.5
 	 */
 	public static function search( $where ) {
+		if ( ! is_search() ) {
+			return $where;
+		}
+
 		global $wpdb, $wp;
 
 		$where = preg_replace(

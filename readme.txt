@@ -55,6 +55,22 @@ By default, the plug-in contains icons for several common file types.  The icons
 
 All other file types will feature a generic "file" icon.
 
+= Some of my files aren't downloading. What's wrong? =
+
+There could be any of a hundred causes for this.  Most likely, your files are just too large to be handled by your server.
+
+By default, both file opens and downloads are streamed to your server.  This means the plugin will attempt to open the file (whether it's remote or locally-hosted) and will stream the contents of the file to the browser.  This has the advantage of never exposing the raw download URL to the user.*
+
+Unfortunately, it means your server has to download the file first before it can pass it along to the user.  For smaller files, this isn't an issue.  But for much larger files, connections can time out.
+
+If you are serving large files, you can force the **file open** URL to forward connections rather than stream them.  This means requests to your file open URL (i.e. `http://site.com/publication/title/wppa_open`) will receive a 303 "See Other" redirect pointing them to the original resource.  It's less work for your server, but the end user *will* see the original URL.
+
+Just add `add_filter( 'wppa_mask_url', '__return_false' );` to your `functions.php` file to turn off URL masking and use the redirect method instead.
+
+When you add this filter, the **file download** URL will behave the exact same way - redirecting requests to the original resource rather than streaming the file to the browser.  Unfortunately, this leaves the exact behavior of the link up to the browser - some will attempt to download the file, some will open it instead.
+
+* A future version of the plugin will allow you to have password-protected downloads. Hiding the raw URL of a file is important for this feature to work.
+
 == Screenshots ==
 
 No screenshots are available at this time.
@@ -62,10 +78,11 @@ No screenshots are available at this time.
 == Changelog ==
 
 = 2.5 =
-* Removed antiquated openfile.php (allow direct file downloads)
+* Removed antiquated openfile.php (allow direct file downloads).
 * Made the publication list template-ready.
 * Change the "download" link to a pair of "download" or "open" links.
 * Included publication description in WordPress search.
+* Enable URL masking for file downloads.
 
 = 2.3.4 =
 * Add thumbnail support
