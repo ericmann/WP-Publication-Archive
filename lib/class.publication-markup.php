@@ -1,4 +1,20 @@
 <?php
+/**
+ * Wrapper object for publication archive items.
+ *
+ * @module WP_Publication_Archive
+ *
+ * @since 2.3
+ */
+
+/**
+ * This object is used to wrap useful helper functions that relate specifically to publication items.
+ *
+ * Since a publication item is a traditional WP_Post object, you instantiate this class only when you need its specific functionality.
+ * Pass in the ID of the publication, its title, and its date to create a new object.  Other useful information (i.e. summary, authors, thumbnail) will be populated automatically.
+ *
+ * @since 2.3
+ */
 class WP_Publication_Archive_Item {
 	var $ID;
 	var $title;
@@ -10,6 +26,13 @@ class WP_Publication_Archive_Item {
 	var $authors;
 	var $upload_image;
 
+	/**
+	 * Default object constructor
+	 *
+	 * @var int      ID
+	 * @var string   title
+	 * @var datetime date
+	 */
 	public function __construct() {
 		@list($this->ID, $this->title, $this->date) = func_get_args();
 
@@ -54,6 +77,13 @@ class WP_Publication_Archive_Item {
 		}
 	}
 
+	/**
+	 * Get markup for the publication title.
+	 *
+	 * @uses apply_filters() Calls 'wpa-title' to modify the publication title.
+	 *
+	 * @return string
+	 */
 	public function get_the_title() {
 		$before = '<div class="publication_title">';
 		$after = '</div>';
@@ -62,10 +92,23 @@ class WP_Publication_Archive_Item {
 
 		return $before . $title . $after;
 	}
+
+	/**
+	 * Echo the markup for the publication title.
+	 *
+	 * @see WP_Publication_Archive_Item::get_the_title()
+	 */
 	public function the_title() {
 		echo $this->get_the_title();
 	}
 
+	/**
+	 * Get markup for the publication thumbnail image.
+	 *
+	 * @uses apply_filters() Calls 'wpa-upload_image' to modify the thumbnail URL.
+	 *
+	 * @return string
+	 */
 	public function get_the_thumbnail() {
 		$before = '<div class="publication_thumbnail">';
 		$after = '</div>';
@@ -77,10 +120,23 @@ class WP_Publication_Archive_Item {
 
 		return $before . '<img src="' . $thumb . '" />' . $after;
 	}
+
+	/**
+	 * Echo the markup for the publication thumbnail.
+	 *
+	 * @see WP_Publication_Archive_Item::get_the_thumbnail()
+	 */
 	public function the_thumbnail() {
 		echo $this->get_the_thumbnail();
 	}
 
+	/**
+	 * Get a list of authors for the publication.  Also gets the date bound to the publication object.
+	 *
+	 * @uses apply_filters() Calls 'wpa-authors' to modify the author's list.
+	 *
+	 * @return string
+	 */
 	public function get_the_authors() {
 		$before = '<div class="publication_authors">';
 		$after = '</div>';
@@ -97,19 +153,38 @@ class WP_Publication_Archive_Item {
 
 		return $before . $list . $date . $after;
 	}
+
+	/**
+	 * Echos the markup for the authors of the publication.
+	 *
+	 * @see WP_Publication_Archive_Item::get_the_authors()
+	 */
 	public function the_authors() {
 		echo $this->get_the_authors();
 	}
 
 	/**
-	 * Get the download link for the current publication.
+	 * Get the file open link for the current publication.
 	 *
 	 * @return string Download link.
+	 *
+	 * @see WP_Publication_Archive::get_open_link()
 	 */
 	public function get_the_link() {
 		return WP_Publication_Archive::get_open_link( $this->ID );
 	}
 
+	/**
+	 * Get the markup for the publication download links.
+	 *
+	 * @see mimetype
+	 *
+	 * @uses WP_Publication_Archive::get_image()
+	 * @uses WP_Publication_Archive::get_open_link()
+	 * @uses WP_Publication_Archive::get_download_link()
+	 *
+	 * @return string
+	 */
 	public function get_the_uri() {
 		$mime = new mimetype();
 
@@ -130,10 +205,23 @@ class WP_Publication_Archive_Item {
 
 		return $output;
 	}
+
+	/**
+	 * Echos the markup for publication download links.
+	 *
+	 * @see WP_Publication_Archive_Item::get_the_uri()
+	 */
 	public function the_uri() {
 		echo $this->get_the_uri();
 	}
 
+	/**
+	 * Gets the markup for the publication summary.
+	 *
+	 * @uses apply_filters() Calls 'wpa-summary' to modify the publication summary.
+	 *
+	 * @return string
+	 */
 	public function get_the_summary() {
 		$before = '<div class="publication_summary">';
 		$before .= '<span class="title">Summary: </span>';
@@ -147,10 +235,23 @@ class WP_Publication_Archive_Item {
 			return $before . $summary . $after;
 		}
 	}
+
+	/**
+	 * Echo the markup for the publication summary.
+	 *
+	 * @see WP_Publication_Archive_Item::get_the_summary()
+	 */
 	public function the_summary() {
 		echo $this->get_the_summary();
 	}
 
+	/**
+	 * Get the markup for the publication keyword list.
+	 *
+	 * @uses apply_filters() Calls 'wpa-keywords' to modify the publication keyword list.
+	 *
+	 * @return string
+	 */
 	public function get_the_keywords() {
 		$before = '<div class="publication_keywords">';
 		$before .= '<span class="title">Keywords: </span>';
@@ -164,10 +265,23 @@ class WP_Publication_Archive_Item {
 			return $before . $keywords . $after;
 		}
 	}
+
+	/**
+	 * Echo the publication keyword list.
+	 *
+	 * @see WP_Publication_Archive_Item::get_the_keywords()
+	 */
 	public function the_keywords() {
 		echo $this->get_the_keywords();
 	}
 
+	/**
+	 * Get the markup for the publication category list.
+	 *
+	 * @uses apply_filters() Calls 'wpa-categories' to modify the publication category list.
+	 *
+	 * @return string
+	 */
 	public function get_the_categories() {
 		$before = '<div class="publication_categories">';
 		$before .= '<span class="title">Categories: </span>';
@@ -181,6 +295,12 @@ class WP_Publication_Archive_Item {
 			return $before . $categories . $after;
 		}
 	}
+
+	/**
+	 * Echo the publication category list.
+	 *
+	 * @see WP_Publication_Archive_Item::get_the_categories()
+	 */
 	public function the_categories() {
 		echo $this->get_the_categories();
 	}
