@@ -642,10 +642,10 @@ jQuery(document).ready(function() {
 	 */
 	public static function the_title( $title, $id ) {
 		$post = get_post( $id );
-		if( 'publication' != $post->post_type )
+		if( 'publication' != $post->post_type || is_admin() )
 			return $title;
 
-		return sprintf( __( '%s (Download Publication)', 'wppa_translate' ), $title );
+		return sprintf( __( '%s (Publication)', 'wppa_translate' ), $title );
 	}
 
 	/**

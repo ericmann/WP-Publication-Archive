@@ -112,7 +112,7 @@ add_action( 'template_redirect', array( 'WP_Publication_Archive', 'download_file
 add_filter( 'post_type_link',      array( 'WP_Publication_Archive', 'publication_link' ), 10, 2 );
 add_filter( 'query_vars',          array( 'WP_Publication_Archive', 'query_vars' ) );
 add_filter( 'the_content',         array( 'WP_Publication_Archive', 'the_content' ) );
-//add_filter( 'the_title',           array( 'WP_Publication_Archive', 'the_title' ), 10, 2 );
+add_filter( 'the_title',           array( 'WP_Publication_Archive', 'the_title' ), 10, 2 );
 add_filter( 'posts_where_request', array( 'WP_Publication_Archive', 'search' ) );
 
 // Wireup shortcodes
