@@ -453,19 +453,22 @@ jQuery(document).ready(function() {
 	 * @return string Shortcode output.
 	 * @uses apply_filters() Calls 'wwpa_list_limit' to get the number of publications listed on each page.
 	 * @uses apply_filters() Calls 'wppa_list_template' to get the shortcode template file.
+	 * @uses apply_filters() Calls 'wppa_dropdown_template' to get the shortcode template file.
 	 */
 	public static function shortcode_handler( $atts ) {
 		global $post;
 
 		/**
 		 * @var string $categories List of category slugs to filter.
-		 * @var string $author Author slug to filter.
-		 * @var number $limit Number of publications per page.
+		 * @var string $author     Author slug to filter.
+		 * @var number $limit      Number of publications per page.
+		 * @var string $showas     Format to use when displaying publications.
 		 */
 		extract( shortcode_atts( array(
 				'categories' => '',
 				'author'     => '',
-		        'limit'      => 10
+		        'limit'      => 10,
+		        'showas'     => 'list'
 				), $atts ) );
 
 		$limit = apply_filters( 'wppa_list_limit', $limit );
@@ -544,8 +547,17 @@ jQuery(document).ready(function() {
 			return $error_msg;
 		}
 
-		// Get the publication list template
-		$template_name = apply_filters( 'wppa_list_template', 'template.wppa_publication_list.php' );
+		switch( $showas ) {
+			case 'dropdown':
+				// Get the publication list template
+				$template_name = apply_filters( 'wppa_dropdown_template', 'template.wppa_publication_dropdown.php' );
+				break;
+			case 'list':
+			default:
+				// Get the publication list template
+				$template_name = apply_filters( 'wppa_list_template', 'template.wppa_publication_list.php' );
+		}
+
 		$path = locate_template( $template_name );
 		if ( empty( $path ) ) {
 			$path = WP_PUB_ARCH_DIR . 'includes/' . $template_name;
@@ -726,9 +738,7 @@ jQuery(document).ready(function() {
 	 * @since 2.5
 	 */
 	public static function register_widget() {
-		register_widget( 'WP_Publication_Archive' );
+		register_widget( 'WP_Publication_Archive_Widget' );
 	}
-
-
 }
 ?>

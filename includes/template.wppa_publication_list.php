@@ -1,6 +1,6 @@
 <?php
 /**
- * Default template for displaying the output of the wp-publication-archive shortcode.
+ * Default template for displaying the output of the wp-publication-archive shortcode as a list.
  *
  * To customize the display of the shortcode, simply copy this file into your active theme and make changes to the copied
  * version.  The plugin will automatically detect the new version in your theme and will defer to it instead.

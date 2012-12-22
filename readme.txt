@@ -32,6 +32,12 @@ WP Publication Archive adds a custom content type for storing, tagging, and cate
 
 You can display a list of publications either by includeing the [wp-publication-archive] shortcode on a post/page or by placing <?php wp_publication_archive(); ?> in your theme template files.  WordPress will render your publication list automatically.
 
+= Can I show publications in a dropdown rather than as a list? =
+
+Yes!  Simply add `showas="dropdown"` as a parameter within the regular shortcode, and the plugin will use a dropdown template rather than a list template.  For example:
+
+    [wp-publication-archive showas="dropdown" /]
+
 = Can I filter the list by category =
 
 Yes!  Just include `categories="cat1,cat2"` in your shortcode where "cat1" and "cat2" are the *names* of the categories you want to display.
