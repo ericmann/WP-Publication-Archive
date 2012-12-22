@@ -389,5 +389,30 @@ jQuery(document).ready(function() {
 
 		return $title . " (Download Publication)";
 	}
+	
+	/**
+	 * Utility function to return a WP_Query object with Publication posts
+	 */
+	 
+	public static function query_publications( $args ) {
+		$defaults = array(
+			'posts_per_page' => -1,
+			'order' => 'ASC',
+			'orderby' => 'menu_order'
+		);
+		$query_args = wp_parse_args( $args, $defaults );
+		$query_args['post_type'] = 'publication';
+	
+		$results = new WP_Query( $query_args );
+	
+		return $results;		
+	}
+
+	// Register widget
+	public static function register_widget() {
+		register_widget( 'publication_archive_widget' );
+	}
+
+
 }
 ?>
