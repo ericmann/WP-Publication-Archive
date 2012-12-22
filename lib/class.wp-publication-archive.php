@@ -324,7 +324,7 @@ final class WP_Publication_Archive {
 		global $post;
 		
 		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
-		echo '<p>' . _( 'Please provide the abosulte url of the file (including the <code>http://</code>):', 'wppa_translate' ) . '</p>';
+		echo '<p>' . __( 'Please provide the abosulte url of the file (including the <code>http://</code>):', 'wppa_translate' ) . '</p>';
 		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
 		echo '<input class="button" id="upload_doc_button" type="button" value="' . __( 'Upload Publication', 'wppa_translate' ) . '" alt="' . __( 'Upload Publication', 'wppa_translate' ) . '" />';
 		?>
@@ -346,7 +346,7 @@ jQuery(document).ready(function() {
 		return false;
 	});
 });
-</script>\r\n
+</script>
 <?php
 	}
 
@@ -358,7 +358,7 @@ jQuery(document).ready(function() {
 
 		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
 
-		echo _( 'Enter an URL or upload an image for the thumb.', 'wppa_translate' );
+		_e( 'Enter an URL or upload an image for the thumb.', 'wppa_translate' );
 		echo '<br />';
 		echo '<br />';
 		echo '<label for="wpa-upload_image">';
@@ -383,7 +383,7 @@ jQuery(document).ready(function() {
 			return false;
 		});
 	});
-</script>\r\n
+</script>
 <?
 	}
 
@@ -408,10 +408,10 @@ jQuery(document).ready(function() {
 			return $post_id;
 		}
 		
-		$description = sanitize_text_field( $_POST['wpa_doc_desc'] );
-		$uri = sanitize_url( $_POST['wpa_upload_doc'] );
-		$thumbnail = sanitize_url( $_POST['wpa-upload_image'] );
-			
+		$description = isset( $_POST['wpa_doc_desc'] ) && '' != trim( $_POST['wpa_doc_desc'] ) ? sanitize_text_field( $_POST['wpa_doc_desc'] ) : '';
+		$uri = isset( $_POST['wpa_upload_doc'] ) && '' != trim( $_POST['wpa_upload_doc'] ) ? esc_url_raw( $_POST['wpa_upload_doc'] ) : '';
+		$thumbnail = isset( $_POST['wpa-upload_image'] ) && '' != trim( $_POST['wpa-upload_image'] ) ? esc_url_raw( $_POST['wpa-upload_image'] ) : '';
+
 		update_post_meta( $post_id, 'wpa_doc_desc', $description );
 		update_post_meta( $post_id, 'wpa_upload_doc', $uri );
 		update_post_meta( $post_id, 'wpa-upload_image', $thumbnail );
@@ -620,6 +620,52 @@ jQuery(document).ready(function() {
 			return $title;
 
 		return sprintf( __( '%s (Download Publication)', 'wppa_translate' ), $title );
+	}
+
+	/**
+	 * Also check if the search term is contained in the publication's description.
+	 *
+	 * @param string $where Existing search query string.
+	 *
+	 * @uses add_filter()
+	 *
+	 * @return string
+	 *
+	 * @since 2.5
+	 */
+	public static function search( $where ) {
+		global $wpdb, $wp;
+
+		$where = preg_replace(
+			"/($wpdb->posts.post_title (LIKE '%{$wp->query_vars['s']}%'))/i",
+			"$0 OR ($wpdb->postmeta.meta_key = 'wpa_doc_desc' AND $wpdb->postmeta.meta_value $1)",
+			$where
+		);
+
+		$where = preg_replace(
+			"/$wpdb->postmeta.meta_value $wpdb->posts.post_title LIKE/",
+			"$wpdb->postmeta.meta_value LIKE",
+			$where
+		);
+
+		add_filter( 'posts_join_request', array( 'WP_Publication_Archive', 'search_join' ) );
+
+		return $where;
+	}
+
+	/**
+	 * Add post meta to the search Query.
+	 *
+	 * @param string $join Existing search query string.
+	 *
+	 * @return string
+	 *
+	 * @since 2.5
+	 */
+	public static function search_join( $join ) {
+		global $wpdb;
+
+		return $join .= " LEFT JOIN $wpdb->postmeta ON ($wpdb->posts.ID = $wpdb->postmeta.post_id) ";
 	}
 }
 ?>
