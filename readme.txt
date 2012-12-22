@@ -5,16 +5,13 @@ Tags: document management, pdf, doc, archive
 Requires at least: 3.4
 Tested up to: 3.5
 Stable tag: 2.5
-License GPLv2
+License: GPLv2
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
 
 == Description ==
 
-WP Publication Archive adds a custom content type for storing, tagging, and categorizing downloadable content external to
-standard WordPress posts and pages.  You can add downloadable PDF files, Word documents, and PowerPoint presentations.
-These files will be stored in the standard WordPress uploads directory but will be managed separately through a custom
-post type interface in the WordPress admin area.
+WP Publication Archive adds a custom content type for storing, tagging, and categorizing downloadable content external to standard WordPress posts and pages.  You can add downloadable PDF files, Word documents, and PowerPoint presentations. These files will be stored in the standard WordPress uploads directory but will be managed separately through a custom post type interface in the WordPress admin area.
 
 == Installation ==
 
@@ -27,7 +24,9 @@ post type interface in the WordPress admin area.
 
 = How do I upload a new file? =
 
-Use the built-in media uploader on the "Add Publication" screen.  This is a change from previous versions where you could manually specify the full URL of the attachment.  That format exposed your site to a potential security vulnerability and has been removed.
+**Option 1:** Use the built-in media uploader on the "Add Publication" screen.
+
+**Option 2:** Upload a file to your server via FTP (or to a remote host like AWS) and place the *full* URL (including the `http://`) in the Publication field on the Edit Publication page.
 
 = How do I list my publications? =
 
@@ -35,7 +34,7 @@ You can display a list of publications either by includeing the [wp-publication-
 
 = Can I filter the list by category =
 
-Yes!  Just include `categories="cat-1,cat2"` in your shortcode where "cat-1" and "cat-2" are the *slugs* of the categories you want to display.
+Yes!  Just include `categories="cat1,cat2"` in your shortcode where "cat1" and "cat2" are the *names* of the categories you want to display.
 
 = Can I filter the list by author? =
 
@@ -70,6 +69,34 @@ Just add `add_filter( 'wppa_mask_url', '__return_false' );` to your `functions.p
 When you add this filter, the **file download** URL will behave the exact same way - redirecting requests to the original resource rather than streaming the file to the browser.  Unfortunately, this leaves the exact behavior of the link up to the browser - some will attempt to download the file, some will open it instead.
 
 * A future version of the plugin will allow you to have password-protected downloads. Hiding the raw URL of a file is important for this feature to work.
+
+= How do I use the thumbnail feature? =
+
+Thumbnail support is extended through the plugin, but not actually implemented in any templates.  You can upload a custom thumbnail for each Publication, and the URL will be stored in the Publication's meta field in the database under the `wpa-upload_image` key.
+
+You can get the raw thumbnail URL by requesting it directly with `get_post_meta()`.  Alternatively, the `WP_Publication_Archive_Item` class contains some useful helper methods for printing the thumbnail URL wrapped in proper HTML tags.  You can use code similar to the following:
+
+    <?php
+    $pub = get_post( $publication_id );
+    $pub = new WP_Publication_Archive_Item( $pub->ID, $pub->post_title, $pub->post_date );
+
+    // Return the Publication thumbnail for use elsewhere
+    $thumb = $pub->get_the_thumbnail();
+
+    // Echo/print the thumbnail to the browser
+    $pub->the_thumbnail();
+
+These helper methods will generate HTML tags similar to:
+
+    <div class="publication_thumbnail">
+        <img src="http://site.com/thumbnail.png" />
+    </div>
+
+Also, the actual thumbnail URL printed will be passed through a filter.  You can intercept this and do whatever you need to with the URL (add query arguments, switch http/https protocols, etc).
+
+    add_filter( 'wpa-upload_image', 'your_custom_function', 10, 2 );
+
+The filter passes two arguments, the raw URL for the thumbnail and the ID of the publication.
 
 == Screenshots ==
 
@@ -132,6 +159,9 @@ No screenshots are available at this time.
 * Original release of WP Publications Archive by Luis Lino
 
 == Upgrade Notice ==
+
+= 2.5 =
+Major changes have been made to the way publications are linked and downloaded. If you had previously changed any code for `openfile.php` or the linking/downloading mechanism, be prepared to manually update your Publications should any of them break.
 
 = 2.3.1 =
 URGENT SECURITY UPDATE!!!
