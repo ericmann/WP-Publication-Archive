@@ -26,7 +26,9 @@ final class WP_Publication_Archive {
 	 */
 	private static function get_link( $publication_id = 0, $endpoint = 'wppa_open', $permalink = false ) {
 		if ( ! $permalink ) {
+			remove_filter( 'post_type_link', array( 'WP_Publication_Archive', 'publication_link' ) );
 			$permalink = get_permalink( $publication_id );
+			add_filter( 'post_type_link', array( 'WP_Publication_Archive', 'publication_link' ), 10, 2 );
 		}
 
 		$structure = get_option( 'permalink_structure' );
