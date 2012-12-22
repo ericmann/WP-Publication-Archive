@@ -18,6 +18,8 @@ final class WP_Publication_Archive {
 	/**
 	 * Generate a link with a given endpoint.
 	 *
+	 * If no permalink is provided, it will be pulled back from WordPress.  In this case, the filter that auto-converts permalinks into open links will be removed and re-added.
+	 *
 	 * @param int    $publication_id Optional ID of the publication for which to generate a link.
 	 * @param string $endpoint       Optional endpoint name.
 	 *
