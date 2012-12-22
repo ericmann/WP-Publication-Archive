@@ -104,6 +104,14 @@ Also, the actual thumbnail URL printed will be passed through a filter.  You can
 
 The filter passes two arguments, the raw URL for the thumbnail and the ID of the publication.
 
+= Why are some files downloaded even though I clicked "open?" =
+
+The open behavior is 100% dependent on your browser.  In some cases (i.e. PDFs) the file will open in the browser using a built-in viewer.  In other cases (i.e. Zips) there is no in-browser viewer for that file type, so the browser will download the file instead.
+
+The plugin makes every attempt possible to return the correct MIME type for each file so that the browser know what to do with it.  But in some cases (i.e. Zips or unknown file types), the plugin will return a type of `application/octet-stream` which the browser sees as a generic file and just downloads to a generic, often extensonless, filename.
+
+If you're coming up against a situation like this, I recommend you use the Download link instead.
+
 == Screenshots ==
 
 No screenshots are available at this time.

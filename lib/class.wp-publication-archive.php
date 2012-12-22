@@ -96,12 +96,17 @@ final class WP_Publication_Archive {
 			$request = wp_remote_get( $uri, array( 'sslverify' => false ) );
 
 			if ( ! is_wp_error( $request ) ) {
+				$mime = new mimetype();
 				$file = wp_remote_retrieve_body( $request );
+				$headers = wp_remote_retrieve_headers( $request );
+
+				$last_modified = isset( $headers['last-modified'] ) ? $headers['last-modified'] :'Wed, 9 Nov 1983 05:00:00 GMT';
+				$content_type = isset( $headers['content-type'] ) ? $headers['content-type'] : $mime->getType( basename( $uri ) );
 
 				header( 'HTTP/1.1 200 OK' );
 				header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
-				header( 'Last-Modified: ' . wp_remote_retrieve_header( $request, 'last-modified' ) );
-				header( 'Content-type: ' . wp_remote_retrieve_header( $request, 'content-type' ) );
+				header( 'Last-Modified: ' . $last_modified );
+				header( 'Content-type: ' . $content_type );
 				header( 'Content-Transfer-Encoding: binary' );
 
 				echo $file;
@@ -142,13 +147,18 @@ final class WP_Publication_Archive {
 			$request = wp_remote_get( $uri, array( 'sslverify' => false ) );
 
 			if ( ! is_wp_error( $request ) ) {
+				$mime = new mimetype();
 				$file = wp_remote_retrieve_body( $request );
+				$headers = wp_remote_retrieve_headers( $request );
+
+				$last_modified = isset( $headers['last-modified'] ) ? $headers['last-modified'] :'Wed, 9 Nov 1983 05:00:00 GMT';
+				$content_type = isset( $headers['content-type'] ) ? $headers['content-type'] : $mime->getType( basename( $uri ) );
 
 				header( 'HTTP/1.1 200 OK' );
 				header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
 				header( 'Content-Disposition: attachment; filename=' . basename( $uri ) );
-				header( 'Last-Modified: ' . wp_remote_retrieve_header( $request, 'last-modified' ) );
-				header( 'Content-type: ' . wp_remote_retrieve_header( $request, 'content-type' ) );
+				header( 'Last-Modified: ' . $last_modified );
+				header( 'Content-type: ' . $content_type );
 				header( 'Content-Transfer-Encoding: binary' );
 
 				echo $file;

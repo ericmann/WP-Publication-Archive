@@ -145,7 +145,7 @@ class mimetype {
 			"src"      => "application/x-wais-source",
 			"xhtml"    => "application/xhtml+xml",
 			"xht"      => "application/xhtml+xml",
-			"zip"      => "application/zip",
+			"zip"      => "application/octet-stream",
 			"au"       => "audio/basic",
 			"snd"      => "audio/basic",
 			"mid"      => "audio/midi",
