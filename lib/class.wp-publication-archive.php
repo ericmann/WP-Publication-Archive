@@ -666,7 +666,13 @@ jQuery(document).ready(function() {
 	 *
 	 * @return string
 	 */
-	public static function the_title( $title, $id ) {
+	public static function the_title( $title, $id = 0 ) {
+		// If the filter is called without passing in an ID, it's being called incorrectly.  Rather than spewing a PHP warning,
+		// we will just exit out.  This code was added specifically to handle bad plugins like All-in-One Event Calendar.
+		if ( 0 == $id ) {
+			return $title;
+		}
+
 		$post = get_post( $id );
 		if( 'publication' != $post->post_type || is_admin() )
 			return $title;
