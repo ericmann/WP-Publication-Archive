@@ -4,7 +4,7 @@ Donate link: http://jumping-duck.com/wordpress/plugins
 Tags: document management, pdf, doc, archive
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 2.5.1
+Stable tag: 2.5.2
 License: GPLv2
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
@@ -117,6 +117,9 @@ If you're coming up against a situation like this, I recommend you use the Downl
 No screenshots are available at this time.
 
 == Changelog ==
+
+= 2.5.2 =
+* Fix an issue caused by unnecessary whitespace.
 
 = 2.5.1 =
 * Add some checking to prevent All-in-One Event Calendar from triggering a warning with an improper filter call.
