@@ -485,6 +485,7 @@ jQuery(document).ready(function() {
 		        'showas'     => 'list'
 				), $atts ) );
 
+		$limit = apply_filters( 'wpa-pubs_per_page', $limit ); // Ugly, deprecated filter.
 		$limit = apply_filters( 'wppa_list_limit', $limit );
 
 		if ( isset( $_GET['wpa-paged'] ) ) {
