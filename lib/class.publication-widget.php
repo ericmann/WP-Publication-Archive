@@ -127,7 +127,7 @@ class WP_Publication_Archive_Widget extends WP_Widget {
 		$template_name = apply_filters( 'wppa_widget_template', 'template.wppa_widget.php' );
 		$path = locate_template( $template_name );
 		if ( empty( $path ) ) {
-			$path = WP_PUB_ARCH_INC_URL . 'includes/' . $template_name;
+			$path = WP_PUB_ARCH_DIR . 'includes/' . $template_name;
 		}
 
 		include( $path );

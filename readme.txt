@@ -4,7 +4,7 @@ Donate link: http://jumping-duck.com/wordpress/plugins
 Tags: document management, pdf, doc, archive
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 2.5.4
+Stable tag: 2.5.5
 License: GPLv2
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
@@ -117,6 +117,10 @@ If you're coming up against a situation like this, I recommend you use the Downl
 No screenshots are available at this time.
 
 == Changelog ==
+
+= 2.5.5 =
+* Fix a broken include path for the Widget.
+* Allow targetting a blank tab/window with the `wp_pubarch_open_in_blank` filter.
 
 = 2.5.4 =
 * Convert `wppa_` function and translation prefix to `wp_pubarch_` to avoid a conflict with WP Photo Album +.

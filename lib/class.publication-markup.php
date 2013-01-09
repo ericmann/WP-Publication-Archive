@@ -196,7 +196,11 @@ class WP_Publication_Archive_Item {
 		$output .= '<span class="title">' . __( 'Download:', 'wp_pubarch_translate' ) . ' </span>';
 		$output .= '<span class="description">';
 		$output .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( $mime->getType( $this->uri ) ) . '" /> ';
-		$output .= '<a href="' . WP_Publication_Archive::get_open_link( $this->ID ) . '">';
+		$output .= '<a ';
+		if ( apply_filters( 'wp_pubarch_open_in_blank', false ) ) {
+			$output .= 'target="_blank" ';
+		}
+		$output .= 'href="' . WP_Publication_Archive::get_open_link( $this->ID ) . '">';
 		$output .= __( 'Open', 'wp_pubarch_translate' ) . '</a> | ';
 		$output .= '<a href="' . WP_Publication_Archive::get_download_link( $this->ID ) . '">';
 		$output .= __( 'Download', 'wp_pubarch_translate' ) . '</a>';
