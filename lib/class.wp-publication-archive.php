@@ -269,15 +269,15 @@ final class WP_Publication_Archive {
 	 */
 	public static function register_publication() {
 		$labels = array(
-			'name'                  => __( 'Publications', 'wppa_translate' ),
-			'singular_name'         => __( 'Publication', 'wppa_translate' ),
-			'add_new_item'          => __( 'Add New Publication', 'wppa_translate' ),
-			'edit_item'             => __( 'Edit Publication', 'wppa_translate' ),
-			'new_item'              => __( 'New Publication', 'wppa_translate' ),
-			'view_item'             => __( 'View Publication', 'wppa_translate' ),
-			'search_items'          => __( 'Search Publications', 'wppa_translate' ),
-			'not_found'             => __( 'No publications found', 'wppa_translate' ),
-			'not_found_in_trash'    => __( 'No publications found in trash', 'wppa_translate' )
+			'name'                  => __( 'Publications', 'wp_pubarch_translate' ),
+			'singular_name'         => __( 'Publication', 'wp_pubarch_translate' ),
+			'add_new_item'          => __( 'Add New Publication', 'wp_pubarch_translate' ),
+			'edit_item'             => __( 'Edit Publication', 'wp_pubarch_translate' ),
+			'new_item'              => __( 'New Publication', 'wp_pubarch_translate' ),
+			'view_item'             => __( 'View Publication', 'wp_pubarch_translate' ),
+			'search_items'          => __( 'Search Publications', 'wp_pubarch_translate' ),
+			'not_found'             => __( 'No publications found', 'wp_pubarch_translate' ),
+			'not_found_in_trash'    => __( 'No publications found in trash', 'wp_pubarch_translate' )
 		);
 
 		register_post_type( 'publication',
@@ -310,16 +310,16 @@ final class WP_Publication_Archive {
 	 */
 	public static function register_author() {
 		$labels = array(
-			'name'          => __( 'Authors', 'wppa_translate' ),
-			'singular_name' => __( 'Author', 'wppa_translate' ),
-			'search_items'  => __( 'Search Authors', 'wppa_translate' ),
-			'popular_items' => __( 'Popular Authors', 'wppa_translate' ),
-			'all_items'     => __( 'All Authors', 'wppa_translate' ),
-			'edit_item'     => __( 'Edit Author', 'wppa_translate' ),
-			'update_item'   => __( 'Update Author', 'wppa_translate' ),
-			'add_new_item'  => __( 'Add New Author', 'wppa_translate' ),
-			'new_item_name' => __( 'New Author Name', 'wppa_translate' ),
-			'menu_name'     => __( 'Authors', 'wppa_translate' ),
+			'name'          => __( 'Authors', 'wp_pubarch_translate' ),
+			'singular_name' => __( 'Author', 'wp_pubarch_translate' ),
+			'search_items'  => __( 'Search Authors', 'wp_pubarch_translate' ),
+			'popular_items' => __( 'Popular Authors', 'wp_pubarch_translate' ),
+			'all_items'     => __( 'All Authors', 'wp_pubarch_translate' ),
+			'edit_item'     => __( 'Edit Author', 'wp_pubarch_translate' ),
+			'update_item'   => __( 'Update Author', 'wp_pubarch_translate' ),
+			'add_new_item'  => __( 'Add New Author', 'wp_pubarch_translate' ),
+			'new_item_name' => __( 'New Author Name', 'wp_pubarch_translate' ),
+			'menu_name'     => __( 'Authors', 'wp_pubarch_translate' ),
 		);
 
 		register_taxonomy(
@@ -328,7 +328,7 @@ final class WP_Publication_Archive {
 			array(
 			     'hierarchical' => false,
 			     'labels'       => $labels,
-			     'label'        => __( 'Authors', 'wppa_translate' ),
+			     'label'        => __( 'Authors', 'wp_pubarch_translate' ),
 			     'query_var'    => false,
 			     'rewrite'      => false
 			)
@@ -339,9 +339,9 @@ final class WP_Publication_Archive {
 	 * Register custom meta boxes for the Publication oage.
 	 */
 	public static function pub_meta_boxes() {
-		add_meta_box( 'publication_desc',  __( 'Summary', 'wppa_translate' ),     array( 'WP_Publication_Archive', 'doc_desc_box' ), 'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_uri',   __( 'Publication', 'wppa_translate' ), array( 'WP_Publication_Archive', 'doc_uri_box' ),  'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_thumb', __( 'Thumbnail', 'wppa_translate' ),   array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_desc',  __( 'Summary', 'wp_pubarch_translate' ),     array( 'WP_Publication_Archive', 'doc_desc_box' ), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_uri',   __( 'Publication', 'wp_pubarch_translate' ), array( 'WP_Publication_Archive', 'doc_uri_box' ),  'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_thumb', __( 'Thumbnail', 'wp_pubarch_translate' ),   array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
 	}
 
 	/**
@@ -353,7 +353,7 @@ final class WP_Publication_Archive {
 		$desc = get_post_meta( $post->ID, 'wpa_doc_desc', true );
 		
 		wp_nonce_field( plugin_basename(__FILE__), 'wpa_nonce' );
-		echo '<p>' . __( 'Provide a short description of the publication:', 'wppa_translate' ) . '</p>';
+		echo '<p>' . __( 'Provide a short description of the publication:', 'wp_pubarch_translate' ) . '</p>';
 		echo '<textarea id="wpa_doc_desc" name="wpa_doc_desc" rows="5" style="width:100%">' . esc_textarea( $desc ) . '</textarea>';
 	}
 
@@ -364,9 +364,9 @@ final class WP_Publication_Archive {
 		global $post;
 		
 		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
-		echo '<p>' . __( 'Please provide the abosulte url of the file (including the <code>http://</code>):', 'wppa_translate' ) . '</p>';
+		echo '<p>' . __( 'Please provide the abosulte url of the file (including the <code>http://</code>):', 'wp_pubarch_translate' ) . '</p>';
 		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
-		echo '<input class="button" id="upload_doc_button" type="button" value="' . __( 'Upload Publication', 'wppa_translate' ) . '" alt="' . __( 'Upload Publication', 'wppa_translate' ) . '" />';
+		echo '<input class="button" id="upload_doc_button" type="button" value="' . __( 'Upload Publication', 'wp_pubarch_translate' ) . '" alt="' . __( 'Upload Publication', 'wp_pubarch_translate' ) . '" />';
 		?>
 <script type="text/javascript">
 jQuery(document).ready(function() {
@@ -382,7 +382,7 @@ jQuery(document).ready(function() {
 		};
 
 		formfield = jQuery('#wpa_upload_doc').attr('name');		
-		tb_show('<?php _e( 'Upload Publication', 'wppa_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263');
+		tb_show('<?php _e( 'Upload Publication', 'wp_pubarch_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263');
 		return false;
 	});
 });
@@ -398,12 +398,12 @@ jQuery(document).ready(function() {
 
 		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
 
-		_e( 'Enter an URL or upload an image for the thumb.', 'wppa_translate' );
+		_e( 'Enter an URL or upload an image for the thumb.', 'wp_pubarch_translate' );
 		echo '<br />';
 		echo '<br />';
 		echo '<label for="wpa-upload_image">';
 		echo '<input id="wpa-upload_image" type="text" size="36" name="wpa-upload_image" value=" ' . $thumb . '" />';
-		echo '<input id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumb', 'wppa_translate' ) . '" />';
+		echo '<input id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumb', 'wp_pubarch_translate' ) . '" />';
 ?>
 <script type="text/javascript">
 	jQuery(document).ready(function() {
@@ -419,7 +419,7 @@ jQuery(document).ready(function() {
 			};
 
 			formfield = jQuery('#upload_image').attr('name');
-			tb_show('<?php _e( 'Upload Thumbnail Image', 'wppa_translate' ); ?>', 'media-upload.php?type=image&amp;TB_iframe=true');
+			tb_show('<?php _e( 'Upload Thumbnail Image', 'wp_pubarch_translate' ); ?>', 'media-upload.php?type=image&amp;TB_iframe=true');
 			return false;
 		});
 	});
@@ -517,7 +517,7 @@ jQuery(document).ready(function() {
 			}
 			// if no categories matched categories in the database, report failure
 			if ( empty( $catFilter ) ) {
-				$error_msg = "<div class='publication-archive'><p>". __(' Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories.', 'wppa_translate' ) . "</p><p>" . __( 'You passed: ', 'wppa_translate' ) . "<code>$categories</code></p></div>";
+				$error_msg = "<div class='publication-archive'><p>". __(' Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories.', 'wp_pubarch_translate' ) . "</p><p>" . __( 'You passed: ', 'wp_pubarch_translate' ) . "<code>$categories</code></p></div>";
 				return $error_msg;
 			}
 			$args['category'] = implode( ',', $catFilter );
@@ -538,12 +538,12 @@ jQuery(document).ready(function() {
 
 		// Report if there are no publications matching filters
 		if ( 0 == $total_pubs ) {
-			$error_msg = "<p>" . __( 'There are no publications to display', 'wppa_translate' );
+			$error_msg = "<p>" . __( 'There are no publications to display', 'wp_pubarch_translate' );
 			if ( '' != $author ) 
-				$error_msg .= __( ' by ', 'wppa_translate' ) . $author;
+				$error_msg .= __( ' by ', 'wp_pubarch_translate' ) . $author;
 			if ( '' != $categories ) {
 				// There is probably a better way to do this
-				$error_msg .= __( ' categorized ', 'wppa_translate' );
+				$error_msg .= __( ' categorized ', 'wp_pubarch_translate' );
 				$catList = explode ( ',', $categories );
 				$catNum = count( $catList );
 				$x = 3; // number of terms necessary for grammar to require commas after each term
@@ -678,7 +678,7 @@ jQuery(document).ready(function() {
 		if( 'publication' != $post->post_type || is_admin() )
 			return $title;
 
-		return sprintf( __( '%s (Publication)', 'wppa_translate' ), $title );
+		return sprintf( __( '%s (Publication)', 'wp_pubarch_translate' ), $title );
 	}
 
 	/**

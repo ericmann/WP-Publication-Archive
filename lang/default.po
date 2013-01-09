@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WP Publication Archive\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-12-22 11:32-0800\n"
-"PO-Revision-Date: 2012-12-22 11:34-0800\n"
+"POT-Creation-Date: 2013-01-09 08:31-0800\n"
+"PO-Revision-Date: 2013-01-09 08:31-0800\n"
 "Last-Translator: Eric Mann <eric@eamann.com>\n"
 "Language-Team: Jumping Duck Media <info@jumping-duck.com>\n"
 "MIME-Version: 1.0\n"
@@ -29,6 +29,10 @@ msgstr ""
 
 #: includes/template.wppa_publication_list.php:55
 msgid "Next"
+msgstr ""
+
+#: lib/class.publication-markup.php:196
+msgid "Download:"
 msgstr ""
 
 #: lib/class.publication-markup.php:200
@@ -179,27 +183,27 @@ msgstr ""
 msgid "Upload Thumbnail Image"
 msgstr ""
 
-#: lib/class.wp-publication-archive.php:519
+#: lib/class.wp-publication-archive.php:520
 msgid " Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories."
 msgstr ""
 
-#: lib/class.wp-publication-archive.php:519
+#: lib/class.wp-publication-archive.php:520
 msgid "You passed: "
 msgstr ""
 
-#: lib/class.wp-publication-archive.php:540
+#: lib/class.wp-publication-archive.php:541
 msgid "There are no publications to display"
 msgstr ""
 
-#: lib/class.wp-publication-archive.php:542
+#: lib/class.wp-publication-archive.php:543
 msgid " by "
 msgstr ""
 
-#: lib/class.wp-publication-archive.php:545
+#: lib/class.wp-publication-archive.php:546
 msgid " categorized "
 msgstr ""
 
-#: lib/class.wp-publication-archive.php:674
+#: lib/class.wp-publication-archive.php:681
 #, php-format
 msgid "%s (Publication)"
 msgstr ""

@@ -193,13 +193,13 @@ class WP_Publication_Archive_Item {
 			return '';
 
 		$output = '<div class="publication_download">';
-		$output .= '<span class="title">Download: </span>';
+		$output .= '<span class="title">' . __( 'Download:', 'wp_pubarch_translate' ) . ' </span>';
 		$output .= '<span class="description">';
 		$output .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( $mime->getType( $this->uri ) ) . '" /> ';
 		$output .= '<a href="' . WP_Publication_Archive::get_open_link( $this->ID ) . '">';
-		$output .= __( 'Open', 'wppa_translate' ) . '</a> | ';
+		$output .= __( 'Open', 'wp_pubarch_translate' ) . '</a> | ';
 		$output .= '<a href="' . WP_Publication_Archive::get_download_link( $this->ID ) . '">';
-		$output .= __( 'Download', 'wppa_translate' ) . '</a>';
+		$output .= __( 'Download', 'wp_pubarch_translate' ) . '</a>';
 		$output .= '</span>';
 		$output .= '</div>';
 

@@ -3,14 +3,14 @@
  * Plugin Name: WP Publication Archive
  * Plugin URI: http://jumping-duck.com/wordpress/plugins/wp-publication-archive/
  * Description: Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
- * Version: 2.5.3
+ * Version: 2.5.4
  * Author: Eric Mann
  * Author URI: http://eamann.com
  * License: GPLv2
  */
 
 /**
- * Copyright 2010-2012  Eric Mann, Jumping Duck Media
+ * Copyright 2010-2013  Eric Mann, Jumping Duck Media
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as 
@@ -48,8 +48,8 @@ update_option( 'wp-publication-archive-core', 2, '', 'no' );
  * - Registers the default textdomain.
  * - Loads a rewrite endpoint for processing file downloads.
  */
-function wppa_init() {
-	load_plugin_textdomain( 'wppa_translate', false, dirname( dirname( plugin_basename( __FILE__) ) ) . '/lang/' );
+function wp_pubarch_init() {
+	load_plugin_textdomain( 'wp_pubarch_translate', false, dirname( dirname( plugin_basename( __FILE__) ) ) . '/lang/' );
 
 	WP_Publication_Archive::register_author();
 	WP_Publication_Archive::register_publication();
@@ -61,13 +61,13 @@ function wppa_init() {
 /**
  * Flush rewrite rules on plugin activation.
  */
-function wppa_activate() {
+function wp_pubarch_activate() {
 	// First, load up the init scripts so we know which rewrites to add.
-	wppa_init();
+	wp_pubarch_init();
 
 	flush_rewrite_rules();
 }
-register_activation_hook( __FILE__, 'wppa_activate' );
+register_activation_hook( __FILE__, 'wp_pubarch_activate' );
 
 if ( ! function_exists( 'remove_rewrite_endpoint' ) ) :
 	/**
@@ -94,16 +94,16 @@ endif;
 /**
  * Flush rewrite rules on plugin deactivation.
  */
-function wppa_deactivate() {
+function wp_pubarch_deactivate() {
 	remove_rewrite_endpoint( 'wppa_download' );
 	remove_rewrite_endpoint( 'wppa_open' );
 
 	flush_rewrite_rules();
 }
-register_deactivation_hook( __FILE__, 'wppa_deactivate' );
+register_deactivation_hook( __FILE__, 'wp_pubarch_deactivate' );
 
 // Wireup actions
-add_action( 'init',              'wppa_init' );
+add_action( 'init',              'wp_pubarch_init' );
 add_action( 'init',              array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
 add_action( 'save_post',         array( 'WP_Publication_Archive', 'save_meta' ) );
 add_action( 'template_redirect', array( 'WP_Publication_Archive', 'open_file' ) );

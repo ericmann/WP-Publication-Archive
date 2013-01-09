@@ -44,7 +44,7 @@ extract( $wppa_container );
 	<?php if($offset > 0) { ?>
 		<div class="nav-previous">
 			<a href="<?php echo $prev; ?>">
-				&laquo; <?php _e( 'Previous', 'wppa_translate' ); ?>
+				&laquo; <?php _e( 'Previous', 'wp_pubarch_translate' ); ?>
 			</a>
 		</div>
 	<?php } ?>
@@ -52,7 +52,7 @@ extract( $wppa_container );
 	<?php if($offset + $limit < $total_pubs ) { ?>
 		<div class="nav-next">
 			<a href="<?php echo $next; ?>">
-				<?php _e( 'Next', 'wppa_translate' ); ?> &raquo;
+				<?php _e( 'Next', 'wp_pubarch_translate' ); ?> &raquo;
 			</a>
 		</div>
 	<?php } ?>

@@ -24,10 +24,10 @@ global $wppa_container;
 extract( $wppa_container );
 ?>
 <div class="publication-archive">
-	<p><?php _e( 'Download Publication', 'wppa_translate' ); ?></p>
+	<p><?php _e( 'Download Publication', 'wp_pubarch_translate' ); ?></p>
 	<form name="publication_dropdown" method="get" action="">
 		<select name="dropdown" onchange="window.location.href=this.form.dropdown.options[this.form.dropdown.selectedIndex].value">
-			<option value=""><?php _e( 'Select file', 'wppa_translate' ); ?></option>
+			<option value=""><?php _e( 'Select file', 'wp_pubarch_translate' ); ?></option>
 <?php foreach( $publications as $publication ) { ?>
 			<option value="<?php echo get_permalink( $publication->ID ); ?>"><?php echo $publication->post_title; ?></option>
 <?php } ?>
