@@ -448,7 +448,7 @@ jQuery(document).ready(function() {
 			return $post_id;
 		}
 		
-		$description = isset( $_POST['wpa_doc_desc'] ) && '' != trim( $_POST['wpa_doc_desc'] ) ? sanitize_text_field( $_POST['wpa_doc_desc'] ) : '';
+		$description = isset( $_POST['wpa_doc_desc'] ) && '' != trim( $_POST['wpa_doc_desc'] ) ? apply_filters( 'content_save_pre', $_POST['wpa_doc_desc'] ) : '';
 		$uri = isset( $_POST['wpa_upload_doc'] ) && '' != trim( $_POST['wpa_upload_doc'] ) ? esc_url_raw( $_POST['wpa_upload_doc'] ) : '';
 		$thumbnail = isset( $_POST['wpa-upload_image'] ) && '' != trim( $_POST['wpa-upload_image'] ) ? esc_url_raw( $_POST['wpa-upload_image'] ) : '';
 
