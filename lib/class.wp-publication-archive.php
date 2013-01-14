@@ -711,7 +711,8 @@ jQuery(document).ready(function() {
 			$where
 		);
 
-		add_filter( 'posts_join_request', array( 'WP_Publication_Archive', 'search_join' ) );
+		add_filter( 'posts_join_request',     array( 'WP_Publication_Archive', 'search_join' ) );
+		add_filter( 'posts_distinct_request', array( 'WP_Publication_Archive', 'search_distinct' ) );
 
 		return $where;
 	}
@@ -729,6 +730,17 @@ jQuery(document).ready(function() {
 		global $wpdb;
 
 		return $join .= " LEFT JOIN $wpdb->postmeta ON ($wpdb->posts.ID = $wpdb->postmeta.post_id) ";
+	}
+
+	/**
+	 * Force the search to only return distinct values.
+	 *
+	 * @param string $distinct
+	 *
+	 * @return string
+	 */
+	public static function search_distinct( $distinct ) {
+		return 'DISTINCT';
 	}
 	
 	/**
