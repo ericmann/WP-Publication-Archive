@@ -364,7 +364,7 @@ final class WP_Publication_Archive {
 		global $post;
 		
 		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
-		echo '<p>' . __( 'Please provide the abosulte url of the file (including the <code>http://</code>):', 'wp_pubarch_translate' ) . '</p>';
+		echo '<p>' . __( 'Please provide the absolute url of the file (including the <code>http://</code>):', 'wp_pubarch_translate' ) . '</p>';
 		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
 		echo '<input class="button" id="upload_doc_button" type="button" value="' . __( 'Upload Publication', 'wp_pubarch_translate' ) . '" alt="' . __( 'Upload Publication', 'wp_pubarch_translate' ) . '" />';
 		?>
