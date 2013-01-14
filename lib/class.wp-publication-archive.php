@@ -156,7 +156,7 @@ class WP_Publication_Archive {
 	display: none;
 	}
 </style>";
-		echo '<p>Please provide the abosulte url of the file (including the <code>http://</code>):</p>';
+		echo '<p>Please provide the absolute url of the file (including the <code>http://</code>):</p>';
 		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
 		echo '<input class="button" id="upload_doc_button" type="button" value="Upload Publication" alt="Upload Publication" />';
 		echo "<script type=\"text/javascript\">
