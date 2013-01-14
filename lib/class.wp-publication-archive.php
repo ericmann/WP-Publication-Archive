@@ -678,7 +678,7 @@ jQuery(document).ready(function() {
 		if( 'publication' != $post->post_type || is_admin() )
 			return $title;
 
-		return sprintf( __( '%s (Publication)', 'wp_pubarch_translate' ), $title );
+		return apply_filters( 'wp_pubarch_publication_title', sprintf( __( '%s (Publication)', 'wp_pubarch_translate' ), $title ), $title );
 	}
 
 	/**
