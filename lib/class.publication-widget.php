@@ -138,4 +138,3 @@ class WP_Publication_Archive_Widget extends WP_Widget {
 		unset( $wppa_publications );
 	}
 }
-?>

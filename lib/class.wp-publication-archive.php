@@ -762,4 +762,3 @@ jQuery(document).ready(function() {
 		register_widget( 'WP_Publication_Archive_Widget' );
 	}
 }
-?>

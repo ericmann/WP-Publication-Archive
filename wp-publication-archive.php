@@ -119,4 +119,3 @@ add_filter( 'posts_where_request', array( 'WP_Publication_Archive', 'search' ) )
 
 // Wireup shortcodes
 add_shortcode( 'wp-publication-archive', array( 'WP_Publication_Archive', 'shortcode_handler' ) );
-?>

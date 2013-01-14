@@ -309,4 +309,3 @@ class WP_Publication_Archive_Item {
 		echo $this->get_the_categories();
 	}
 }
-?>
