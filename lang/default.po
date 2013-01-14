@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WP Publication Archive\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-09 08:31-0800\n"
-"PO-Revision-Date: 2013-01-09 08:31-0800\n"
+"POT-Creation-Date: 2013-01-14 08:03-0800\n"
+"PO-Revision-Date: 2013-01-14 08:03-0800\n"
 "Last-Translator: Eric Mann <eric@eamann.com>\n"
 "Language-Team: Jumping Duck Media <info@jumping-duck.com>\n"
 "MIME-Version: 1.0\n"
@@ -35,11 +35,11 @@ msgstr ""
 msgid "Download:"
 msgstr ""
 
-#: lib/class.publication-markup.php:200
+#: lib/class.publication-markup.php:204
 msgid "Open"
 msgstr ""
 
-#: lib/class.publication-markup.php:202
+#: lib/class.publication-markup.php:206
 msgid "Download"
 msgstr ""
 
@@ -163,7 +163,7 @@ msgid "Provide a short description of the publication:"
 msgstr ""
 
 #: lib/class.wp-publication-archive.php:367
-msgid "Please provide the abosulte url of the file (including the <code>http://</code>):"
+msgid "Please provide the absolute url of the file (including the <code>http://</code>):"
 msgstr ""
 
 #: lib/class.wp-publication-archive.php:369
