@@ -424,7 +424,7 @@ jQuery(document).ready(function() {
 		});
 	});
 </script>
-<?
+<?php
 	}
 
 	/**
