@@ -13,7 +13,7 @@
  * Copyright 2010-2013  Eric Mann, Jumping Duck Media
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, version 2, as 
+ * it under the terms of the GNU General Public License, version 2, as
  * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
@@ -65,8 +65,7 @@ function wp_pubarch_init() {
 	WP_Publication_Archive::register_author();
 	WP_Publication_Archive::register_publication();
 
-	add_rewrite_endpoint( 'wppa_download', EP_ALL );
-	add_rewrite_endpoint( 'wppa_open', EP_ALL );
+	WP_Publication_Archive::custom_rewrites();
 }
 
 /**
@@ -78,52 +77,28 @@ function wp_pubarch_activate() {
 
 	flush_rewrite_rules();
 }
+
 register_activation_hook( __FILE__, 'wp_pubarch_activate' );
-
-if ( ! function_exists( 'remove_rewrite_endpoint' ) ) :
-	/**
-	 * This function will remove a rewrite endpoint from WordPress by name.
-	 * It is included in an if(!function_exists()) block so that a later version of WordPress can replace it in the future.
-	 *
-	 * @param string $name Endpoint to be removed.
-	 * @since 2.5
-	 * @see add_rewrite_endpoint()
-	 */
-	function remove_rewrite_endpoint( $name ) {
-		global $wp_rewrite;
-
-		for ( $i = 0; $i < count( $wp_rewrite->endpoints ); $i++ ) {
-			$endpoint = $wp_rewrite->endpoints[$i];
-			if ( $endpoint[1] == $name ) {
-				unset( $wp_rewrite->endpoints[$i] );
-				break;
-			}
-		}
-	}
-endif;
 
 /**
  * Flush rewrite rules on plugin deactivation.
  */
 function wp_pubarch_deactivate() {
-	remove_rewrite_endpoint( 'wppa_download' );
-	remove_rewrite_endpoint( 'wppa_open' );
-
 	flush_rewrite_rules();
 }
+
 register_deactivation_hook( __FILE__, 'wp_pubarch_deactivate' );
 
 // Wireup actions
-add_action( 'init',              'wp_pubarch_init' );
-add_action( 'init',              array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
-add_action( 'save_post',         array( 'WP_Publication_Archive', 'save_meta' ) );
+add_action( 'init', 'wp_pubarch_init' );
+add_action( 'init', array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
+add_action( 'save_post', array( 'WP_Publication_Archive', 'save_meta' ) );
 add_action( 'template_redirect', array( 'WP_Publication_Archive', 'open_file' ) );
 add_action( 'template_redirect', array( 'WP_Publication_Archive', 'download_file' ) );
-add_action( 'widgets_init',		 array( 'WP_Publication_Archive', 'register_widget' ) );
+add_action( 'widgets_init', array( 'WP_Publication_Archive', 'register_widget' ) );
 
 // Wireup filters
-add_filter( 'query_vars',          array( 'WP_Publication_Archive', 'query_vars' ) );
-add_filter( 'the_content',         array( 'WP_Publication_Archive', 'the_content' ) );
+add_filter( 'query_vars', array( 'WP_Publication_Archive', 'query_vars' ) );
 add_filter( 'posts_where_request', array( 'WP_Publication_Archive', 'search' ) );
 
 // Wireup shortcodes

@@ -16,65 +16,136 @@
  * @since 2.3
  */
 class WP_Publication_Archive_Item {
-	var $ID;
-	var $title;
-	var $date;
-	var $summary;
-	var $uri;
-	var $keywords;
-	var $categories;
-	var $authors;
-	var $upload_image;
+	/**
+	 * Underlying post object.
+	 *
+	 * @var object|WP_Post
+	 */
+	protected $post;
+
+	/**
+	 * @var int
+	 */
+	public $ID;
+
+	/**
+	 * @var string
+	 */
+	public $title;
+
+	/**
+	 * @var string
+	 */
+	public $date;
+
+	/**
+	 * @var string
+	 */
+	public $content;
+
+	/**
+	 * @var string
+	 */
+	public $summary;
+
+	/**
+	 * @var string|null
+	 */
+	public $upload_image;
+
+	/**
+	 * @var string
+	 */
+	public $uri;
+
+	/**
+	 * @var bool|string
+	 */
+	public $keywords;
+
+	/**
+	 * @var array
+	 */
+	public $keyword_array = array();
+
+	/**
+	 * @var bool|string
+	 */
+	public $categories;
+
+	/**
+	 * @var array
+	 */
+	public $category_array = array();
+
+	/**
+	 * @var bool|string
+	 */
+	public $authors;
+
+	/**
+	 * @var array
+	 */
+	public $author_array = array();
 
 	/**
 	 * Default object constructor
 	 *
-	 * @var int      ID
-	 * @var string   title
-	 * @var datetime date
+	 * @param int|object|WP_Post $post
 	 */
-	public function __construct() {
-		@list($this->ID, $this->title, $this->date) = func_get_args();
+	public function __construct( $post ) {
+		if ( ! is_object( $post ) ) {
+			$post = get_post( $post );
+		}
 
-		$this->summary = get_post_meta( $this->ID, 'wpa_doc_desc', true );
-		$this->uri = get_post_meta( $this->ID, 'wpa_upload_doc', true );
-		$this->upload_image = get_post_meta( $this->ID, 'wpa-upload_image', true );
+		setup_postdata( $post );
 
-		$this->uri = str_replace('http|', 'http://', $this->uri);
-		$this->uri = str_replace('https|', 'https://', $this->uri);
+		$this->post = $post;
 
+		$this->ID           = $post->ID;
+		$this->title        = $post->post_title;
+		$this->date         = $post->post_date;
+		$this->content      = get_the_content();
+		$this->summary      = get_the_excerpt();
+
+		// Get thumbnail image URL
+		$thumbnail_id = get_post_thumbnail_id( $this->ID );
+		$thumb_data = wp_get_attachment_image_src( $thumbnail_id, 'post-thumbnail', false );
+		$this->upload_image = $thumb_data[0];
+		$this->uri          = get_post_meta( $this->ID, 'wpa_upload_doc', true );
+
+		// Filter legacy URLs to strip out bad pipes
+		$this->uri = str_replace( 'http|', 'http://', $this->uri );
+		$this->uri = str_replace( 'https|', 'https://', $this->uri );
+
+		// Build the keywords string
 		$tags = wp_get_post_tags( $this->ID );
 		if ( count( $tags ) > 0 ) {
-			$this->keywords = '';
-			foreach( $tags as $tag ) {
-				if( $this->keywords != '' ) $this->keywords .= ', ';
-				$this->keywords .= $tag->name;
-			}
+			$this->keyword_array = wp_list_pluck( $tags, 'name' );
+			$this->keywords = implode( ', ', $this->keyword_array );
 		} else {
 			$this->keywords = false;
 		}
 
-		$cats = get_the_category ( $this->ID );
+		// Build out the category string
+		$cats = get_the_category( $this->ID );
 		if ( count( $cats ) > 0 ) {
-			$this->categories = '';
-			foreach( $cats as $cat ) {
-				if ( $this->categories != '' ) $this->categories .= ', ';
-				$this->categories .= $cat->name;
-			}
+			$this->category_array = wp_list_pluck( $cats, 'name' );
+			$this->categories = implode( ', ', $this->category_array );
 		} else {
 			$this->categories = false;
 		}
 
+		// Build out the author string
 		$auths = wp_get_post_terms( $this->ID, 'publication-author' );
-		if( count( $auths ) > 0 ) {
-			$this->authors = '';
-			foreach( $auths as $author ) {
-				if($this->authors != '') $this->authors .= ', ';
-				$this->authors .= $author->name;
-			}
+		if ( count( $auths ) > 0 ) {
+			$this->author_array = wp_list_pluck( $auths, 'name' );
+			$this->authors = implode( ', ', $this->author_array );
 		} else {
 			$this->authors = false;
 		}
+
+		wp_reset_postdata();
 	}
 
 	/**
@@ -82,12 +153,12 @@ class WP_Publication_Archive_Item {
 	 *
 	 * @uses apply_filters() Calls 'wpa-title' to modify the publication title.
 	 *
+	 * @param string $before
+	 * @param string $after
+	 *
 	 * @return string
 	 */
-	public function get_the_title() {
-		$before = '<div class="publication_title">';
-		$after = '</div>';
-
+	public function get_the_title( $before = '<div class="publication_title">', $after = '</div>' ) {
 		$title = apply_filters( 'wpa-title', $this->title, $this->ID );
 
 		return $before . $title . $after;
@@ -107,16 +178,17 @@ class WP_Publication_Archive_Item {
 	 *
 	 * @uses apply_filters() Calls 'wpa-upload_image' to modify the thumbnail URL.
 	 *
+	 * @param string $before
+	 * @param string $after
+	 *
 	 * @return string
 	 */
-	public function get_the_thumbnail() {
-		$before = '<div class="publication_thumbnail">';
-		$after = '</div>';
-
+	public function get_the_thumbnail( $before = '<div class="publication_thumbnail">', $after = '</div>' ) {
 		$thumb = apply_filters( 'wpa-upload_image', $this->upload_image, $this->ID );
 
-		if ( '' == trim( $thumb ) )
+		if ( '' == trim( $thumb ) ) {
 			return '';
+		}
 
 		return $before . '<img src="' . $thumb . '" />' . $after;
 	}
@@ -135,17 +207,17 @@ class WP_Publication_Archive_Item {
 	 *
 	 * @uses apply_filters() Calls 'wpa-authors' to modify the author's list.
 	 *
+	 * @param string $before
+	 * @param string $after
+	 *
 	 * @return string
 	 */
-	public function get_the_authors() {
-		$before = '<div class="publication_authors">';
-		$after = '</div>';
-
+	public function get_the_authors( $before = '<div class="publication_authors">', $after = '</div>' ) {
 		$authors = apply_filters( 'wpa-authors', $this->authors, $this->ID );
 
 		$list = '';
 
-		if( $authors ) {
+		if ( $authors ) {
 			$list = '<span class="author-list">' . $authors . '</span>';
 		}
 
@@ -177,7 +249,7 @@ class WP_Publication_Archive_Item {
 	/**
 	 * Get the markup for the publication download links.
 	 *
-	 * @see mimetype
+	 * @see  mimetype
 	 *
 	 * @uses WP_Publication_Archive::get_image()
 	 * @uses WP_Publication_Archive::get_open_link()
