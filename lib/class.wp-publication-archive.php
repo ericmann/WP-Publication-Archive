@@ -801,4 +801,21 @@ class WP_Publication_Archive {
 	public static function register_widget() {
 		register_widget( 'WP_Publication_Archive_Widget' );
 	}
+
+	/**
+	 * Allow users to filter the length of only publication summaries.
+	 *
+	 * @param int $length
+	 *
+	 * @return int
+	 */
+	public static function custom_excerpt_length( $length ) {
+		global $post;
+
+		if ( 'publication' !== $post->post_type ) {
+			return $length;
+		}
+
+		return apply_filters( 'wpa-summary-length', $length );
+	}
 }

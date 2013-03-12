@@ -100,6 +100,7 @@ add_action( 'widgets_init', array( 'WP_Publication_Archive', 'register_widget' )
 // Wireup filters
 add_filter( 'query_vars', array( 'WP_Publication_Archive', 'query_vars' ) );
 add_filter( 'posts_where_request', array( 'WP_Publication_Archive', 'search' ) );
+add_filter( 'excerpt_length', array( 'WP_Publication_Archive', 'custom_excerpt_length' ) );
 
 // Wireup shortcodes
 add_shortcode( 'wp-publication-archive', array( 'WP_Publication_Archive', 'shortcode_handler' ) );
