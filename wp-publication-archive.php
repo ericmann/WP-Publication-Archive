@@ -49,7 +49,7 @@ update_option( 'wp-publication-archive-core', 2, '', 'no' );
  * - Loads a rewrite endpoint for processing file downloads.
  */
 function wp_pubarch_init() {
-	load_plugin_textdomain( 'wp_pubarch_translate', false, dirname( dirname( plugin_basename( __FILE__) ) ) . '/lang/' );
+	load_plugin_textdomain( 'wp_pubarch_translate', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' );
 
 	WP_Publication_Archive::register_author();
 	WP_Publication_Archive::register_publication();
