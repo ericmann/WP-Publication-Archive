@@ -13,7 +13,57 @@
  *
  * All methods are static, so this class should not be instantiated.
  */
-final class WP_Publication_Archive {
+class WP_Publication_Archive {
+
+	/**
+	 * Automatically upgrade the plugin data store from one version to another.
+	 *
+	 * @param int $from
+	 */
+	public static function upgrade( $from ) {
+		switch ( (int) $from ) {
+			case 2:
+				// Get all publications, since we're converting thumbnails to featured images
+				$publications = get_posts(
+					array(
+					'numberposts' => -1,
+					'post_type'   => 'publication'
+					)
+				);
+
+				foreach( $publications as $publication ) {
+					$content = get_post_meta( $publication->ID, 'wpa_doc_desc', true );
+					$thumb = get_post_meta( $publication->ID, 'wpa-upload_image', true );
+
+					// Upgrade content storage
+					if ( ! empty( $content ) && empty( $publication->post_content ) ) {
+						$publication->post_content = apply_filters( 'content_save_pre', $content );
+
+						wp_update_post( $publication );
+					}
+
+					// Upgrade thumbnail storage
+					if ( ! empty( $thumb ) && ! has_post_thumbnail( $publication->ID ) ) {
+						// Find the first image attached to the post and attach it as the featured image
+						$args = array(
+							'numberposts'    => 1,
+							'order'          => 'ASC',
+							'post_mime_type' => 'image',
+							'post_parent'    => $publication->ID,
+							'post_status'    => null,
+							'post_type'      => 'attachment'
+						);
+						$attached_image = get_children( $args );
+						if ( false !== $attached_image ) {
+							foreach( $attached_image as $attachment_id => $attachment ) {
+								set_post_thumbnail( $publication->ID, $attachment_id );
+							}
+						}
+					}
+				}
+				break;
+		}
+	}
 
 	/**
 	 * Generate a link with a given endpoint.
@@ -26,7 +76,7 @@ final class WP_Publication_Archive {
 	 * @return string Download/Open link.
 	 * @since 2.5
 	 */
-	private static function get_link( $publication_id = 0, $endpoint = 'wppa_open', $permalink = false ) {
+	protected static function get_link( $publication_id = 0, $endpoint = 'wppa_open', $permalink = false ) {
 		if ( ! $permalink ) {
 			remove_filter( 'post_type_link', array( 'WP_Publication_Archive', 'publication_link' ) );
 			$permalink = get_permalink( $publication_id );
@@ -289,7 +339,9 @@ final class WP_Publication_Archive {
 			     'has_archive'          => true,
 			     'menu_position'        => 20,
 			     'supports'             => array(
-				     'title'
+				     'title',
+				     'editor',
+				     'thumbnail'
 			     ),
 			     'taxonomies'           => array(
 				     'category',
@@ -297,7 +349,7 @@ final class WP_Publication_Archive {
 			     ),
 			     'register_meta_box_cb' => array( 'WP_Publication_Archive', 'pub_meta_boxes' ),
 			     'can_export'           => true,
-			     'menu_icon'            => WP_PUB_ARCH_IMG_URL . '/cabinet.png'
+			     'menu_icon'            => WP_PUB_ARCH_URL . 'images/cabinet.png'
 			)
 		);
 	}
@@ -339,22 +391,7 @@ final class WP_Publication_Archive {
 	 * Register custom meta boxes for the Publication oage.
 	 */
 	public static function pub_meta_boxes() {
-		add_meta_box( 'publication_desc',  __( 'Summary', 'wp_pubarch_translate' ),     array( 'WP_Publication_Archive', 'doc_desc_box' ), 'publication', 'normal', 'high', '' );
 		add_meta_box( 'publication_uri',   __( 'Publication', 'wp_pubarch_translate' ), array( 'WP_Publication_Archive', 'doc_uri_box' ),  'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_thumb', __( 'Thumbnail', 'wp_pubarch_translate' ),   array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
-	}
-
-	/**
-	 * Build the Publication description meta box
-	 */
-	public static function doc_desc_box() {
-		global $post;
-		
-		$desc = get_post_meta( $post->ID, 'wpa_doc_desc', true );
-		
-		wp_nonce_field( plugin_basename(__FILE__), 'wpa_nonce' );
-		echo '<p>' . __( 'Provide a short description of the publication:', 'wp_pubarch_translate' ) . '</p>';
-		echo '<textarea id="wpa_doc_desc" name="wpa_doc_desc" rows="5" style="width:100%">' . esc_textarea( $desc ) . '</textarea>';
 	}
 
 	/**
@@ -391,43 +428,6 @@ jQuery(document).ready(function() {
 	}
 
 	/**
-	 * Build the Publication thumbnail image box.
-	 */
-	public static function doc_thumb_box() {
-		global $post;
-
-		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
-
-		_e( 'Enter an URL or upload an image for the thumb.', 'wp_pubarch_translate' );
-		echo '<br />';
-		echo '<br />';
-		echo '<label for="wpa-upload_image">';
-		echo '<input id="wpa-upload_image" type="text" size="36" name="wpa-upload_image" value=" ' . $thumb . '" />';
-		echo '<input id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumb', 'wp_pubarch_translate' ) . '" />';
-?>
-<script type="text/javascript">
-	jQuery(document).ready(function() {
-		jQuery('#wpa-upload_image_button').on('click', function() {
-		    window.orig_send_to_editor = window.send_to_editor;
-			window.send_to_editor = function(html) {
-				var imgurl = jQuery('img',html).attr('src');
-				jQuery('#wpa-upload_image').val(imgurl);
-				tb_remove();
-
-				// Restore original handler
-				window.send_to_editor = window.orig_send_to_editor;
-			};
-
-			formfield = jQuery('#upload_image').attr('name');
-			tb_show('<?php _e( 'Upload Thumbnail Image', 'wp_pubarch_translate' ); ?>', 'media-upload.php?type=image&amp;TB_iframe=true');
-			return false;
-		});
-	});
-</script>
-<?php
-	}
-
-	/**
 	 * Save our changes to Publication meta information.
 	 *
 	 * @param int $post_id ID of the Publication we're updating
@@ -448,13 +448,9 @@ jQuery(document).ready(function() {
 			return $post_id;
 		}
 		
-		$description = isset( $_POST['wpa_doc_desc'] ) && '' != trim( $_POST['wpa_doc_desc'] ) ? apply_filters( 'content_save_pre', $_POST['wpa_doc_desc'] ) : '';
 		$uri = isset( $_POST['wpa_upload_doc'] ) && '' != trim( $_POST['wpa_upload_doc'] ) ? esc_url_raw( $_POST['wpa_upload_doc'] ) : '';
-		$thumbnail = isset( $_POST['wpa-upload_image'] ) && '' != trim( $_POST['wpa-upload_image'] ) ? esc_url_raw( $_POST['wpa-upload_image'] ) : '';
 
-		update_post_meta( $post_id, 'wpa_doc_desc', $description );
 		update_post_meta( $post_id, 'wpa_upload_doc', $uri );
-		update_post_meta( $post_id, 'wpa-upload_image', $thumbnail );
 		
 		return $post_id;
 	}

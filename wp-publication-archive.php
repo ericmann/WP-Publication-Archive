@@ -31,17 +31,28 @@
  * Luis Lino, Siemens Networks, S.A. - http://code.google.com/p/wp-publications-archive/
  */
 
-define( 'WP_PUB_ARCH_INC_URL', plugin_dir_url( __FILE__ ) . 'includes' );
-define( 'WP_PUB_ARCH_IMG_URL', plugin_dir_url( __FILE__ ) . 'images' );
-define( 'WP_PUB_ARCH_LIB_URL', plugin_dir_url( __FILE__ ) . 'lib' );
-define( 'WP_PUB_ARCH_DIR', dirname( __FILE__) . '/' );
+//define( 'WP_PUB_ARCH_INC_URL', plugin_dir_url( __FILE__ ) . 'includes' );
+//define( 'WP_PUB_ARCH_IMG_URL', plugin_dir_url( __FILE__ ) . 'images' );
+//define( 'WP_PUB_ARCH_LIB_URL', plugin_dir_url( __FILE__ ) . 'lib' );
+define( 'WP_PUB_ARCH_VERSION', '3' );
+define( 'WP_PUB_ARCH_URL', plugin_dir_url( __FILE__ ) );
+define( 'WP_PUB_ARCH_DIR', dirname( __FILE__ ) . '/' );
 
 require_once( 'lib/class.mimetype.php' );
 require_once( 'lib/class.wp-publication-archive.php' );
 require_once( 'lib/class.publication-markup.php' );
 require_once( 'lib/class.publication-widget.php' );
 
-update_option( 'wp-publication-archive-core', 2, '', 'no' );
+$installed = get_option( 'wp-publication-archive-core' );
+if ( false === $installed || (int) $installed < 3 ) {
+	// This is an old installation, so upgrate it
+	WP_Publication_Archive::upgrade( $installed );
+
+	update_option( 'wp-publication-archive-core', 3 );
+} else {
+	// This is a new installation, don't upgrade anything
+	add_option( 'wp-publication-archive-core', 3, '', 'no' );
+}
 
 /**
  * Default initialization routine for the plugin.
@@ -111,10 +122,8 @@ add_action( 'template_redirect', array( 'WP_Publication_Archive', 'download_file
 add_action( 'widgets_init',		 array( 'WP_Publication_Archive', 'register_widget' ) );
 
 // Wireup filters
-add_filter( 'post_type_link',      array( 'WP_Publication_Archive', 'publication_link' ), 10, 2 );
 add_filter( 'query_vars',          array( 'WP_Publication_Archive', 'query_vars' ) );
 add_filter( 'the_content',         array( 'WP_Publication_Archive', 'the_content' ) );
-add_filter( 'the_title',           array( 'WP_Publication_Archive', 'the_title' ), 10, 2 );
 add_filter( 'posts_where_request', array( 'WP_Publication_Archive', 'search' ) );
 
 // Wireup shortcodes
