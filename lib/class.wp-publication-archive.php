@@ -70,8 +70,9 @@ class WP_Publication_Archive {
 	 *
 	 * If no permalink is provided, it will be pulled back from WordPress.  In this case, the filter that auto-converts permalinks into open links will be removed and re-added.
 	 *
-	 * @param int    $publication_id Optional ID of the publication for which to generate a link.
-	 * @param string $endpoint       Optional endpoint name.
+	 * @param int         $publication_id Optional ID of the publication for which to generate a link.
+	 * @param string      $endpoint       Optional endpoint name.
+	 * @param bool|string $permalink      Optional existing permalink
 	 *
 	 * @return string Download/Open link.
 	 * @since 2.5
@@ -147,27 +148,44 @@ class WP_Publication_Archive {
 		}
 
 		if ( apply_filters( 'wppa_mask_url', true ) ) {
-			// Fetch the file from the remote server.
-			$request = wp_remote_get( $uri, array( 'sslverify' => false ) );
+			$content_length = false;
+			$last_modified = false;
 
+			// Attempt to grab the content length and last modified date for caching.
+			$request = wp_remote_head( $uri, array( 'sslverify' => false ) );
 			if ( ! is_wp_error( $request ) ) {
-				$mime    = new mimetype();
-				$file    = wp_remote_retrieve_body( $request );
 				$headers = wp_remote_retrieve_headers( $request );
 
-				$last_modified = isset( $headers['last-modified'] ) ? $headers['last-modified'] : 'Wed, 9 Nov 1983 05:00:00 GMT';
-				$content_type  = isset( $headers['content-type'] ) ? $headers['content-type'] : $mime->getType( basename( $uri ) );
+				if ( isset( $headers['content-length'] ) ) {
+					$content_length = $headers['content-length'];
+				}
 
-				header( 'HTTP/1.1 200 OK' );
-				header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
-				header( 'Last-Modified: ' . $last_modified );
-				header( 'Content-type: ' . $content_type );
-				header( 'Content-Transfer-Encoding: binary' );
-
-				echo $file;
-			} else {
-				header( 'HTTP/1.1 500 Internal Server Error' );
+				if ( isset( $headers['last-modified'] ) ) {
+					$last_modified = $headers['last-modified'];
+				}
 			}
+
+			$mime = new mimetype();
+
+			$content_type  = $mime->getType( basename( $uri ) );
+
+			header( 'HTTP/1.1 200 OK' );
+			header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
+			header( 'Content-type: ' . $content_type );
+			header( 'Content-Transfer-Encoding: binary' );
+
+			if ( false !== $content_length ) {
+				header( 'Content-Length: ' . $content_length );
+			}
+
+			if ( false !== $last_modified ) {
+				header( 'Last-Modified: ' . $last_modified );
+			}
+
+			// Return the remote file
+			ob_clean();
+			flush();
+			readfile( $uri );
 		} else {
 			header( 'HTTP/1.1 303 See Other' );
 			header( 'Location: ' . $uri );
@@ -203,28 +221,46 @@ class WP_Publication_Archive {
 		}
 
 		if ( apply_filters( 'wppa_mask_url', true ) ) {
+			$content_length = false;
+			$last_modified = false;
+
 			// Fetch the file from the remote server.
-			$request = wp_remote_get( $uri, array( 'sslverify' => false ) );
+			$request = wp_remote_head( $uri, array( 'sslverify' => false ) );
 
 			if ( ! is_wp_error( $request ) ) {
-				$mime    = new mimetype();
-				$file    = wp_remote_retrieve_body( $request );
 				$headers = wp_remote_retrieve_headers( $request );
 
-				$last_modified = isset( $headers['last-modified'] ) ? $headers['last-modified'] : 'Wed, 9 Nov 1983 05:00:00 GMT';
-				$content_type  = isset( $headers['content-type'] ) ? $headers['content-type'] : $mime->getType( basename( $uri ) );
+				if ( isset( $headers['content-length'] ) ) {
+					$content_length = $headers['content-length'];
+				}
+
+				if ( isset( $headers['last-modified'] ) ) {
+					$last_modified = $headers['last-modified'];
+				}
+			}
+
+			$mime = new mimetype();
+
+			$content_type = $mime->getType( basename( $uri ) );
 
 				header( 'HTTP/1.1 200 OK' );
 				header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
 				header( 'Content-Disposition: attachment; filename=' . basename( $uri ) );
-				header( 'Last-Modified: ' . $last_modified );
 				header( 'Content-type: ' . $content_type );
 				header( 'Content-Transfer-Encoding: binary' );
 
-				echo $file;
-			} else {
-				header( 'HTTP/1.1 500 Internal Server Error' );
+			if ( false !== $content_length ) {
+				header( 'Content-Length: ' . $content_length );
 			}
+
+			if ( false !== $last_modified ) {
+				header( 'Last-Modified: ' . $last_modified );
+			}
+
+			// Return the remote file
+			ob_clean();
+			flush();
+			readfile( $uri );
 		} else {
 			header( 'HTTP/1.1 303 See Other' );
 			header( 'Location: ' . $uri );
