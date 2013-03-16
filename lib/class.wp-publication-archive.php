@@ -829,16 +829,6 @@ class WP_Publication_Archive {
 	}
 
 	/**
-	 * Register the archive widget.
-	 *
-	 * @author Matthew Eppelsheimer
-	 * @since  2.5
-	 */
-	public static function register_widget() {
-		register_widget( 'WP_Publication_Archive_Widget' );
-	}
-
-	/**
 	 * Allow users to filter the length of only publication summaries.
 	 *
 	 * @param int $length

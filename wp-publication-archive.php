@@ -31,17 +31,17 @@
  * Luis Lino, Siemens Networks, S.A. - http://code.google.com/p/wp-publications-archive/
  */
 
-//define( 'WP_PUB_ARCH_INC_URL', plugin_dir_url( __FILE__ ) . 'includes' );
-//define( 'WP_PUB_ARCH_IMG_URL', plugin_dir_url( __FILE__ ) . 'images' );
-//define( 'WP_PUB_ARCH_LIB_URL', plugin_dir_url( __FILE__ ) . 'lib' );
 define( 'WP_PUB_ARCH_VERSION', '3' );
 define( 'WP_PUB_ARCH_URL', plugin_dir_url( __FILE__ ) );
 define( 'WP_PUB_ARCH_DIR', dirname( __FILE__ ) . '/' );
 
 require_once( 'lib/class.mimetype.php' );
+require_once( 'lib/class.wp-publication-archive-utilities.php' );
 require_once( 'lib/class.wp-publication-archive.php' );
 require_once( 'lib/class.publication-markup.php' );
 require_once( 'lib/class.publication-widget.php' );
+require_once( 'lib/class.wp-publication-archive-cat-count-widget.php' );
+//require_once( 'lib/class.wp-publication-archive-category-widget.php' );
 
 $installed = get_option( 'wp-publication-archive-core' );
 if ( false === $installed || (int) $installed < 3 ) {
@@ -95,7 +95,6 @@ add_action( 'init', array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles
 add_action( 'save_post', array( 'WP_Publication_Archive', 'save_meta' ) );
 add_action( 'template_redirect', array( 'WP_Publication_Archive', 'open_file' ) );
 add_action( 'template_redirect', array( 'WP_Publication_Archive', 'download_file' ) );
-add_action( 'widgets_init', array( 'WP_Publication_Archive', 'register_widget' ) );
 
 // Wireup filters
 add_filter( 'query_vars', array( 'WP_Publication_Archive', 'query_vars' ) );
