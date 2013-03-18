@@ -33,32 +33,12 @@ class WP_Publication_Archive {
 
 				foreach ( $publications as $publication ) {
 					$content = get_post_meta( $publication->ID, 'wpa_doc_desc', true );
-					$thumb   = get_post_meta( $publication->ID, 'wpa-upload_image', true );
 
 					// Upgrade content storage
 					if ( ! empty( $content ) && empty( $publication->post_content ) ) {
 						$publication->post_content = apply_filters( 'content_save_pre', $content );
 
 						wp_update_post( $publication );
-					}
-
-					// Upgrade thumbnail storage
-					if ( ! empty( $thumb ) && ! has_post_thumbnail( $publication->ID ) ) {
-						// Find the first image attached to the post and attach it as the featured image
-						$args           = array(
-							'numberposts'    => 1,
-							'order'          => 'ASC',
-							'post_mime_type' => 'image',
-							'post_parent'    => $publication->ID,
-							'post_status'    => null,
-							'post_type'      => 'attachment'
-						);
-						$attached_image = get_children( $args );
-						if ( false !== $attached_image ) {
-							foreach ( $attached_image as $attachment_id => $attachment ) {
-								set_post_thumbnail( $publication->ID, $attachment_id );
-							}
-						}
 					}
 				}
 				break;
@@ -386,8 +366,7 @@ class WP_Publication_Archive {
 			     'menu_position'        => 20,
 			     'supports'             => array(
 				     'title',
-				     'editor',
-				     'thumbnail'
+				     'editor'
 			     ),
 			     'taxonomies'           => array(
 				     'category',
@@ -454,7 +433,7 @@ class WP_Publication_Archive {
 		echo '<input class="button" id="upload_doc_button" type="button" value="' . __( 'Upload Publication', 'wp_pubarch_translate' ) . '" alt="' . __( 'Upload Publication', 'wp_pubarch_translate' ) . '" />';
 		?>
     <script type="text/javascript">
-        (function ( window, $, undefined ) {
+        ( function ( window, $, undefined ) {
             var handle_doc_upload = function () {
                 var document = window.document;
 
@@ -474,8 +453,45 @@ class WP_Publication_Archive {
             };
 
             $( '#upload_doc_button' ).on( 'click', handle_doc_upload );
-        })( this, jQuery );
+        } )( this, jQuery );
     </script>
+	<?php
+	}
+
+	/**
+	 * Build the Publication thumbnail image box.
+	 */
+	public static function doc_thumb_box() {
+		global $post;
+
+		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
+
+		_e( 'Enter an URL or upload an image for the thumb.', 'wp_pubarch_translate' );
+		echo '<br />';
+		echo '<br />';
+		echo '<label for="wpa-upload_image">';
+		echo '<input id="wpa-upload_image" type="text" size="36" name="wpa-upload_image" value=" ' . $thumb . '" />';
+		echo '<input id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumb', 'wp_pubarch_translate' ) . '" />';
+		?>
+		<script type="text/javascript">
+			( function( window, $, undefined ) {
+				var handle_thumb_upload = function() {
+					var document = window.document;
+
+					window.orig_send_to_editor = window.send_to_editor;
+					window.send_to_editor = function( html ) {
+						var imgurl = jQuery('img',html).attr('src');
+						jQuery('#wpa-upload_image').val(imgurl);
+						tb_remove();
+
+						// Restore original handler
+						window.send_to_editor = window.orig_send_to_editor;
+					};
+
+					$( '#wpa-upload_image_button' ).on( 'click', handle_thumb_upload );
+				}
+			} )( this, jQuery );
+		</script>
 	<?php
 	}
 
@@ -501,8 +517,10 @@ class WP_Publication_Archive {
 		}
 
 		$uri = isset( $_POST['wpa_upload_doc'] ) && '' != trim( $_POST['wpa_upload_doc'] ) ? esc_url_raw( $_POST['wpa_upload_doc'] ) : '';
+		$thumbnail = isset( $_POST['wpa-upload_image'] ) && '' != trim( $_POST['wpa-upload_image'] ) ? esc_url_raw( $_POST['wpa-upload_image'] ) : '';
 
 		update_post_meta( $post_id, 'wpa_upload_doc', $uri );
+		update_post_meta( $post_id, 'wpa-upload_image', $thumbnail );
 
 		return $post_id;
 	}

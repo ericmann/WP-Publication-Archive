@@ -108,10 +108,7 @@ class WP_Publication_Archive_Item {
 		$this->content      = get_the_content();
 		$this->summary      = get_the_excerpt();
 
-		// Get thumbnail image URL
-		$thumbnail_id = get_post_thumbnail_id( $this->ID );
-		$thumb_data = wp_get_attachment_image_src( $thumbnail_id, 'post-thumbnail', false );
-		$this->upload_image = $thumb_data[0];
+		$this->upload_image = get_post_meta( $this->ID, 'wpa-upload_image', true );
 		$this->uri          = get_post_meta( $this->ID, 'wpa_upload_doc', true );
 
 		// Filter legacy URLs to strip out bad pipes
