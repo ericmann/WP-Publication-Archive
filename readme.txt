@@ -4,7 +4,7 @@ Donate link: http://jumping-duck.com/wordpress/plugins
 Tags: document management, pdf, doc, archive
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 2.5.7.2
+Stable tag: 3.0
 License: GPLv2
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
@@ -117,6 +117,15 @@ If you're coming up against a situation like this, I recommend you use the Downl
 No screenshots are available at this time.
 
 == Changelog ==
+
+= 3.0 =
+* Add publication landing pages (with template)
+* Add publication archive pages (with template)
+* Update streaming methods to use `readfile()`
+* Allow category archives for publications
+* Add category count widget for publications
+* Add related publication sidebar widget
+* Update content field to store summary in post content
 
 = 2.5.7.2 =
 * Fix a short PHP open tag.

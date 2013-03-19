@@ -3,7 +3,7 @@
  * Plugin Name: WP Publication Archive
  * Plugin URI: http://jumping-duck.com/wordpress/plugins/wp-publication-archive/
  * Description: Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
- * Version: 2.5.7.2
+ * Version: 3.0
  * Author: Eric Mann
  * Author URI: http://eamann.com
  * License: GPLv2
@@ -91,6 +91,17 @@ function wp_pubarch_deactivate() {
 }
 
 register_deactivation_hook( __FILE__, 'wp_pubarch_deactivate' );
+
+// Check that allow_url_fopen is set to "on" in php.ini
+function wp_pubarch_fopen_disabled() {
+	echo '<div class="error"><p>';
+	_e( 'Please set <code>allow_url_fopen</code> to "On" in your PHP.ini file, otherwise WP Publication Archive downloads <strong>WILL NOT WORK!</strong>', 'wp_pubarch_translate' );
+	echo '<br /><a target="_blank" href="http://php.net/allow-url-fopen">' . __( 'More information ...', 'wp_pubarch_translate' ) . '</a>';
+	echo '</p></div>';
+}
+if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {
+	add_action( 'admin_notices', 'wp_pubarch_fopen_disabled' );
+}
 
 // Wireup actions
 add_action( 'init', 'wp_pubarch_init' );
