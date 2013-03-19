@@ -21,9 +21,10 @@ class WP_Publication_Archive_Utilities {
 	 */
 	protected function __construct() {
 		// Wireup actions
-		add_action( 'widgets_init', array( $this, 'register_widget' ) );
+		add_action( 'widgets_init',   array( $this, 'register_widget' ) );
 
 		// Wireup filters
+		add_filter( 'template_include', array( $this, 'single_publication' ) );
 	}
 
 	/**
@@ -229,6 +230,37 @@ class WP_Publication_Archive_Utilities {
 		$pieces['where'] .= $wpdb->prepare( " AND p.post_type IN(%s) GROUP BY t.term_id", $post_types_str );
 
 		return $pieces;
+	}
+
+	/***********************************************************/
+	/*                 Templates and Redirects                 */
+	/***********************************************************/
+
+	/**
+	 * Override the template hierarchy to include our plugin's version if necessary.
+	 *
+	 * @param string $template
+	 *
+	 * @return string
+	 */
+	public function single_publication( $template ) {
+		if ( is_singular( 'publication' ) ) {
+			$template_name = apply_filters( 'wppa_single_template', 'single-publication.php' );
+
+			$paths = array(
+				get_stylesheet_directory() . '/' . $template_name,
+				get_template_directory() . '/' . $template_name,
+				WP_PUB_ARCH_DIR . 'includes/' . $template_name
+			);
+
+			foreach ( $paths as $path ) {
+				if ( file_exists( $path ) ) {
+					return $path;
+				}
+			}
+		}
+
+		return $template;
 	}
 }
 

@@ -57,7 +57,7 @@ class WP_Publication_Archive {
 	 * @return string Download/Open link.
 	 * @since 2.5
 	 */
-	protected static function get_link( $publication_id = 0, $endpoint = 'wppa_open', $permalink = false ) {
+	protected static function get_link( $publication_id = 0, $endpoint = 'view', $permalink = false ) {
 		if ( ! $permalink ) {
 			remove_filter( 'post_type_link', array( 'WP_Publication_Archive', 'publication_link' ) );
 			$permalink = get_permalink( $publication_id );
@@ -67,9 +67,9 @@ class WP_Publication_Archive {
 		$structure = get_option( 'permalink_structure' );
 
 		if ( empty( $structure ) ) {
-			$new = add_query_arg( $endpoint, 1, $permalink );
+			$new = add_query_arg( $endpoint, 'yes', $permalink );
 		} else {
-			$new = trailingslashit( $permalink ) . $endpoint;
+			$new = site_url() . '/publication/' . $endpoint . '/' . basename( $permalink );
 		}
 
 		return $new;
@@ -84,7 +84,7 @@ class WP_Publication_Archive {
 	 * @since 2.5
 	 */
 	public static function get_open_link( $publication_id = 0 ) {
-		return WP_Publication_Archive::get_link( $publication_id, 'wppa_open' );
+		return WP_Publication_Archive::get_link( $publication_id, 'view' );
 	}
 
 	/**
@@ -96,7 +96,7 @@ class WP_Publication_Archive {
 	 * @since 2.5
 	 */
 	public static function get_download_link( $publication_id = 0 ) {
-		return WP_Publication_Archive::get_link( $publication_id, 'wppa_download' );
+		return WP_Publication_Archive::get_link( $publication_id, 'download' );
 	}
 
 	/**
@@ -115,10 +115,10 @@ class WP_Publication_Archive {
 			return;
 		}
 
-		$uri = get_post_meta( $wp_query->post->ID, 'wpa_upload_doc', true );
+		$publication = new WP_Publication_Archive_Item( $wp_query->post );
 
 		// Strip the old http| and https| if they're there
-		$uri = str_replace( 'http|', 'http://', $uri );
+		$uri = str_replace( 'http|', 'http://', $publication->uri );
 		$uri = str_replace( 'https|', 'https://', $uri );
 
 		$uri = apply_filters( 'wppa_download_url', $uri );
@@ -188,10 +188,10 @@ class WP_Publication_Archive {
 			return;
 		}
 
-		$uri = get_post_meta( $wp_query->post->ID, 'wpa_upload_doc', true );
+		$publication = new WP_Publication_Archive_Item( $wp_query->post );
 
 		// Strip the old http| and https| if they're there
-		$uri = str_replace( 'http|', 'http://', $uri );
+		$uri = str_replace( 'http|', 'http://', $publication->uri );
 		$uri = str_replace( 'https|', 'https://', $uri );
 
 		$uri = apply_filters( 'wppa_download_url', $uri );
@@ -225,7 +225,7 @@ class WP_Publication_Archive {
 
 				header( 'HTTP/1.1 200 OK' );
 				header( 'Expires: Wed, 9 Nov 1983 05:00:00 GMT' );
-				header( 'Content-Disposition: attachment; filename=' . basename( $uri ) );
+				header( 'Content-Disposition: attachment; filename=' . $publication->filename );
 				header( 'Content-type: ' . $content_type );
 				header( 'Content-Transfer-Encoding: binary' );
 
@@ -262,13 +262,13 @@ class WP_Publication_Archive {
 		switch ( $doctype ) {
 			case 'application/pdf':
 			case 'application/postscript':
-				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/pdf.png';
+				$image_url = WP_PUB_ARCH_URL . 'images' . '/icons/pdf.png';
 				break;
 			case 'application/zip':
 			case 'application/x-stuffit':
 			case 'application/x-rar-compressed':
 			case 'application/x-tar':
-				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/zip.png';
+				$image_url = WP_PUB_ARCH_URL . 'images' . '/icons/zip.png';
 				break;
 			case 'audio/basic':
 			case 'audio/mp4':
@@ -279,7 +279,7 @@ class WP_Publication_Archive {
 			case 'audio/x-ms-wax':
 			case 'audio/vnd.rn-realaudio':
 			case 'audio/vnd.wave':
-				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/audio.png';
+				$image_url = WP_PUB_ARCH_URL . 'images' . '/icons/audio.png';
 				break;
 			case 'image/gif':
 			case 'image/jpeg':
@@ -289,7 +289,7 @@ class WP_Publication_Archive {
 			case 'image/vnd.microsoft.icon':
 			case 'application/vnd.oasis.opendocument.graphics':
 			case 'application/vnd.ms-excel':
-				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/image.png';
+				$image_url = WP_PUB_ARCH_URL . 'images' . '/icons/image.png';
 				break;
 			case 'text/cmd':
 			case 'text/css':
@@ -300,12 +300,12 @@ class WP_Publication_Archive {
 			case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
 			case 'application/msword':
 			case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/doc.png';
+				$image_url = WP_PUB_ARCH_URL . 'images' . '/icons/doc.png';
 				break;
 			case 'text/csv':
 			case 'application/vnd.oasis.opendocument.spreadsheet':
 			case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/data.png';
+				$image_url = WP_PUB_ARCH_URL . 'images' . '/icons/data.png';
 				break;
 			case 'video/mpeg':
 			case 'video/mp4':
@@ -313,10 +313,10 @@ class WP_Publication_Archive {
 			case 'video/quicktime':
 			case 'video/webm':
 			case 'video/x-ms-wmv':
-				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/video.png';
+				$image_url = WP_PUB_ARCH_URL . 'images' . '/icons/video.png';
 				break;
 			default:
-				$image_url = WP_PUB_ARCH_IMG_URL . '/icons/unknown.png';
+				$image_url = WP_PUB_ARCH_URL . 'images' . '/icons/unknown.png';
 		}
 
 		return apply_filters( 'wppa_publication_icon', $image_url, $doctype );
@@ -417,6 +417,7 @@ class WP_Publication_Archive {
 	 */
 	public static function pub_meta_boxes() {
 		add_meta_box( 'publication_uri', __( 'Publication', 'wp_pubarch_translate' ), array( 'WP_Publication_Archive', 'doc_uri_box' ), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_thumb', __( 'Thumbnail', 'wp_pubarch_translate' ),   array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
 	}
 
 	/**
@@ -447,7 +448,6 @@ class WP_Publication_Archive {
                     window.send_to_editor = window.orig_send_to_editor;
                 };
 
-                formfield = document.getElementById( 'wpa_upload_doc' ).getAttribute( 'name' );
                 window.tb_show( '<?php _e( 'Upload Publication', 'wp_pubarch_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
                 return false;
             };
@@ -466,12 +466,9 @@ class WP_Publication_Archive {
 
 		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
 
-		_e( 'Enter an URL or upload an image for the thumb.', 'wp_pubarch_translate' );
-		echo '<br />';
-		echo '<br />';
-		echo '<label for="wpa-upload_image">';
-		echo '<input id="wpa-upload_image" type="text" size="36" name="wpa-upload_image" value=" ' . $thumb . '" />';
-		echo '<input id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumb', 'wp_pubarch_translate' ) . '" />';
+		echo '<p>' . __( 'Please provide the absolute url for a thumbnail image (including the <code>http://</code>):', 'wp_pubarch_translate' ) . '</p>';
+		echo '<input type="text" id="wpa-upload_image" name="wpa-upload_image" value=" ' . $thumb . '" size="36" size="25" style="width:85%" />';
+		echo '<input class="button" id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumbnail', 'wp_pubarch_translate' ) . '" alt="' . __( 'Upload Thumbnail', 'wp_pubarch_translate' ) . '" />';
 		?>
 		<script type="text/javascript">
 			( function( window, $, undefined ) {
@@ -480,16 +477,19 @@ class WP_Publication_Archive {
 
 					window.orig_send_to_editor = window.send_to_editor;
 					window.send_to_editor = function( html ) {
-						var imgurl = jQuery('img',html).attr('src');
-						jQuery('#wpa-upload_image').val(imgurl);
-						tb_remove();
+						document.getElementById( 'wpa-upload_image' ).value = $( html ).attr( 'href' );
+
+						window.tb_remove();
 
 						// Restore original handler
 						window.send_to_editor = window.orig_send_to_editor;
 					};
 
-					$( '#wpa-upload_image_button' ).on( 'click', handle_thumb_upload );
+					window.tb_show( '<?php _e( 'Upload Thumbnail', 'wp_pubarch_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
+					return false;
 				}
+
+				$( '#wpa-upload_image_button' ).on( 'click', handle_thumb_upload );
 			} )( this, jQuery );
 		</script>
 	<?php

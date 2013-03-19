@@ -59,6 +59,18 @@ class WP_Publication_Archive_Item {
 	public $uri;
 
 	/**
+	 * @var string
+	 */
+	public $filename;
+
+	/**
+	 * Alternate file downloads.
+	 *
+	 * @var array
+	 */
+	public $alternates = array();
+
+	/**
 	 * @var bool|string
 	 */
 	public $keywords;
@@ -110,6 +122,7 @@ class WP_Publication_Archive_Item {
 
 		$this->upload_image = get_post_meta( $this->ID, 'wpa-upload_image', true );
 		$this->uri          = get_post_meta( $this->ID, 'wpa_upload_doc', true );
+		$this->filename     = basename( $this->uri );
 
 		// Filter legacy URLs to strip out bad pipes
 		$this->uri = str_replace( 'http|', 'http://', $this->uri );
@@ -156,7 +169,9 @@ class WP_Publication_Archive_Item {
 	 * @return string
 	 */
 	public function get_the_title( $before = '<div class="publication_title">', $after = '</div>' ) {
-		$title = apply_filters( 'wpa-title', $this->title, $this->ID );
+		$title = '<a href="' . get_permalink( $this->ID ) . '">';
+		$title .= apply_filters( 'wpa-title', $this->title, $this->ID );
+		$title .= '</a>';
 
 		return $before . $title . $after;
 	}
@@ -262,7 +277,7 @@ class WP_Publication_Archive_Item {
 			return '';
 
 		$output = '<div class="publication_download">';
-		$output .= '<span class="title">' . __( 'Download:', 'wp_pubarch_translate' ) . ' </span>';
+		$output .= '<span class="title">' . $this->filename . ' </span>';
 		$output .= '<span class="description">';
 		$output .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( $mime->getType( $this->uri ) ) . '" /> ';
 		$output .= '<a ';
@@ -270,7 +285,7 @@ class WP_Publication_Archive_Item {
 			$output .= 'target="_blank" ';
 		}
 		$output .= 'href="' . WP_Publication_Archive::get_open_link( $this->ID ) . '">';
-		$output .= __( 'Open', 'wp_pubarch_translate' ) . '</a> | ';
+		$output .= __( 'View', 'wp_pubarch_translate' ) . '</a> | ';
 		$output .= '<a href="' . WP_Publication_Archive::get_download_link( $this->ID ) . '">';
 		$output .= __( 'Download', 'wp_pubarch_translate' ) . '</a>';
 		$output .= '</span>';
@@ -376,5 +391,23 @@ class WP_Publication_Archive_Item {
 	 */
 	public function the_categories() {
 		echo $this->get_the_categories();
+	}
+
+	/**
+	 * List out the downloads associated with this publication
+	 */
+	public function list_downloads() {
+		if ( count( $this->alternates ) == 0 ) {
+			return;
+		}
+
+		echo '<span class="title">' . __( 'Other Files:', 'wp_pubarch_translate' ) . ' </span>';
+		echo '<ul>';
+		foreach( $this->alternates as $alt ) {
+			echo '<li>';
+
+			echo '</li>';
+		}
+		echo '</ul>';
 	}
 }
