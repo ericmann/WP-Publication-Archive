@@ -49,6 +49,9 @@ if ( false === $installed || (int) $installed < 3 ) {
 	WP_Publication_Archive::upgrade( $installed );
 
 	update_option( 'wp-publication-archive-core', 3 );
+
+	// Update rewrite structures
+	flush_rewrite_rules();
 } else {
 	// This is a new installation, don't upgrade anything
 	add_option( 'wp-publication-archive-core', 3, '', 'no' );

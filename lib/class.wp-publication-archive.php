@@ -696,6 +696,11 @@ class WP_Publication_Archive {
 		add_rewrite_tag( '%wppa_open%', '(.+)' );
 		add_rewrite_rule( '^publication/download/([^/]+)(/[0-9]+)?/?$', 'index.php?publication=$matches[1]&wppa_download=yes', 'top' );
 		add_rewrite_rule( '^publication/view/([^/]+)(/[0-9]+)?/?$', 'index.php?publication=$matches[1]&wppa_open=yes', 'top' );
+
+		add_rewrite_rule( '^publication/category/(.+?)/feed/(feed|rdf|rss|rss2|atom)/?$', 'index.php?post_type=publication&category_name=$matches[1]&feed=$matches[2]', 'top' );
+		add_rewrite_rule( '^publication/category/(.+?)/(feed|rdf|rss|rss2|atom)/?$', 'index.php?post_type=publication&category_name=$matches[1]&feed=$matches[2]', 'top' );
+		add_rewrite_rule( '^publication/category/(.+?)/page/?([0-9]{1,})/?$', 'index.php?post_type=publication&category_name=$matches[1]&paged=$matches[2]', 'top' );
+		add_rewrite_rule( '^publication/category/(.+?)/?$', 'index.php?post_type=publication&category_name=$matches[1]', 'top' );
 	}
 
 	/**
