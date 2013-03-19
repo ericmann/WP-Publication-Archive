@@ -133,7 +133,7 @@ class WP_Publication_Archive_Utilities {
 		}
 
 		$categories = $this->get_terms( $args['taxonomy'], $args );
-		var_dump( $categories );
+
 		$name       = esc_attr( $args['name'] );
 		$class      = esc_attr( $args['class'] );
 		$id         = $args['id'] ? esc_attr( $args['id'] ) : $name;
@@ -180,8 +180,96 @@ class WP_Publication_Archive_Utilities {
 		return $output;
 	}
 
-	public function list_categories() {
+	public function list_categories( $args = '' ) {
+		$defaults = array(
+			'show_option_all'    => '',
+			'show_option_none'   => __( 'No categories' ),
+			'orderby'            => 'name',
+			'order'              => 'ASC',
+			'style'              => 'list',
+			'show_count'         => 0,
+			'hide_empty'         => 1,
+			'use_desc_for_title' => 1,
+			'child_of'           => 0,
+			'feed'               => '',
+			'feed_type'          => '',
+			'feed_image'         => '',
+			'exclude'            => '',
+			'exclude_tree'       => '',
+			'current_category'   => 0,
+			'hierarchical'       => true,
+			'title_li'           => __( 'Categories' ),
+			'echo'               => 1,
+			'depth'              => 0,
+			'taxonomy'           => 'category',
+			'post_types'         => array( 'publication' )
+		);
 
+		$args = wp_parse_args( $args, $defaults );
+
+		if ( !isset( $args['pad_counts'] ) && $args['show_count'] && $args['hierarchical'] ) {
+			$args['pad_counts'] = true;
+		}
+
+		if ( !isset( $args['class'] ) ) {
+			$args['class'] = ( 'category' === $args['taxonomy'] ) ? 'categories' : $args['taxonomy'];
+		}
+
+		if ( !taxonomy_exists($args['taxonomy']) ) {
+			return false;
+		}
+
+		$categories = $this->get_terms( 'category', $args );
+
+		$output = '';
+		if ( $args['title_li'] && 'list' === $args['style'] ) {
+			$output = '<li class="' . esc_attr( $args['class'] ) . '">' . $args['title_li'] . '<ul>';
+		}
+
+		if ( empty( $categories ) ) {
+			if ( ! empty( $args['show_option_none'] ) ) {
+				if ( 'list' == $args['style'] ) {
+					$output .= '<li>' . $args['show_option_none'] . '</li>';
+				} else {
+					$output .= $args['show_option_none'];
+				}
+			}
+		} else {
+			if ( ! empty( $args['show_option_all'] ) ) {
+				$posts_page = ( 'page' == get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) ) ? get_permalink( get_option( 'page_for_posts' ) ) : home_url( '/' );
+				$posts_page = esc_url( $posts_page );
+				if ( 'list' === $args['style'] ) {
+					$output .= "<li><a href='$posts_page'>" . $args['show_option_all'] . "</a></li>";
+				} else {
+					$output .= "<a href='$posts_page'>" . $args['show_option_all'] . "</a>";
+				}
+			}
+
+			if ( empty( $args['current_category'] ) && ( is_category() || is_tax() || is_tag() ) ) {
+				$current_term_object = get_queried_object();
+				if ( $args['taxonomy'] == $current_term_object->taxonomy ) {
+					$args['current_category'] = get_queried_object_id();
+				}
+			}
+
+			$depth = -1; // Flat.
+
+			add_filter( 'term_link', array( $this, 'filter_category_link' ), 10, 3 );
+			$output .= walk_category_tree( $categories, $depth, $args );
+			remove_filter( 'term_link', array( $this, 'filter_category_link' ) );
+		}
+
+		if ( $args['title_li'] && 'list' === $args['style'] ) {
+			$output .= '</ul></li>';
+		}
+
+		$output = apply_filters( 'wp_list_categories', $output, $args );
+
+		if ( $args['echo'] ) {
+			echo $output;
+		} else {
+			return $output;
+		}
 	}
 
 	/**
@@ -231,6 +319,22 @@ class WP_Publication_Archive_Utilities {
 		$pieces['where'] .= $wpdb->prepare( " AND p.post_type IN(%s) GROUP BY t.term_id", $post_types_str );
 
 		return $pieces;
+	}
+
+	/**
+	 * Filter the category permalink such that we are returning a proper link to a
+	 * custom post type archive.
+	 *
+	 * @param string $termlink
+	 * @param        $term
+	 * @param        $taxonomy
+	 *
+	 * @return string
+	 */
+	public function filter_category_link( $termlink, $term, $taxonomy ) {
+		$newlink = preg_replace( '/\/category\//', '/publication/category/', $termlink );
+
+		return $newlink;
 	}
 
 	/***********************************************************/

@@ -91,7 +91,7 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 	 * @param array $instance
 	 */
 	public function widget( $args, $instance ) {
-		$title    = apply_filters( 'widget_title', empty( $instance['title'] ) ? __( 'Publicatipn Categories', 'wp_pubarch_translate' ) : $instance['title'], $instance, $this->id_base );
+		$title    = apply_filters( 'widget_title', empty( $instance['title'] ) ? __( 'Publication Categories', 'wp_pubarch_translate' ) : $instance['title'], $instance, $this->id_base );
 		$count    = ! empty( $instance['count'] ) ? '1' : '0';
 		$dropdown = ! empty( $instance['dropdown'] ) ? '1' : '0';
 
@@ -126,7 +126,7 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 				<?php
 				$cat_args['title_li'] = '';
 				// TODO: Replace this function
-				wp_list_categories( apply_filters( 'widget_categories_args', $cat_args ) );
+				$this->utilities->list_categories( apply_filters( 'widget_categories_args', $cat_args ) );
 				?>
 			</ul>
 		<?php
