@@ -103,7 +103,7 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 
 		if ( $dropdown ) {
 			$cat_args['show_option_none'] = __( 'Select Category', 'wp_pubarch_translate' );
-			// TODO: Replace this function
+
 			$this->utilities->dropdown_categories( apply_filters( 'widget_categories_dropdown_args', $cat_args ) );
 			?>
 
@@ -125,7 +125,7 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 			<ul>
 				<?php
 				$cat_args['title_li'] = '';
-				// TODO: Replace this function
+
 				$this->utilities->list_categories( apply_filters( 'widget_categories_args', $cat_args ) );
 				?>
 			</ul>

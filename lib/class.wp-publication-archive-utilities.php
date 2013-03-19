@@ -21,7 +21,7 @@ class WP_Publication_Archive_Utilities {
 	 */
 	protected function __construct() {
 		// Wireup actions
-		add_action( 'widgets_init',   array( $this, 'register_widget' ) );
+		add_action( 'widgets_init',   array( $this, 'register_widgets' ) );
 
 		// Wireup filters
 		add_filter( 'template_include', array( $this, 'single_publication' ) );
@@ -59,10 +59,10 @@ class WP_Publication_Archive_Utilities {
 	/**
 	 * Register all bundled widgets
 	 */
-	public function register_widget() {
+	public function register_widgets() {
 		register_widget( 'WP_Publication_Archive_Widget' );
 		register_widget( 'WP_Publication_Archive_Cat_Count_Widget' );
-		//register_widget( 'WP_Publication_Archive_Category_Widget' );
+		register_widget( 'WP_Publication_Archive_Category_Widget' );
 	}
 
 	/**

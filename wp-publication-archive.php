@@ -41,7 +41,7 @@ require_once( 'lib/class.wp-publication-archive.php' );
 require_once( 'lib/class.publication-markup.php' );
 require_once( 'lib/class.publication-widget.php' );
 require_once( 'lib/class.wp-publication-archive-cat-count-widget.php' );
-//require_once( 'lib/class.wp-publication-archive-category-widget.php' );
+require_once( 'lib/class.wp-publication-archive-category-widget.php' );
 
 $installed = get_option( 'wp-publication-archive-core' );
 if ( false === $installed || (int) $installed < 3 ) {
