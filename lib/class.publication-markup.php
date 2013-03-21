@@ -68,7 +68,7 @@ class WP_Publication_Archive_Item {
 	 *
 	 * @var array
 	 */
-	public $alternates = array();
+	public $alternates;
 
 	/**
 	 * @var bool|string
@@ -154,6 +154,9 @@ class WP_Publication_Archive_Item {
 		} else {
 			$this->authors = false;
 		}
+
+		// Build out alternates array
+		$this->alternates = get_post_meta( $this->ID, 'wpa-upload_alternates' );
 
 		wp_reset_postdata();
 	}
@@ -405,7 +408,9 @@ class WP_Publication_Archive_Item {
 		echo '<ul>';
 		foreach( $this->alternates as $alt ) {
 			echo '<li>';
-
+			echo '<strong>' . $alt['description'] . '</strong> &mdash; ';
+			echo '<a href="' . WP_Publication_Archive::get_alternate_open_link( $this->ID, $alt['description'] ) . '">' . __( 'View', 'wp_pubarch_translate' ) . '</a> | ';
+			echo '<a href="' . WP_Publication_Archive::get_alternate_download_link( $this->ID, $alt['description'] ) . '">' . __( 'Download', 'wp_pubarch_translate' ) . '</a>';
 			echo '</li>';
 		}
 		echo '</ul>';
