@@ -237,9 +237,12 @@ class WP_Publication_Archive {
 
 		$publication = new WP_Publication_Archive_Item( $wp_query->post );
 
+		// Set an empty URI so we don't get an error later.
+		$uri = '';
+
 		if ( isset( $wp_query->query_vars['wppa_alt'] ) ) {
 			foreach( $publication->alternates as $alt ) {
-				if ( $wp_query->query_vars['wppa_alt'] == $alt['description'] ) {
+				if ( urldecode( $wp_query->query_vars['wppa_alt'] ) === $alt['description'] ) {
 					$uri = $alt['url'];
 					break;
 				}
@@ -698,7 +701,7 @@ class WP_Publication_Archive {
 		// Handle alternate uploads
 		delete_post_meta( $post_id, 'wpa-upload_alternates' );
 		if ( isset( $_POST['wpa-alternates'] ) ) {
-			for ( $i = 0; $i < count( $_POST['wpa-alternates'] ); $i++ ) {
+			for ( $i = 0; $i <= count( $_POST['wpa-alternates'] ); $i++ ) {
 				$description = $_POST['wpa-alternates']['description'][ $i ];
 				$url = $_POST['wpa-alternates']['url'][ $i ];
 
