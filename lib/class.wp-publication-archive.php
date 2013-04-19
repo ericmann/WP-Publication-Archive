@@ -152,9 +152,12 @@ class WP_Publication_Archive {
 
 		$publication = new WP_Publication_Archive_Item( $wp_query->post );
 
+		// Set an empty URI so we don't get an error later.
+		$uri = '';
+
 		if ( isset( $wp_query->query_vars['wppa_alt'] ) ) {
 			foreach( $publication->alternates as $alt ) {
-				if ( $wp_query->query_vars['wppa_alt'] == $alt['description'] ) {
+				if ( urldecode( $wp_query->query_vars['wppa_alt'] ) === $alt['description'] ) {
 					$uri = $alt['url'];
 					break;
 				}
