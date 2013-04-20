@@ -137,7 +137,7 @@ class WP_Publication_Archive {
 	/**
 	 * Filter WordPress' request so that we can send a redirect to the file if it's requested.
 	 *
-	 * @uses  apply_filters() Calls 'wppa_download_url' to get the download URL.
+	 * @uses  apply_filters() Calls 'wppa_open_url' to get the download URL.
 	 * @uses  apply_filters() Calls 'wppa_mask_url' to check whether the file source URL should be masked.
 	 *
 	 * @since 2.5
@@ -168,7 +168,7 @@ class WP_Publication_Archive {
 			$uri = str_replace( 'https|', 'https://', $uri );
 		}
 
-		$uri = apply_filters( 'wppa_download_url', $uri );
+		$uri = apply_filters( 'wppa_open_url', $uri );
 
 		if ( empty( $uri ) ) {
 			return;

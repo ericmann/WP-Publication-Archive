@@ -372,7 +372,7 @@ class WP_Publication_Archive_Utilities {
 		global $wp_query;
 
 		if ( is_archive() && 'publication' === $wp_query->query_vars['post_type'] ) {
-			$template_name = apply_filters( 'wppa_single_template', 'archive-publication.php' );
+			$template_name = apply_filters( 'wppa_archive_template', 'archive-publication.php' );
 
 			$path = $this->find_template( $template_name );
 			if ( false !== $path ) {
