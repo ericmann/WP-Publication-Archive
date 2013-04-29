@@ -1,0 +1,214 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Publication Archive\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-01-14 08:03-0800\n"
+"PO-Revision-Date: 2013-04-29 00:18+0100\n"
+"Last-Translator: Ferdinand Malcher <mail@ferdinand-malcher.de>\n"
+"Language-Team: Jumping Duck Media <info@jumping-duck.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop;__;_e\n"
+"X-Poedit-Basepath: C:\\xampp\\htdocs\\wp-test\\wp-content\\plugins\\wp-"
+"publication-archive\n"
+"Language: en\n"
+"X-Generator: Poedit 1.5.5\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: includes/template.wppa_publication_dropdown.php:27
+msgid "Download Publication"
+msgstr "Publikation herunterladen"
+
+#: includes/template.wppa_publication_dropdown.php:30
+msgid "Select file"
+msgstr "Datei auswählen"
+
+#: includes/template.wppa_publication_list.php:47
+msgid "Previous"
+msgstr "Zurück"
+
+#: includes/template.wppa_publication_list.php:55
+msgid "Next"
+msgstr "Weiter"
+
+#: lib/class.publication-markup.php:196
+msgid "Download:"
+msgstr "Download:"
+
+#: lib/class.publication-markup.php:204
+msgid "Open"
+msgstr "Öffnen"
+
+#: lib/class.publication-markup.php:206
+msgid "Download"
+msgstr "Download"
+
+#: lib/class.publication-widget.php:16
+msgid "Publication Archive Widget"
+msgstr "Publikations-Archiv-Widget"
+
+#: lib/class.publication-widget.php:19
+msgid "Display a list of publications."
+msgstr "Liste der Publikationen anzeigen."
+
+#: lib/class.publication-widget.php:50
+msgid "Title"
+msgstr "Titel"
+
+#: lib/class.publication-widget.php:52
+msgid "Number of publications to display"
+msgstr "Anzahl anzuzeigender Publikationen"
+
+#: lib/class.publication-widget.php:52
+msgid "Leave blank for no limit."
+msgstr "leer lassen für unbegrenzt"
+
+#: lib/class.publication-widget.php:54
+msgid "Order by"
+msgstr "Sortierung"
+
+#: lib/class.publication-widget.php:55
+msgid "Manual (drag and drop)"
+msgstr "manuell (Drag & Drop)"
+
+#: lib/class.publication-widget.php:56
+msgid "Latest (publish date)"
+msgstr "nach Veröffentlichungsdatum"
+
+#: lib/class.wp-publication-archive.php:272
+msgid "Publications"
+msgstr "Publikationen"
+
+#: lib/class.wp-publication-archive.php:273
+#: lib/class.wp-publication-archive.php:343
+msgid "Publication"
+msgstr "Publikation"
+
+#: lib/class.wp-publication-archive.php:274
+msgid "Add New Publication"
+msgstr "Publikation hinzufügen"
+
+#: lib/class.wp-publication-archive.php:275
+msgid "Edit Publication"
+msgstr "Publikation bearbeiten"
+
+#: lib/class.wp-publication-archive.php:276
+msgid "New Publication"
+msgstr "Neue Publikation"
+
+#: lib/class.wp-publication-archive.php:277
+msgid "View Publication"
+msgstr "Publikation anzeigen"
+
+#: lib/class.wp-publication-archive.php:278
+msgid "Search Publications"
+msgstr "Publikationen durchsuchen"
+
+#: lib/class.wp-publication-archive.php:279
+msgid "No publications found"
+msgstr "Keine Publikationen gefunden"
+
+#: lib/class.wp-publication-archive.php:280
+msgid "No publications found in trash"
+msgstr "Keine Publikationen gefunden in Gelöschte"
+
+#: lib/class.wp-publication-archive.php:313
+#: lib/class.wp-publication-archive.php:322
+#: lib/class.wp-publication-archive.php:331
+msgid "Authors"
+msgstr "Autoren"
+
+#: lib/class.wp-publication-archive.php:314
+msgid "Author"
+msgstr "Autor"
+
+#: lib/class.wp-publication-archive.php:315
+msgid "Search Authors"
+msgstr "Autoren durchsuchen"
+
+#: lib/class.wp-publication-archive.php:316
+msgid "Popular Authors"
+msgstr "Beliebte Autoren"
+
+#: lib/class.wp-publication-archive.php:317
+msgid "All Authors"
+msgstr "Alle Autoren"
+
+#: lib/class.wp-publication-archive.php:318
+msgid "Edit Author"
+msgstr "Autor bearbeiten"
+
+#: lib/class.wp-publication-archive.php:319
+msgid "Update Author"
+msgstr "Autor aktualisieren"
+
+#: lib/class.wp-publication-archive.php:320
+msgid "Add New Author"
+msgstr "Autor hinzufügen"
+
+#: lib/class.wp-publication-archive.php:321
+msgid "New Author Name"
+msgstr "Autorenname"
+
+#: lib/class.wp-publication-archive.php:342
+msgid "Summary"
+msgstr "Zusammenfassung"
+
+#: lib/class.wp-publication-archive.php:344
+msgid "Thumbnail"
+msgstr "Thumbnail"
+
+#: lib/class.wp-publication-archive.php:356
+msgid "Provide a short description of the publication:"
+msgstr "Geben Sie eine kurze Beschreibung der Publikation ein:"
+
+#: lib/class.wp-publication-archive.php:367
+msgid ""
+"Please provide the absolute url of the file (including the <code>http://</"
+"code>):"
+msgstr "Geben Sie die absolute URL zur Datei an (mit <code>http://</code>):"
+
+#: lib/class.wp-publication-archive.php:369
+#: lib/class.wp-publication-archive.php:385
+msgid "Upload Publication"
+msgstr "Publikation hochladen"
+
+#: lib/class.wp-publication-archive.php:401
+msgid "Enter an URL or upload an image for the thumb."
+msgstr "Geben Sie die URL zum Thumbnail an oder laden Sie ein Bild hoch."
+
+#: lib/class.wp-publication-archive.php:406
+msgid "Upload Thumb"
+msgstr "Thumbnail hochladen"
+
+#: lib/class.wp-publication-archive.php:422
+msgid "Upload Thumbnail Image"
+msgstr "Thumbnail hochladen"
+
+#: lib/class.wp-publication-archive.php:520
+msgid ""
+" Sorry, but the categories you passed to the wp-publication-archive "
+"shortcode do not match any publication categories."
+msgstr "Die im Shortcode angegebenen Kategorien existieren leider nicht."
+
+#: lib/class.wp-publication-archive.php:520
+msgid "You passed: "
+msgstr "Sie haben angegeben:"
+
+#: lib/class.wp-publication-archive.php:541
+msgid "There are no publications to display"
+msgstr "Keine anzuzeigenden Publikationen"
+
+#: lib/class.wp-publication-archive.php:543
+msgid " by "
+msgstr " von "
+
+#: lib/class.wp-publication-archive.php:546
+msgid " categorized "
+msgstr " eingeordnet "
+
+#: lib/class.wp-publication-archive.php:681
+#, php-format
+msgid "%s (Publication)"
+msgstr "%s (Publikation)"
