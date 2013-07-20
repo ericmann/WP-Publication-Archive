@@ -23,7 +23,7 @@ extract( $wppa_container );
 ?>
 <div class="publication-archive">
 <?php foreach( $publications as $publication ) { ?>
-	<?php $pub = new WP_Publication_Archive_Item( $publication->ID, $publication->post_title, $publication->post_date ); ?>
+	<?php $pub = new WP_Publication_Archive_Item( $publication ); ?>
 	<div class="single-publication">
 		<?php $pub->the_thumbnail(); ?>
 		<?php $pub->the_title(); ?>

@@ -1,0 +1,297 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Publication Archive\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-19 21:17-0800\n"
+"PO-Revision-Date: 2013-07-19 21:17-0800\n"
+"Last-Translator: Eric Mann <eric@eamann.com>\n"
+"Language-Team: Jumping Duck Media <info@jumping-duck.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop;__;_e\n"
+"X-Poedit-Basepath: C:\\xampp\\htdocs\\wp-test\\wp-content\\plugins\\wp-publication-archive\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-Country: USA\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: wp-publication-archive.php:98
+msgid "Please set <code>allow_url_fopen</code> to \"On\" in your PHP.ini file, otherwise WP Publication Archive downloads <strong>WILL NOT WORK!</strong>"
+msgstr ""
+
+#: wp-publication-archive.php:99
+msgid "More information ..."
+msgstr ""
+
+#: includes/archive-publication.php:19
+msgid "Publication Archives"
+msgstr ""
+
+#: includes/archive-publication.php:29
+#, php-format
+msgid "Permalink to %s"
+msgstr ""
+
+#: includes/archive-publication.php:39
+#: includes/single-publication.php:34
+#: lib/class.wp-publication-archive.php:410
+msgid "Edit Publication"
+msgstr ""
+
+#: includes/template.wppa_publication_dropdown.php:27
+msgid "Download Publication"
+msgstr ""
+
+#: includes/template.wppa_publication_dropdown.php:30
+msgid "Select file"
+msgstr ""
+
+#: includes/template.wppa_publication_list.php:47
+msgid "Previous"
+msgstr ""
+
+#: includes/template.wppa_publication_list.php:55
+msgid "Next"
+msgstr ""
+
+#: lib/class.publication-markup.php:291
+#: lib/class.publication-markup.php:412
+msgid "View"
+msgstr ""
+
+#: lib/class.publication-markup.php:293
+#: lib/class.publication-markup.php:413
+msgid "Download"
+msgstr ""
+
+#: lib/class.publication-markup.php:407
+msgid "Other Files:"
+msgstr ""
+
+#: lib/class.publication-widget.php:16
+msgid "Publication Archive Widget"
+msgstr ""
+
+#: lib/class.publication-widget.php:19
+msgid "Display a list of publications."
+msgstr ""
+
+#: lib/class.publication-widget.php:50
+msgid "Title"
+msgstr ""
+
+#: lib/class.publication-widget.php:52
+msgid "Number of publications to display"
+msgstr ""
+
+#: lib/class.publication-widget.php:52
+msgid "Leave blank for no limit."
+msgstr ""
+
+#: lib/class.publication-widget.php:54
+msgid "Order by"
+msgstr ""
+
+#: lib/class.publication-widget.php:55
+msgid "Manual (drag and drop)"
+msgstr ""
+
+#: lib/class.publication-widget.php:56
+msgid "Latest (publish date)"
+msgstr ""
+
+#: lib/class.wp-publication-archive-cat-count-widget.php:27
+msgid "A list or dropdown of publication categories."
+msgstr ""
+
+#: lib/class.wp-publication-archive-cat-count-widget.php:29
+#: lib/class.wp-publication-archive-cat-count-widget.php:94
+msgid "Publication Categories"
+msgstr ""
+
+#: lib/class.wp-publication-archive-cat-count-widget.php:51
+#: lib/class.wp-publication-archive-category-widget.php:54
+msgid "Title:"
+msgstr ""
+
+#: lib/class.wp-publication-archive-cat-count-widget.php:60
+msgid "Display as dropdown"
+msgstr ""
+
+#: lib/class.wp-publication-archive-cat-count-widget.php:65
+#: lib/class.wp-publication-archive-category-widget.php:61
+msgid "Show publication counts"
+msgstr ""
+
+#: lib/class.wp-publication-archive-cat-count-widget.php:105
+msgid "Select Category"
+msgstr ""
+
+#: lib/class.wp-publication-archive-category-widget.php:25
+msgid "A list of related publications (based on category)."
+msgstr ""
+
+#: lib/class.wp-publication-archive-category-widget.php:27
+#: lib/class.wp-publication-archive-category-widget.php:44
+#: lib/class.wp-publication-archive-category-widget.php:91
+msgid "Related Publications"
+msgstr ""
+
+#: lib/class.wp-publication-archive-utilities.php:49
+msgid "Utilities object already initialized"
+msgstr ""
+
+#: lib/class.wp-publication-archive-utilities.php:186
+msgid "No categories"
+msgstr ""
+
+#: lib/class.wp-publication-archive-utilities.php:201
+msgid "Categories"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:407
+msgid "Publications"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:408
+#: lib/class.wp-publication-archive.php:478
+msgid "Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:409
+msgid "Add New Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:411
+msgid "New Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:412
+msgid "View Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:413
+msgid "Search Publications"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:414
+msgid "No publications found"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:415
+msgid "No publications found in trash"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:449
+#: lib/class.wp-publication-archive.php:458
+#: lib/class.wp-publication-archive.php:467
+msgid "Authors"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:450
+msgid "Author"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:451
+msgid "Search Authors"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:452
+msgid "Popular Authors"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:453
+msgid "All Authors"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:454
+msgid "Edit Author"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:455
+msgid "Update Author"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:456
+msgid "Add New Author"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:457
+msgid "New Author Name"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:479
+msgid "Alternate Files"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:480
+msgid "Thumbnail"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:492
+msgid "Please provide the absolute url of the file (including the <code>http://</code>):"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:494
+#: lib/class.wp-publication-archive.php:511
+msgid "Upload Publication"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:529
+msgid "Please provide the absolute url for a thumbnail image (including the <code>http://</code>):"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:531
+#: lib/class.wp-publication-archive.php:548
+msgid "Upload Thumbnail"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:566
+msgid "These files are considered alternates to the publication listed above (i.e. foreign language translations of the same document)."
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:574
+#: lib/class.wp-publication-archive.php:581
+#: lib/class.wp-publication-archive.php:622
+msgid "upload"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:574
+#: lib/class.wp-publication-archive.php:581
+#: lib/class.wp-publication-archive.php:630
+msgid "delete"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:586
+msgid "Add Row"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:662
+msgid "Upload Alternate"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:777
+msgid " Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories."
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:777
+msgid "You passed: "
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:801
+msgid "There are no publications to display"
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:803
+msgid " by "
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:806
+msgid " categorized "
+msgstr ""
+
+#: lib/class.wp-publication-archive.php:962
+#, php-format
+msgid "%s (Publication)"
+msgstr ""
+
