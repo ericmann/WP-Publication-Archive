@@ -2,8 +2,8 @@
 Contributors: ericmann
 Donate link: http://jumping-duck.com/wordpress/plugins
 Tags: document management, pdf, doc, archive
-Requires at least: 3.4
-Tested up to: 3.5
+Requires at least: 3.5
+Tested up to: 3.6
 Stable tag: 3.0
 License: GPLv2
 
@@ -211,6 +211,9 @@ No screenshots are available at this time.
 * Original release of WP Publications Archive by Luis Lino
 
 == Upgrade Notice ==
+
+= 3.0 =
+Please flush your permalinks by visiting the Settings >> Permalinks page in WordPress, otherwise your download links WILL NOT WORK.
 
 = 2.5 =
 Major changes have been made to the way publications are linked and downloaded. If you had previously changed any code for `openfile.php` or the linking/downloading mechanism, be prepared to manually update your Publications should any of them break.
