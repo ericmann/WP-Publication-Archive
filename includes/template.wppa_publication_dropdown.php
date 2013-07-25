@@ -29,7 +29,7 @@ extract( $wppa_container );
 		<select name="dropdown" onchange="window.location.href=this.form.dropdown.options[this.form.dropdown.selectedIndex].value">
 			<option value=""><?php _e( 'Select file', 'wp_pubarch_translate' ); ?></option>
 <?php foreach( $publications as $publication ) { ?>
-			<option value="<?php echo get_permalink( $publication->ID ); ?>"><?php echo $publication->post_title; ?></option>
+			<option value="<?php echo WP_Publication_Archive::get_open_link( $publication->ID ); ?>"><?php echo $publication->post_title; ?></option>
 <?php } ?>
 		</select>
 	</form>
