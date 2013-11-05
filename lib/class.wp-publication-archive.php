@@ -701,7 +701,7 @@ class WP_Publication_Archive {
 		// Handle alternate uploads
 		delete_post_meta( $post_id, 'wpa-upload_alternates' );
 		if ( isset( $_POST['wpa-alternates'] ) ) {
-			for ( $i = 0; $i <= count( $_POST['wpa-alternates'] ); $i++ ) {
+			for ( $i = 0; $i <= count( $_POST['wpa-alternates']['url'] ); $i++ ) {
 				$description = $_POST['wpa-alternates']['description'][ $i ];
 				$url = $_POST['wpa-alternates']['url'][ $i ];
 
