@@ -144,7 +144,7 @@ class WP_Publication_Archive_Utilities {
 			$output = '';
 		}
 
-		if ( empty( $categories ) && ! $r['hide_if_empty'] && ! empty( $args['show_option_none'] ) ) {
+		if ( empty( $categories ) && ! $args['hide_if_empty'] && ! empty( $args['show_option_none'] ) ) {
 			$args['show_option_none'] = apply_filters( 'list_cats', $args['show_option_none'] );
 			$output .= "\t<option value='-1' selected='selected'>" . $args['show_option_none'] . "</option>\n";
 		}
