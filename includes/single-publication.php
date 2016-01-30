@@ -31,7 +31,7 @@ get_header(); ?>
 					<footer class="entry-meta">
 						<?php $publication->the_keywords(); ?>
 						<?php $publication->the_categories(); ?>
-						<?php edit_post_link( __( 'Edit Publication', 'wp_pubarch_translate' ), '<span class="edit-link">', '</span>' ); ?>
+						<?php edit_post_link( esc_html__( 'Edit Publication', 'wp_pubarch_translate' ), '<span class="edit-link">', '</span>' ); ?>
 					</footer><!-- .entry-meta -->
 				</article><!-- #post -->
 

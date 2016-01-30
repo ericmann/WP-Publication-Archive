@@ -24,9 +24,9 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 	public function __construct() {
 		$widget_ops = array(
 			'classname'   => 'widget_pub_categories',
-			'description' => __( 'A list or dropdown of publication categories.', 'wp_pubarch_translate' )
+			'description' => esc_html__( 'A list or dropdown of publication categories.', 'wp_pubarch_translate' )
 		);
-		parent::__construct( false, __( 'Publication Categories', 'wp_pubarch_translate' ), $widget_ops );
+		parent::__construct( false, esc_html__( 'Publication Categories', 'wp_pubarch_translate' ), $widget_ops );
 
 		$this->utilities = WP_Publication_Archive_Utilities::get_instance();
 	}
@@ -97,12 +97,12 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 
 		echo $args['before_widget'];
 		if ( $title )
-			echo $args['before_title'] . $title . $args['after_title'];
+			echo $args['before_title'] . esc_html( $title ) . $args['after_title'];
 
 		$cat_args = array( 'orderby' => 'name', 'show_count' => $count );
 
 		if ( $dropdown ) {
-			$cat_args['show_option_none'] = __( 'Select Category', 'wp_pubarch_translate' );
+			$cat_args['show_option_none'] = esc_html__( 'Select Category', 'wp_pubarch_translate' );
 
 			$this->utilities->dropdown_categories( apply_filters( 'widget_categories_dropdown_args', $cat_args ) );
 			?>

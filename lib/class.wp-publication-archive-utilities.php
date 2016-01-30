@@ -183,7 +183,7 @@ class WP_Publication_Archive_Utilities {
 	public function list_categories( $args = '' ) {
 		$defaults = array(
 			'show_option_all'    => '',
-			'show_option_none'   => __( 'No categories' ),
+			'show_option_none'   => esc_html__( 'No categories' ),
 			'orderby'            => 'name',
 			'order'              => 'ASC',
 			'style'              => 'list',
@@ -198,7 +198,7 @@ class WP_Publication_Archive_Utilities {
 			'exclude_tree'       => '',
 			'current_category'   => 0,
 			'hierarchical'       => true,
-			'title_li'           => __( 'Categories' ),
+			'title_li'           => esc_html__( 'Categories' ),
 			'echo'               => 1,
 			'depth'              => 0,
 			'taxonomy'           => 'category',

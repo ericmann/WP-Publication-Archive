@@ -13,10 +13,10 @@ class WP_Publication_Archive_Widget extends WP_Widget {
 	public function __construct() {
 		parent::__construct(
 			false,
-			__( 'Publication Archive Widget', 'wp_pubarch_translate' ),
+			esc_html__( 'Publication Archive Widget', 'wp_pubarch_translate' ),
 			array(
 			     'classname' => 'publication_archive',
-			     'description' => __( 'Display a list of publications.', 'wp_pubarch_translate' )
+			     'description' => esc_html__( 'Display a list of publications.', 'wp_pubarch_translate' )
 			)
 		);
 	}
@@ -30,30 +30,30 @@ class WP_Publication_Archive_Widget extends WP_Widget {
 	 */
 	public function form( $instance ) {
 		if ( $instance && isset( $instance['title'] ) ) {
-			$title = esc_attr( $instance['title'] );
+			$title = $instance['title'];
 		} else {
-			$title = esc_attr__( 'Publication Archive', 'wp_pubarch_translate' );
+			$title = __( 'Publication Archive', 'wp_pubarch_translate' );
 		}
 
 		if ( $instance && isset( $instance['number'] ) ) {
-			$number = esc_attr( $instance['number'] );
+			$number = $instance['number'];
 		} else {
 			$number = 5;
 		}
 
 		if ( $instance && isset( $instance['orderby'] ) ) {
-			$orderby = esc_attr( $instance['orderby'] );
+			$orderby = $instance['orderby'];
 		} else {
 			$orderby = 'menu_order';
 		}
 
-		$output = "<p>" . __( 'Title', 'wp_pubarch_translate' ) . ": <input class='widefat' name='" . $this->get_field_name( 'title' ) . "' type='text' value='" . $title . "' /></p>";
+		$output = "<p>" . esc_html__( 'Title', 'wp_pubarch_translate' ) . ": <input class='widefat' name='" . $this->get_field_name( 'title' ) . "' type='text' value='" . esc_attr( $title ) . "' /></p>";
 
-		$output .= "<p>" . __( 'Number of publications to display', 'wp_pubarch_translate' ) . ": <input class='widefat' name='" . $this->get_field_name( 'number' ) . "' type='text' value='" . esc_attr( $number ) . "' /> <em class='help'>" . __( 'Leave blank for no limit.', 'wp_pubarch_translate' ) . "</em></p>";
+		$output .= "<p>" . esc_html__( 'Number of publications to display', 'wp_pubarch_translate' ) . ": <input class='widefat' name='" . $this->get_field_name( 'number' ) . "' type='text' value='" . esc_attr( $number ) . "' /> <em class='help'>" . esc_html__( 'Leave blank for no limit.', 'wp_pubarch_translate' ) . "</em></p>";
 
-		$output .= "<p>" . __( 'Order by', 'wp_pubarch_translate' ) . ": <select name='" . $this->get_field_name( 'orderby' ) . "'>";
-		$output .= "<option value='menu_order' " . selected( $orderby, 'menu_order', false ) . ">" . __( 'Manual (drag and drop)', 'wp_pubarch_translate' ) . "</option>";
-		$output .= "<option value='date' " . selected( $orderby, 'date', false ) . ">" . __( 'Latest (publish date)', 'wp_pubarch_translate' ) . "</option>";
+		$output .= "<p>" . esc_html__( 'Order by', 'wp_pubarch_translate' ) . ": <select name='" . $this->get_field_name( 'orderby' ) . "'>";
+		$output .= "<option value='menu_order' " . selected( $orderby, 'menu_order', false ) . ">" . esc_html__( 'Manual (drag and drop)', 'wp_pubarch_translate' ) . "</option>";
+		$output .= "<option value='date' " . selected( $orderby, 'date', false ) . ">" . esc_html__( 'Latest (publish date)', 'wp_pubarch_translate' ) . "</option>";
 		$output .= "</select></p>";
 
 		echo $output;

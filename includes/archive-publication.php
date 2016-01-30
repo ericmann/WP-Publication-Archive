@@ -36,7 +36,7 @@ get_header(); ?>
 					</div><!-- .entry-content -->
 
 					<footer class="entry-meta">
-						<?php edit_post_link( __( 'Edit Publication', 'wp_pubarch_translate' ), '<span class="edit-link">', '</span>' ); ?>
+						<?php edit_post_link( esc_html__( 'Edit Publication', 'wp_pubarch_translate' ), '<span class="edit-link">', '</span>' ); ?>
 					</footer><!-- .entry-meta -->
 				</article><!-- #post -->
 

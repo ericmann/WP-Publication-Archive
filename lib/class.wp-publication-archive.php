@@ -404,15 +404,15 @@ class WP_Publication_Archive {
 	 */
 	public static function register_publication() {
 		$labels = array(
-			'name'               => __( 'Publications', 'wp_pubarch_translate' ),
-			'singular_name'      => __( 'Publication', 'wp_pubarch_translate' ),
-			'add_new_item'       => __( 'Add New Publication', 'wp_pubarch_translate' ),
-			'edit_item'          => __( 'Edit Publication', 'wp_pubarch_translate' ),
-			'new_item'           => __( 'New Publication', 'wp_pubarch_translate' ),
-			'view_item'          => __( 'View Publication', 'wp_pubarch_translate' ),
-			'search_items'       => __( 'Search Publications', 'wp_pubarch_translate' ),
-			'not_found'          => __( 'No publications found', 'wp_pubarch_translate' ),
-			'not_found_in_trash' => __( 'No publications found in trash', 'wp_pubarch_translate' )
+			'name'               => esc_html__( 'Publications', 'wp_pubarch_translate' ),
+			'singular_name'      => esc_html__( 'Publication', 'wp_pubarch_translate' ),
+			'add_new_item'       => esc_html__( 'Add New Publication', 'wp_pubarch_translate' ),
+			'edit_item'          => esc_html__( 'Edit Publication', 'wp_pubarch_translate' ),
+			'new_item'           => esc_html__( 'New Publication', 'wp_pubarch_translate' ),
+			'view_item'          => esc_html__( 'View Publication', 'wp_pubarch_translate' ),
+			'search_items'       => esc_html__( 'Search Publications', 'wp_pubarch_translate' ),
+			'not_found'          => esc_html__( 'No publications found', 'wp_pubarch_translate' ),
+			'not_found_in_trash' => esc_html__( 'No publications found in trash', 'wp_pubarch_translate' )
 		);
 
 		register_post_type( 'publication',
@@ -446,16 +446,16 @@ class WP_Publication_Archive {
 	 */
 	public static function register_author() {
 		$labels = array(
-			'name'          => __( 'Authors', 'wp_pubarch_translate' ),
-			'singular_name' => __( 'Author', 'wp_pubarch_translate' ),
-			'search_items'  => __( 'Search Authors', 'wp_pubarch_translate' ),
-			'popular_items' => __( 'Popular Authors', 'wp_pubarch_translate' ),
-			'all_items'     => __( 'All Authors', 'wp_pubarch_translate' ),
-			'edit_item'     => __( 'Edit Author', 'wp_pubarch_translate' ),
-			'update_item'   => __( 'Update Author', 'wp_pubarch_translate' ),
-			'add_new_item'  => __( 'Add New Author', 'wp_pubarch_translate' ),
-			'new_item_name' => __( 'New Author Name', 'wp_pubarch_translate' ),
-			'menu_name'     => __( 'Authors', 'wp_pubarch_translate' ),
+			'name'          => esc_html__( 'Authors', 'wp_pubarch_translate' ),
+			'singular_name' => esc_html__( 'Author', 'wp_pubarch_translate' ),
+			'search_items'  => esc_html__( 'Search Authors', 'wp_pubarch_translate' ),
+			'popular_items' => esc_html__( 'Popular Authors', 'wp_pubarch_translate' ),
+			'all_items'     => esc_html__( 'All Authors', 'wp_pubarch_translate' ),
+			'edit_item'     => esc_html__( 'Edit Author', 'wp_pubarch_translate' ),
+			'update_item'   => esc_html__( 'Update Author', 'wp_pubarch_translate' ),
+			'add_new_item'  => esc_html__( 'Add New Author', 'wp_pubarch_translate' ),
+			'new_item_name' => esc_html__( 'New Author Name', 'wp_pubarch_translate' ),
+			'menu_name'     => esc_html__( 'Authors', 'wp_pubarch_translate' ),
 		);
 
 		register_taxonomy(
@@ -464,7 +464,7 @@ class WP_Publication_Archive {
 			array(
 			     'hierarchical' => false,
 			     'labels'       => $labels,
-			     'label'        => __( 'Authors', 'wp_pubarch_translate' ),
+			     'label'        => esc_html__( 'Authors', 'wp_pubarch_translate' ),
 			     'query_var'    => false,
 			     'rewrite'      => false
 			)
@@ -475,9 +475,9 @@ class WP_Publication_Archive {
 	 * Register custom meta boxes for the Publication oage.
 	 */
 	public static function pub_meta_boxes() {
-		add_meta_box( 'publication_uri', __( 'Publication', 'wp_pubarch_translate' ), array( 'WP_Publication_Archive', 'doc_uri_box' ), 'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_alternates', __( 'Alternate Files', 'wp_pubarch_translate' ), array( 'WP_Publication_Archive', 'doc_alternates_box' ), 'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_thumb', __( 'Thumbnail', 'wp_pubarch_translate' ),   array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_uri',        esc_html__( 'Publication', 'wp_pubarch_translate' ),     array( 'WP_Publication_Archive', 'doc_uri_box' ),        'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_alternates', esc_html__( 'Alternate Files', 'wp_pubarch_translate' ), array( 'WP_Publication_Archive', 'doc_alternates_box' ), 'publication', 'normal', 'high', '' );
+		add_meta_box( 'publication_thumb',      esc_html__( 'Thumbnail', 'wp_pubarch_translate' ),       array( 'WP_Publication_Archive', 'doc_thumb_box'),       'publication', 'normal', 'high', '' );
 	}
 
 	/**
@@ -489,9 +489,9 @@ class WP_Publication_Archive {
 		wp_nonce_field( plugin_basename( __FILE__ ), 'wpa_nonce' );
 
 		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
-		echo '<p>' . __( 'Please provide the absolute url of the file (including the <code>http://</code>):', 'wp_pubarch_translate' ) . '</p>';
-		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
-		echo '<input class="button" id="upload_doc_button" type="button" value="' . __( 'Upload Publication', 'wp_pubarch_translate' ) . '" alt="' . __( 'Upload Publication', 'wp_pubarch_translate' ) . '" />';
+		echo '<p>' . esc_html__( 'Please provide the absolute url of the file (including the <code>http://</code>):', 'wp_pubarch_translate' ) . '</p>';
+		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . esc_url( $uri ) . '" size="25" style="width:85%" />';
+		echo '<input class="button" id="upload_doc_button" type="button" value="' . esc_html__( 'Upload Publication', 'wp_pubarch_translate' ) . '" alt="' . esc_html__( 'Upload Publication', 'wp_pubarch_translate' ) . '" />';
 		?>
     <script type="text/javascript">
         ( function ( window, $, undefined ) {
@@ -508,7 +508,7 @@ class WP_Publication_Archive {
                     window.send_to_editor = window.orig_send_to_editor;
                 };
 
-                window.tb_show( '<?php _e( 'Upload Publication', 'wp_pubarch_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
+                window.tb_show( '<?php esc_html_e( 'Upload Publication', 'wp_pubarch_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
                 return false;
             };
 
@@ -526,9 +526,9 @@ class WP_Publication_Archive {
 	public static function doc_thumb_box( $post ) {
 		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
 
-		echo '<p>' . __( 'Please provide the absolute url for a thumbnail image (including the <code>http://</code>):', 'wp_pubarch_translate' ) . '</p>';
-		echo '<input type="text" id="wpa-upload_image" name="wpa-upload_image" value=" ' . $thumb . '" size="36" size="25" style="width:85%" />';
-		echo '<input class="button" id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumbnail', 'wp_pubarch_translate' ) . '" alt="' . __( 'Upload Thumbnail', 'wp_pubarch_translate' ) . '" />';
+		echo '<p>' . esc_html__( 'Please provide the absolute url for a thumbnail image (including the <code>http://</code>):', 'wp_pubarch_translate' ) . '</p>';
+		echo '<input type="text" id="wpa-upload_image" name="wpa-upload_image" value=" ' . esc_attr( $thumb ) . '" size="36" size="25" style="width:85%" />';
+		echo '<input class="button" id="wpa-upload_image_button" type="button" value="' . esc_html__( 'Upload Thumbnail', 'wp_pubarch_translate' ) . '" alt="' . esc_html__( 'Upload Thumbnail', 'wp_pubarch_translate' ) . '" />';
 		?>
 		<script type="text/javascript">
 			( function( window, $, undefined ) {
@@ -545,7 +545,7 @@ class WP_Publication_Archive {
 						window.send_to_editor = window.orig_send_to_editor;
 					};
 
-					window.tb_show( '<?php _e( 'Upload Thumbnail', 'wp_pubarch_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
+					window.tb_show( '<?php esc_html_e( 'Upload Thumbnail', 'wp_pubarch_translate' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
 					return false;
 				}
 
@@ -563,27 +563,27 @@ class WP_Publication_Archive {
 	public static function doc_alternates_box( $post ) {
 		$alternates = get_post_meta( $post->ID, 'wpa-upload_alternates' );
 
-		echo '<p>' . __( 'These files are considered alternates to the publication listed above (i.e. foreign language translations of the same document).', 'wp_pubarch_translate' ) . '</p>';
+		echo '<p>' . esc_html__( 'These files are considered alternates to the publication listed above (i.e. foreign language translations of the same document).', 'wp_pubarch_translate' ) . '</p>';
 		echo '<table id="wpa-alternate-table" style="width:100%;">';
-		echo '<thead><tr style="text-align:left;"><th>Description</th><th>Absolute Url</th><th></th></tr></thead>';
+		echo '<thead><tr style="text-align:left;"><th>' . esc_html__( 'Description', 'wp_pubarch_translate' ) . '</th><th>' . esc_html__( 'Absolute Url', 'wp_pubarch_translate' ) . '</th><th></th></tr></thead>';
 		echo '<tbody>';
 		foreach( $alternates as $alternate ) {
 			echo '<tr>';
 			echo '<td style="width:30%;"><input style="width:100%;" type="text" name="wpa-alternates[description][]" value="' . esc_attr( $alternate['description'] ) . '" /></td>';
 			echo '<td style="width:60%;"><input style="width:100%;" type="text" name="wpa-alternates[url][]" value="' . esc_attr( $alternate['url'] ) . '" /></td>';
-			echo '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . __( 'upload', 'wp_pubarch_translate' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . __( 'delete', 'wp_pubarch_translate' ) . '</span></td>';
+			echo '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . esc_html__( 'upload', 'wp_pubarch_translate' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . esc_html__( 'delete', 'wp_pubarch_translate' ) . '</span></td>';
 			echo '</tr>';
 		}
 
 		echo '<tr>';
 		echo '<td style="width:30%;"><input style="width:100%;" type="text" name="wpa-alternates[description][]" value="" /></td>';
 		echo '<td style="width:60%;"><input style="width:100%;" type="text" name="wpa-alternates[url][]" value="" /></td>';
-		echo '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . __( 'upload', 'wp_pubarch_translate' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . __( 'delete', 'wp_pubarch_translate' ) . '</span></td>';
+		echo '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . esc_html__( 'upload', 'wp_pubarch_translate' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . esc_html__( 'delete', 'wp_pubarch_translate' ) . '</span></td>';
 		echo '</tr>';
 		echo '</tbody>';
 		echo '</table>';
 
-		echo '<input class="button" id="wpa-alternates-button" type="button" value="' . __( 'Add Row', 'wp_pubarch_translate' ) . '" alt="' . __( 'Add Row', 'wp_pubarch_translate' ) . '" />';
+		echo '<input class="button" id="wpa-alternates-button" type="button" value="' . esc_html__( 'Add Row', 'wp_pubarch_translate' ) . '" alt="' . esc_html__( 'Add Row', 'wp_pubarch_translate' ) . '" />';
 ?>
 		<script type="text/javascript">
 			( function ( window, $, undefined ) {
@@ -774,7 +774,7 @@ class WP_Publication_Archive {
 			}
 			// if no categories matched categories in the database, report failure
 			if ( empty( $catFilter ) ) {
-				$error_msg = "<div class='publication-archive'><p>" . __( ' Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories.', 'wp_pubarch_translate' ) . "</p><p>" . __( 'You passed: ', 'wp_pubarch_translate' ) . "<code>$categories</code></p></div>";
+				$error_msg = "<div class='publication-archive'><p>" . esc_html__( ' Sorry, but the categories you passed to the wp-publication-archive shortcode do not match any publication categories.', 'wp_pubarch_translate' ) . "</p><p>" . esc_html__( 'You passed: ', 'wp_pubarch_translate' ) . "<code>$categories</code></p></div>";
 
 				return $error_msg;
 			}
@@ -798,12 +798,12 @@ class WP_Publication_Archive {
 
 		// Report if there are no publications matching filters
 		if ( 0 == $total_pubs ) {
-			$error_msg = "<p>" . __( 'There are no publications to display', 'wp_pubarch_translate' );
+			$error_msg = "<p>" . esc_html__( 'There are no publications to display', 'wp_pubarch_translate' );
 			if ( '' != $author )
-				$error_msg .= __( ' by ', 'wp_pubarch_translate' ) . $author;
+				$error_msg .= esc_html__( ' by ', 'wp_pubarch_translate' ) . $author;
 			if ( '' != $categories ) {
 				// There is probably a better way to do this
-				$error_msg .= __( ' categorized ', 'wp_pubarch_translate' );
+				$error_msg .= esc_html__( ' categorized ', 'wp_pubarch_translate' );
 				$catList = explode( ',', $categories );
 				$catNum  = count( $catList );
 				$x       = 3; // number of terms necessary for grammar to require commas after each term

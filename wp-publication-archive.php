@@ -95,8 +95,8 @@ register_deactivation_hook( __FILE__, 'wp_pubarch_deactivate' );
 // Check that allow_url_fopen is set to "on" in php.ini
 function wp_pubarch_fopen_disabled() {
 	echo '<div class="error"><p>';
-	_e( 'Please set <code>allow_url_fopen</code> to "On" in your PHP.ini file, otherwise WP Publication Archive downloads <strong>WILL NOT WORK!</strong>', 'wp_pubarch_translate' );
-	echo '<br /><a target="_blank" href="http://php.net/allow-url-fopen">' . __( 'More information ...', 'wp_pubarch_translate' ) . '</a>';
+	esc_html_e( 'Please set <code>allow_url_fopen</code> to "On" in your PHP.ini file, otherwise WP Publication Archive downloads <strong>WILL NOT WORK!</strong>', 'wp_pubarch_translate' );
+	echo '<br /><a target="_blank" href="http://php.net/allow-url-fopen">' . esc_html_( 'More information ...', 'wp_pubarch_translate' ) . '</a>';
 	echo '</p></div>';
 }
 if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {

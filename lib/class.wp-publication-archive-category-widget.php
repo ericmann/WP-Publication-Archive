@@ -22,9 +22,9 @@ class WP_Publication_Archive_Category_Widget extends WP_Widget {
 	public function __construct() {
 		$widget_ops = array(
 			'classname'   => 'widget_pub_related',
-			'description' => __( 'A list of related publications (based on category).', 'wp_pubarch_translate' )
+			'description' => esc_html__( 'A list of related publications (based on category).', 'wp_pubarch_translate' )
 		);
-		parent::__construct( false, __( 'Related Publications', 'wp_pubarch_translate' ), $widget_ops );
+		parent::__construct( false, esc_html__( 'Related Publications', 'wp_pubarch_translate' ), $widget_ops );
 
 		$this->utilities = WP_Publication_Archive_Utilities::get_instance();
 	}
@@ -41,26 +41,26 @@ class WP_Publication_Archive_Category_Widget extends WP_Widget {
 		$instance = wp_parse_args(
 			(array) $instance,
 			array(
-			     'title' => __( 'Related Publications' ),
+			     'title' => esc_html__( 'Related Publications', 'wp_pubarch_translate' ),
 			     'count' => 5
 			)
 		);
-		$title    = esc_attr( $instance['title'] );
-		$count    = esc_attr( $instance['count'] );
+		$title    = $instance['title'];
+		$count    = $instance['count'];
 
 		?>
 		<p>
 			<label
-				for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'wp_pubarch_translate' ); ?></label>
+				for="<?php echo $this->get_field_id( 'title' ); ?>"><?php esc_html_e( 'Title:', 'wp_pubarch_translate' ); ?></label>
 			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
-			       name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>"/>
+			       name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>"/>
 		</p>
 
 		<p>
 			<label
 				for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show publication counts', 'wp_pubarch_translate' ); ?></label>
 			<input class="widefat" id="<?php echo $this->get_field_id( 'count' ); ?>"
-			       name="<?php echo $this->get_field_name( 'count' ); ?>" type="text" value="<?php echo $count; ?>" />
+			       name="<?php echo $this->get_field_name( 'count' ); ?>" type="text" value="<?php echo esc_attr( $count ); ?>" />
 		</p>
 	<?php
 	}
@@ -93,7 +93,7 @@ class WP_Publication_Archive_Category_Widget extends WP_Widget {
 
 		echo $args['before_widget'];
 		if ( $title ) {
-			echo $args['before_title'] . $title . $args['after_title'];
+			echo $args['before_title'] . esc_html( $title ) . $args['after_title'];
 		}
 
 		$query_args = array(
