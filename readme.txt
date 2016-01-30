@@ -3,8 +3,8 @@ Contributors: ericmann
 Donate link: http://jumping-duck.com/wordpress/plugins
 Tags: document management, pdf, doc, archive
 Requires at least: 3.5
-Tested up to: 3.6
-Stable tag: 3.0.1
+Tested up to: 4.4.1
+Stable tag: 3.0.2
 License: GPLv2
 
 Allows users to upload, manage, search, and download publications, documents, and similar content (PDF, Power-Point, etc.).
@@ -118,7 +118,10 @@ No screenshots are available at this time.
 
 == Changelog ==
 
-= 3.0.1
+= 3.0.2 =
+* Test and verify compatibility with WordPress 4.4.1
+
+= 3.0.1 =
 * Revert the dropdown template's file opening functionality to auto-open the file
 
 = 3.0 =
