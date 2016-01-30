@@ -2,7 +2,7 @@
 Contributors: ericmann
 Donate link: http://jumping-duck.com/wordpress/plugins
 Tags: document management, pdf, doc, archive
-Requires at least: 3.5
+Requires at least: 3.8
 Tested up to: 4.4.1
 Stable tag: 3.0.2
 License: GPLv2
@@ -238,7 +238,5 @@ Upgrading from 1.1 or 1.1.1 to 2.0 will *not* automatically transfer your public
 WP Publication Archive is licensed under the GNU General Public License, version 2.
 
 This system was based on the original wp-publications-archive plug-in published by Luis Lino and Siemens Networks, S.A. at http://code.google.com/p/wp-publications-archive/.
-
-The filing cabinet menu icon was created by Glyphish (http://glyphish.com) and is distributed under a Creative Commons Attribution license.
 
 Filetype icons come from the Crystal Project (http://www.everaldo.com/crystal/) released under the LGPL (http://www.everaldo.com/crystal/?action=license).

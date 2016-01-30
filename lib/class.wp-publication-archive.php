@@ -433,7 +433,7 @@ class WP_Publication_Archive {
 			     ),
 			     'register_meta_box_cb' => array( 'WP_Publication_Archive', 'pub_meta_boxes' ),
 			     'can_export'           => true,
-			     'menu_icon'            => WP_PUB_ARCH_URL . 'images/cabinet.png'
+			     'menu_icon'            => 'dashicons-archive',
 			)
 		);
 	}
