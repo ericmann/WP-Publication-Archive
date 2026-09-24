@@ -28,7 +28,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-07 Delivery per §6.2 — validate, withhold, redirect or proxy (D1 delivery, D17 end to end)
 - [x] P1-08 Escaped Publication_Item and list/dropdown templates; thumbnail through the bridge (D2 output, D3 front, D18)
 - [x] P1-09 Gate 1 — security verified, constraints locked, branch pushed
-- [ ] P2-01 Contracts (1/2) — Keys, Flags and Plugin for §6.1, §6.6 and §6.7; close D11 and D8's filter; Capabilities signatures; upgrade on init
+- [x] P2-01 Contracts (1/2) — Keys, Flags and Plugin for §6.1, §6.6 and §6.7; close D11 and D8's filter; Capabilities signatures; upgrade on init
 - [ ] P2-02 Contracts (2/2) — Capabilities granted on activation and init
 - [ ] P2-03 Post type and taxonomy in REST and the block editor (D12)
 - [ ] P2-04 Registered publication meta in REST (D12 meta, D1 via REST)
@@ -224,3 +224,12 @@ wp_kses()/wp_kses_post() normalise attribute quoting (single to double quotes) a
 grep -rn "phpcs:(ignore|disable).*WordPress.Security" includes templates wp-publication-archive.php prints nothing; grep -rn "readfile(" includes prints exactly one line (class-streamer.php send()). foundry_verify (both new constraints self-tested), composer verify (DAM loaded, 262 tests), WPPA_DAM=0 composer test (244 tests) all green.
 
 Push failed: "This repository was archived so it is read-only" — same known limitation as P0-16's basePush failure at flight start. Logged, not task-blocking.
+
+### P2-01 — 10739e1
+Added Keys constants for §6.1 (REST_BASE, TAX_AUTHOR_QUERY_VAR/REWRITE_SLUG, CAPABILITY_TYPE, CAP_ROLES, CAP_MAP, OPT_CAPS), §6.6/6.7 (ADMIN_SCRIPT_HANDLE/PATH, ADMIN_SCREENS) and UPGRADE_PRIORITY. Flags gained caps_granted()/mark_caps_granted(). New Capabilities(Flags) service (grant()/maybe_grant() stubs, P2-02 implements); Plugin constructs it with an accessor and replace() case, registers nothing for it yet. Post_Type's constructor now takes Url_Policy (P2-04 needs it); Plugin passes its own instance.
+
+Closed D11: deleted Plugin::fopen_notice() and its conditional admin_notices registration entirely (not preserved-then-stubbed). Closed D8's filter half: deleted Rewrites::filter_post_type_link()/disarm() and the armed/suspended flags and properties, and Plugin's post_type_link registration — confirmed genuinely dead code, since Legacy\Publication_Archive::publication_link() (its only other caller) is itself never hooked to anything. That legacy delegate now just returns $permalink unchanged, keeping its 3.0.1 signature for the METHODS_301 contract. D9 timing: Plugin::boot() no longer calls maybe_upgrade() directly; it's hooked to init at Keys::UPGRADE_PRIORITY (20) instead (body unchanged, P2-06 fixes it).
+
+Updated the pinned LIST_ALL/LIST_LIMIT_2_PAGE_2 characterisation strings (items 2+ now show the canonical get_permalink() instead of the hijacked open-endpoint form), named D8 in a comment. V3_Site::reset_link_state() needed no change — its method_exists() guard already degrades to a no-op.
+
+foundry_verify, composer test:unit, composer test (with and without DAM, 265/247) all green; P0-06/P0-07 characterisation unchanged apart from the named D8 update.
