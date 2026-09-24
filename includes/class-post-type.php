@@ -1,8 +1,10 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: the 3.0.1 `publication` post type and
- * `publication-author` taxonomy, registered verbatim except the menu icon
- * (D16 part: the 3.0.1 PNG icon asset is deleted, so Keys::MENU_ICON is used).
+ * Implements SPEC.md §8 Phase 0 item 4 and §6.1: the 3.0.1 `publication`
+ * post type and `publication-author` taxonomy, registered verbatim except
+ * the menu icon (D16 part: the 3.0.1 PNG icon asset is deleted, so
+ * Keys::MENU_ICON is used) and D12 (P2-03): both are now exposed to REST
+ * and the block editor, with publication capabilities.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -65,7 +67,8 @@ final class Post_Type {
 			Keys::POST_TYPE,
 			array(
 				'labels'               => $labels,
-				'capability_type'      => 'post',
+				'capability_type'      => Keys::CAPABILITY_TYPE,
+				'map_meta_cap'         => true,
 				'public'               => true,
 				'publicly_queryable'   => true,
 				'has_archive'          => true,
@@ -80,6 +83,8 @@ final class Post_Type {
 				),
 				'can_export'           => true,
 				'menu_icon'            => Keys::MENU_ICON,
+				'show_in_rest'         => true,
+				'rest_base'            => Keys::REST_BASE,
 			)
 		);
 	}
@@ -105,8 +110,10 @@ final class Post_Type {
 				'hierarchical' => false,
 				'labels'       => $labels,
 				'label'        => __( 'Authors', 'wp-publication-archive' ),
-				'query_var'    => false,
-				'rewrite'      => false,
+				'public'       => true,
+				'query_var'    => Keys::TAX_AUTHOR_QUERY_VAR,
+				'rewrite'      => array( 'slug' => Keys::TAX_AUTHOR_REWRITE_SLUG ),
+				'show_in_rest' => true,
 			)
 		);
 	}

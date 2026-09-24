@@ -24,6 +24,9 @@ class Test_Cli extends \WP_UnitTestCase {
 		\WP_CLI::reset();
 
 		$this->set_permalink_structure( '/%postname%/' );
+		Plugin::instance()->post_type()->register();
+		Plugin::instance()->rewrites()->register();
+		flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: test-only, needs this site's own rewrite rules, including the author taxonomy's (registered under plain permalinks at boot, so its rewrite struct is otherwise missing until re-registered here).
 
 		// WP_Roles is a process-wide singleton whose add_cap()/remove_cap()
 		// only write to the database when $wp_user_roles (a global
@@ -63,7 +66,7 @@ class Test_Cli extends \WP_UnitTestCase {
 
 		$this->assertIsArray( $rows );
 		$this->assertSame(
-			array( 'lineage', 'version', 'php', 'wp', 'post_type_registered', 'rewrite_rules_present', 'caps_granted', 'dam' ),
+			array( 'lineage', 'version', 'php', 'wp', 'post_type_registered', 'rest_enabled', 'rewrite_rules_present', 'caps_granted', 'dam' ),
 			array_column( $rows, 'check' )
 		);
 	}
@@ -84,6 +87,65 @@ class Test_Cli extends \WP_UnitTestCase {
 			Plugin::instance()->cli()->doctor( array(), array( 'format' => 'json' ) );
 		} finally {
 			remove_filter( 'pre_option_rewrite_rules', '__return_empty_array' );
+		}
+	}
+
+	public function test_rest_enabled_row_passes() {
+		Plugin::instance()->cli()->doctor( array(), array( 'format' => 'json' ) );
+
+		$rows = json_decode( (string) end( \WP_CLI::$lines ), true );
+
+		$rest_rows = array_values(
+			array_filter(
+				$rows,
+				static function ( array $row ): bool {
+					return 'rest_enabled' === $row['check'];
+				}
+			)
+		);
+
+		$this->assertCount( 1, $rest_rows );
+		$this->assertSame( 'pass', $rest_rows[0]['status'] );
+	}
+
+	public function test_rewrite_row_requires_the_author_slug() {
+		\WPPA\Plugin::instance()->post_type()->register();
+		\WPPA\Plugin::instance()->rewrites()->register();
+		flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: test-only, needs this site's own rewrite rules.
+
+		// Confirm the endpoint rules alone are not enough once the author
+		// slug rule is missing: strip only that rule and expect a fail.
+		$strip_author_rule = static function ( $rules ) {
+			foreach ( array_keys( $rules ) as $rule ) {
+				if ( 0 === strpos( ltrim( (string) $rule, '^' ), Keys::TAX_AUTHOR_REWRITE_SLUG . '/' ) ) {
+					unset( $rules[ $rule ] );
+				}
+			}
+
+			return $rules;
+		};
+
+		add_filter( 'option_rewrite_rules', $strip_author_rule );
+
+		try {
+			$this->expectException( \WP_CLI\ExitException::class );
+			Plugin::instance()->cli()->doctor( array(), array( 'format' => 'json' ) );
+		} finally {
+			$rows = json_decode( (string) end( \WP_CLI::$lines ), true );
+
+			$rewrite_rows = array_values(
+				array_filter(
+					$rows,
+					static function ( array $row ): bool {
+						return 'rewrite_rules_present' === $row['check'];
+					}
+				)
+			);
+
+			$this->assertCount( 1, $rewrite_rows );
+			$this->assertSame( 'fail', $rewrite_rows[0]['status'] );
+
+			remove_filter( 'option_rewrite_rules', $strip_author_rule );
 		}
 	}
 

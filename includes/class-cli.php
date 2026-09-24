@@ -100,6 +100,8 @@ final class Cli {
 			Keys::POST_TYPE
 		);
 
+		$rows[] = $this->rest_enabled_row();
+
 		$rows[] = $this->row(
 			'rewrite_rules_present',
 			$this->rewrite_rules_present() ? 'pass' : 'fail',
@@ -114,6 +116,23 @@ final class Cli {
 		$rows[] = $this->dam_row();
 
 		return $rows;
+	}
+
+	/**
+	 * @return array{check: string, status: string, message: string}
+	 */
+	private function rest_enabled_row(): array {
+		$post_type = get_post_type_object( Keys::POST_TYPE );
+		$taxonomy  = get_taxonomy( Keys::TAX_AUTHOR );
+
+		$enabled = null !== $post_type && $post_type->show_in_rest
+			&& false !== $taxonomy && $taxonomy->show_in_rest;
+
+		return $this->row(
+			'rest_enabled',
+			$enabled ? 'pass' : 'fail',
+			Keys::REST_NAMESPACE . '/' . Keys::REST_BASE
+		);
 	}
 
 	/**
@@ -151,9 +170,16 @@ final class Cli {
 	private function rewrite_rules_present(): bool {
 		$rules = $this->flags->rewrite_rules();
 
-		foreach ( array( Keys::ENDPOINT_VIEW, Keys::ENDPOINT_DOWNLOAD, Keys::ENDPOINT_ALTVIEW, Keys::ENDPOINT_ALTDOWN ) as $endpoint ) {
-			$prefix = Keys::REWRITE_BASE . '/' . $endpoint . '/';
-			$found  = false;
+		$prefixes = array(
+			Keys::REWRITE_BASE . '/' . Keys::ENDPOINT_VIEW . '/',
+			Keys::REWRITE_BASE . '/' . Keys::ENDPOINT_DOWNLOAD . '/',
+			Keys::REWRITE_BASE . '/' . Keys::ENDPOINT_ALTVIEW . '/',
+			Keys::REWRITE_BASE . '/' . Keys::ENDPOINT_ALTDOWN . '/',
+			Keys::TAX_AUTHOR_REWRITE_SLUG . '/',
+		);
+
+		foreach ( $prefixes as $prefix ) {
+			$found = false;
 
 			foreach ( array_keys( $rules ) as $rule ) {
 				$rule = ltrim( (string) $rule, '^' );
