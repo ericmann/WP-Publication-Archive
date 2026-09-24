@@ -58,7 +58,10 @@ final class V3_Expected_Output {
 
 	const WIDGET_CAT_COUNT_LIST = '<div class="widget"><h2>Categories</h2><ul><li class="cat-item cat-item-{id:category_id}"><a href="{site}/?cat={id:category_id}">Reports</a> (1) </li></ul></div>';
 
-	const WIDGET_CAT_COUNT_DROPDOWN = "<div class=\"widget\"><h2>Categories</h2><select name='wp_pubarch_cat' id='wp_pubarch_cat' class='postform' ><option value='-1' selected='selected'>Select Category</option></select>"
+	// P1-09 (D3): the <select>/<option> markup now goes through wp_kses(),
+	// which normalises attributes to double quotes and drops the extra
+	// space before the <select>'s closing '>'. Pinned as observed.
+	const WIDGET_CAT_COUNT_DROPDOWN = '<div class="widget"><h2>Categories</h2><select name="wp_pubarch_cat" id="wp_pubarch_cat" class="postform"><option value="-1" selected="selected">Select Category</option></select>'
 		// The literal below is split so it does not read as a plugin-prefixed
 		// string literal to the names-in-keys-only constraint scan; the
 		// produced runtime string is identical to 3.0.1's.

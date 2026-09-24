@@ -98,9 +98,9 @@ class Category_Count_Widget extends \WP_Widget {
 		$count    = ! empty( $instance['count'] ) ? '1' : '0';
 		$dropdown = ! empty( $instance['dropdown'] ) ? '1' : '0';
 
-		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), widget chrome echoed unescaped, same class of defect as the enumerated D3 sites.
+		echo wp_kses_post( $args['before_widget'] );
 		if ( $title ) {
-			echo $args['before_title'] . $title . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), filtered widget title echoed unescaped.
+			echo wp_kses_post( $args['before_title'] . $title . $args['after_title'] );
 		}
 
 		$cat_args = array(
@@ -118,10 +118,10 @@ class Category_Count_Widget extends \WP_Widget {
 
 			<script type='text/javascript'>
 				/* <![CDATA[ */
-				var dropdown = document.getElementById( "<?php echo Keys::FIELD_CAT_DROPDOWN; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), inline script echoed unescaped, same class of defect as the enumerated D3 sites. ?>" );
+				var dropdown = document.getElementById( "<?php echo esc_js( Keys::FIELD_CAT_DROPDOWN ); ?>" );
 				function onCatChange () {
 					if ( dropdown.options[dropdown.selectedIndex].value > 0 ) {
-						location.href = "<?php echo home_url(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), inline script echoed unescaped, same class of defect as the enumerated D3 sites. ?>/?post_type=<?php echo Keys::POST_TYPE; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), inline script echoed unescaped, same class of defect as the enumerated D3 sites. ?>&cat=" + dropdown.options[dropdown.selectedIndex].value;
+						location.href = "<?php echo esc_js( home_url() ); ?>/?post_type=<?php echo esc_js( Keys::POST_TYPE ); ?>&cat=" + dropdown.options[dropdown.selectedIndex].value;
 					}
 				}
 				dropdown.onchange = onCatChange;
@@ -143,6 +143,6 @@ class Category_Count_Widget extends \WP_Widget {
 		<?php
 		}
 
-		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), widget chrome echoed unescaped, same class of defect as the enumerated D3 sites.
+		echo wp_kses_post( $args['after_widget'] );
 	}
 }

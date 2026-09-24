@@ -63,7 +63,7 @@ class Archive_Widget extends \WP_Widget {
 		$output .= "<option value='date' " . selected( $orderby, 'date', false ) . '>' . __( 'Latest (publish date)', 'wp-publication-archive' ) . '</option>';
 		$output .= '</select></p>';
 
-		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), admin form markup echoed unescaped, same class of defect as the enumerated D3 sites.
+		echo wp_kses_post( $output );
 	}
 
 	/**
@@ -124,10 +124,10 @@ class Archive_Widget extends \WP_Widget {
 
 		$wppa_publications = \WPPA\Plugin::instance()->post_type()->query( $query_args );
 
-		echo $before_widget; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), widget chrome echoed unescaped, same class of defect as the enumerated D3 sites.
+		echo wp_kses_post( $before_widget );
 
 		if ( $title ) {
-			echo $before_title . $title . $after_title; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), filtered widget title echoed unescaped.
+			echo wp_kses_post( $before_title . $title . $after_title );
 		}
 
 		// Include widget template. Can be overridden by a theme.
@@ -136,7 +136,7 @@ class Archive_Widget extends \WP_Widget {
 
 		include $path;
 
-		echo $after_widget; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), widget chrome echoed unescaped, same class of defect as the enumerated D3 sites.
+		echo wp_kses_post( $after_widget );
 
 		// Clean up our globals.
 		unset( $wppa_publications );

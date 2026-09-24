@@ -38,6 +38,28 @@ final class Categories {
 	}
 
 	/**
+	 * D3: the allowed markup for dropdown_categories()'s <select>/<option>
+	 * output.
+	 */
+	private function kses_dropdown( string $output ): string {
+		return wp_kses(
+			$output,
+			array(
+				'select' => array(
+					'name'     => true,
+					'id'       => true,
+					'class'    => true,
+					'tabindex' => true,
+				),
+				'option' => array(
+					'value'    => true,
+					'selected' => true,
+				),
+			)
+		);
+	}
+
+	/**
 	 * 3.0.1 dropdown_categories().
 	 *
 	 * @param string|array<string, mixed> $args
@@ -120,9 +142,24 @@ final class Categories {
 		}
 
 		$output = Hooks::dropdown_cats( $output );
+		$output = $this->kses_dropdown( $output );
 
 		if ( $args['echo'] ) {
-			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), category dropdown markup echoed unescaped, same class of defect as the enumerated D3 sites.
+			echo wp_kses(
+				$output,
+				array(
+					'select' => array(
+						'name'     => true,
+						'id'       => true,
+						'class'    => true,
+						'tabindex' => true,
+					),
+					'option' => array(
+						'value'    => true,
+						'selected' => true,
+					),
+				)
+			);
 		}
 
 		return $output;
@@ -225,9 +262,9 @@ final class Categories {
 		$output = Hooks::list_categories( $output, $args );
 
 		if ( $args['echo'] ) {
-			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), category list markup echoed unescaped, same class of defect as the enumerated D3 sites.
+			echo wp_kses_post( $output );
 		} else {
-			return $output;
+			return wp_kses_post( $output );
 		}
 	}
 

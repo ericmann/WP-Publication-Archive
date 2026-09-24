@@ -98,9 +98,9 @@ class Related_Widget extends \WP_Widget {
 		$title = Hooks::widget_title( empty( $instance['title'] ) ? __( 'Related Publications', 'wp-publication-archive' ) : $instance['title'], $instance, $this->id_base );
 		$count = (int) $instance['count'];
 
-		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), widget chrome echoed unescaped, same class of defect as the enumerated D3 sites.
+		echo wp_kses_post( $args['before_widget'] );
 		if ( $title ) {
-			echo $args['before_title'] . $title . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), filtered widget title echoed unescaped.
+			echo wp_kses_post( $args['before_title'] . $title . $args['after_title'] );
 		}
 
 		$query_args = array(
@@ -139,7 +139,7 @@ class Related_Widget extends \WP_Widget {
 
 		echo '</ul>';
 
-		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), widget chrome echoed unescaped, same class of defect as the enumerated D3 sites.
+		echo wp_kses_post( $args['after_widget'] );
 	}
 
 	/**
