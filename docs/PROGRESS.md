@@ -34,7 +34,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-04 Registered publication meta in REST (D12 meta, D1 via REST)
 - [x] P2-05 Rewrite rules — slug collisions (D5)
 - [x] P2-06 Upgrade on init, once, with no per-request option writes (D9)
-- [ ] P2-07 admin-media.js replaces Thickbox and inline scripts (D13)
+- [x] P2-07 admin-media.js replaces Thickbox and inline scripts (D13)
 - [ ] P2-08 Site-timezone dates and dead-code delegates (D7, D8 delegates)
 - [ ] P2-09 Widgets in the Legacy Widget block, id_base preservation, shortcode check (D14)
 - [ ] P2-10 Gate 2 — compatibility verified, constraints locked, branch pushed
@@ -262,3 +262,16 @@ Upgrade::maybe_upgrade() now does nothing (no add_option, no flush) once Flags::
 Tests added to tests/integration/test-upgrade.php: test_d9_upgrade_flush_includes_the_publication_rules (registers Post_Type/Rewrites under pretty permalinks, deletes the schema option, calls maybe_upgrade(), asserts Flags::rewrite_rules() has a key starting '^publication/view/' — note the leading '^': WP_Rewrite's compiled rewrite_rules option keeps add_rewrite_rule()'s own regex anchor, same convention test-rewrites.php already uses), test_d9_second_run_writes_no_option_and_does_not_flush (counts add_option/update_option/generate_rewrite_rules firings, asserts 0 when schema is already current), test_schema_option_autoload_is_off (raw $wpdb query on the options table's autoload column, since the Options API doesn't expose it). Renamed test_absent_schema_is_set_to_3 to test_absent_schema_upgrades_to_3 to match the task's acceptance-test list.
 
 foundry_verify green (constraints, lint, analyse, test:map, test:unit; composer test's 300s timeout too short for the DAM suite on this machine, as in prior tasks). WPPA_DAM=0 composer test: 276/276 green (1 expected skip) on a clean re-run after an unrelated create_upload_object()/WP_Error environment flake (same one seen in P2-05, unrelated to this task's files) on a busier run.
+
+### P2-07 — 26602d2
+Assets::enqueue_admin( $hook_suffix ) now gates on Keys::ADMIN_SCREENS and get_current_screen()->post_type === Keys::POST_TYPE before wp_enqueue_media() + wp_enqueue_script( Keys::ADMIN_SCRIPT_HANDLE, ..., array('media-editor'), Keys::ASSET_VERSION, true ) + wp_localize_script( ..., Keys::ADMIN_SCRIPT_OBJECT, array(docTitle, imageTitle, alternateTitle) ). No more unconditional media-upload/thickbox enqueue.
+
+Meta_Boxes: removed all three inline <script> blocks. render_alternates() now builds each row through a private alternate_row() helper printed via wp_kses() with an explicit tr/td/input/span allowed-tags array (no WordPress.Security ignore needed — P1-09's no-security-ignores forbids that), plus a hidden <template id="wpa-alternate-row-template"> (same helper) that JS clones for Add Row, so field names live in one PHP place. All prior ids/classes/field names (#upload_doc_button, #wpa-upload_image_button, .wpa-upload-row/.wpa-delete-row, #wpa-alternates-button, #wpa-alternate-table, wpa_upload_doc, wpa-upload_image, wpa-alternates[description][]/[url][]) unchanged.
+
+New assets/js/admin-media.js: jQuery(document).on() delegation only, wp.media({multiple:false}) frames for the doc/image/alternate-row uploads, Add Row clones the template row, Delete Row removes its <tr>. Never touches the legacy Thickbox callback.
+
+New Keys::ADMIN_SCRIPT_OBJECT = 'wppaAdminMedia' alongside P2-01's ADMIN_SCRIPT_HANDLE/PATH/SCREENS.
+
+Tests: new tests/integration/test-admin-media.php (6 methods per the task's acceptance list); tests/integration/test-assets.php's test_admin_enqueues_thickbox_until_d13 replaced with test_admin_enqueue_is_limited_to_publication_screens (checks the publication screen enqueues, a non-publication-post-type post.php screen and a differently-named admin screen both don't).
+
+foundry_verify green (constraints incl. no-security-ignores/no-thickbox-adjacent checks, lint, analyse, test:map, test:unit; composer test's 300s timeout too short for the DAM suite on this machine, as in prior tasks). WPPA_DAM=0 composer test: 282/282 green (1 expected skip) on a clean run; one run hit the recurring create_upload_object()/WP_Error environment flake already logged in P2-05/P2-06 (unrelated fixture, not touched here) — logged again via foundry_feedback_log since it's now recurred 3 tasks running. grep -rn "TB_iframe|send_to_editor|thickbox" includes assets/js prints nothing.
