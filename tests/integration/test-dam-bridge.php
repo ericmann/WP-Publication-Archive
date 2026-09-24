@@ -71,4 +71,22 @@ class Test_Dam_Bridge extends \WP_UnitTestCase {
 
 		$this->assertSame( $ids, $dam_bridge->indexed_attachment_ids( $ids, get_post( $data['alternates'] ) ) );
 	}
+
+	/**
+	 * @group nodam
+	 */
+	public function test_is_withheld_false_when_dam_inactive() {
+		$data = V3_Site::create( self::factory() );
+
+		$this->assertFalse( Plugin::instance()->dam_bridge()->is_withheld( $data['attachment_url'] ) );
+	}
+
+	/**
+	 * @group nodam
+	 */
+	public function test_display_url_unchanged_when_dam_inactive() {
+		$data = V3_Site::create( self::factory() );
+
+		$this->assertSame( $data['attachment_url'], Plugin::instance()->dam_bridge()->display_url( $data['attachment_url'] ) );
+	}
 }

@@ -2,8 +2,8 @@
 /**
  * Implements SPEC.md §6.9: the bridge to the VIP Digital Asset Manager
  * (D17–D19). The only file that may reference the DAM's own classes or
- * constants (dam-symbols-confined). Behaviour arrives wave by wave;
- * is_withheld() and display_url() are still stubs until P1-05.
+ * constants (dam-symbols-confined). Nothing outside this file calls
+ * is_withheld()/display_url() yet (Delivery: P1-07, Publication_Item: P1-08).
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -51,12 +51,43 @@ final class Dam_Bridge {
 		return (int) attachment_url_to_postid( $normalised ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.attachment_url_to_postid_attachment_url_to_postid -- reason: SPEC §6.9 names this function explicitly; called at most once per stored publication URL, not in a loop over content.
 	}
 
+	/**
+	 * D17: true when the DAM is active, $url resolves to a same-site
+	 * attachment, the current user cannot edit that attachment, and the DAM
+	 * says it must not render (embargoed, lifecycle-archived, or trashed).
+	 */
 	public function is_withheld( string $url ): bool {
-		throw new NotImplementedException( __METHOD__ );
+		if ( ! $this->active() ) {
+			return false;
+		}
+
+		$id = $this->attachment_id_for( $url );
+
+		if ( 0 === $id ) {
+			return false;
+		}
+
+		if ( current_user_can( 'edit_post', $id ) ) {
+			return false;
+		}
+
+		if ( \VIP\DAM\Embargo_Guard::is_hidden( $id ) ) {
+			return true;
+		}
+
+		return 'trash' === get_post_status( $id );
 	}
 
+	/**
+	 * D18: the DAM's placeholder in place of a withheld URL, otherwise the
+	 * URL unchanged.
+	 */
 	public function display_url( string $url ): string {
-		throw new NotImplementedException( __METHOD__ );
+		if ( ! $this->is_withheld( $url ) ) {
+			return $url;
+		}
+
+		return \VIP\DAM\Embargo_Guard::placeholder_url();
 	}
 
 	/**
