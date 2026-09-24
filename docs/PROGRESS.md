@@ -24,7 +24,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-03 Url_Policy::validate() and the §6.2 table test
 - [x] P1-04 Meta box save and render through Url_Policy (D1 save, D2 save, D3 admin, D10)
 - [x] P1-05 Dam_Bridge withholding and display URL (D17, D18 at the bridge)
-- [ ] P1-06 Streamer::send() — the one temp-file readfile (P11, D6)
+- [x] P1-06 Streamer::send() — the one temp-file readfile (P11, D6)
 - [ ] P1-07 Delivery per §6.2 — validate, withhold, redirect or proxy (D1 delivery, D17 end to end)
 - [ ] P1-08 Escaped Publication_Item and list/dropdown templates; thumbnail through the bridge (D2 output, D3 front, D18)
 - [ ] P1-09 Gate 1 — security verified, constraints locked, branch pushed
@@ -188,3 +188,12 @@ Implemented Dam_Bridge::is_withheld()/display_url() per §6.9: withheld iff DAM 
 Test fixtures embargo/archive attachments through the DAM's own Abilities (Rights_Set for embargo_until, Media_Lifecycle_Set for archive_after) rather than writing the DAM's meta keys directly, per the task's instruction. Confirmed WordPress's default editor role (edit_others_posts) satisfies the current_user_can('edit_post', $id) check for any attachment regardless of author, matching the task's "factory editor" wording without needing an administrator.
 
 foundry_verify, composer test (with and without DAM) all green; P0-06/P0-07 characterisation unchanged.
+
+### P1-06 — c6eecb3
+Implemented Streamer::send() per §6.2: refuses (InvalidArgumentException) a path outside realpath($this->temp_dir); sends Content-Type, Content-Length, and (only when $filename !== null) Content-Disposition with quotes/CR/LF stripped; ends every output buffer above $this->ob_floor (D6, no notice when there's nothing to end); readfile()s then unlink()s the temp file; exits through the injected callable. passthrough() untouched, stays until P1-07 removes it (two readfile() calls in this file until then, as the task notes).
+
+tests/fixtures/streamer-child.php is a real bare-PHP child process (spawned via proc_open in the unit test) that closes all its own output buffers before calling send() with ob_floor 0 — the only way to observe a PHP 8 "nothing to end" notice on stderr in isolation from PHPUnit's own buffering.
+
+Real interaction found: calling send() with the default ob_floor (0) inside a PHPUnit-run test pops whatever ambient buffer PHPUnit's own risky-test detection already opened, which PHPUnit then flags as risky. Every non-child-process unit test now wraps its own ob_start()/ob_get_clean() with ob_floor = ob_get_level() (captured after ob_start()) to keep its own buffer intact instead of being swept by send()'s D6 cleanup.
+
+composer test:unit --filter Streamer, foundry_verify, composer test (with and without DAM) all green; P0-06/P0-07 characterisation unchanged.
