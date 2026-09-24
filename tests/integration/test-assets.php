@@ -20,6 +20,9 @@ class Test_Assets extends \WP_UnitTestCase {
 		wp_dequeue_style( Keys::STYLE_HANDLE );
 		wp_deregister_style( Keys::STYLE_HANDLE );
 		delete_option( Keys::OPT_ENABLED );
+		wp_dequeue_script( 'media-upload' );
+		wp_dequeue_script( 'thickbox' );
+		wp_dequeue_style( 'thickbox' );
 
 		parent::tear_down();
 	}
@@ -54,6 +57,18 @@ class Test_Assets extends \WP_UnitTestCase {
 		$assets->enqueue_front();
 
 		$this->assertFalse( wp_style_is( Keys::STYLE_HANDLE, 'enqueued' ) );
+	}
+
+	/**
+	 * D13, until P2-07: 3.0.1 enqueued Thickbox unconditionally on every
+	 * admin page.
+	 */
+	public function test_admin_enqueues_thickbox_until_d13() {
+		$this->assets()->enqueue_admin();
+
+		$this->assertTrue( wp_script_is( 'media-upload', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'thickbox', 'enqueued' ) );
+		$this->assertTrue( wp_style_is( 'thickbox', 'enqueued' ) );
 	}
 
 	public function test_base_css_contains_the_301_rules() {

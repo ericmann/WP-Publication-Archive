@@ -36,6 +36,8 @@ final class Plugin {
 
 	private Delivery $delivery;
 
+	private Meta_Boxes $meta_boxes;
+
 	private bool $hooks_registered = false;
 
 	/** @var list<array{type: string, hook: string, callback: callable, priority: int}> */
@@ -82,7 +84,8 @@ final class Plugin {
 		$this->upgrade   = new Upgrade( $this->flags );
 		$this->icons     = new Icons();
 		$this->streamer  = new Streamer();
-		$this->delivery  = new Delivery( $this->streamer, $this->icons );
+		$this->delivery   = new Delivery( $this->streamer, $this->icons );
+		$this->meta_boxes = new Meta_Boxes();
 	}
 
 	public function register_hooks(): void {
@@ -93,6 +96,7 @@ final class Plugin {
 		$this->add_hook( 'action', Keys::HOOK_WP_ENQUEUE_SCRIPTS, array( $this->assets, 'register' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_WP_ENQUEUE_SCRIPTS, array( $this->assets, 'enqueue_front' ), 11, 1 );
 		$this->add_hook( 'action', Keys::HOOK_ADMIN_ENQUEUE_SCRIPTS, array( $this->assets, 'register' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_ADMIN_ENQUEUE_SCRIPTS, array( $this->assets, 'enqueue_admin' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_CLI_INIT, array( $this, 'register_cli' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_REST_API_INIT, array( $this->rest, 'register_routes' ), 10, 1 );
 
@@ -102,6 +106,8 @@ final class Plugin {
 		$this->add_hook( 'filter', Keys::HOOK_QUERY_VARS, array( $this->rewrites, 'query_vars' ), 10, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_POST_TYPE_LINK, array( $this->rewrites, 'filter_post_type_link' ), 10, 2 );
 		$this->add_hook( 'action', Keys::HOOK_TEMPLATE_REDIRECT, array( $this->delivery, 'handle' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_ADD_META_BOXES_PUBLICATION, array( $this->meta_boxes, 'add' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_SAVE_POST, array( $this->meta_boxes, 'save' ), 10, 1 );
 
 		// D11, preserved: only shown when PHP cannot fetch remote files.
 		if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {
@@ -211,6 +217,9 @@ final class Plugin {
 			case 'delivery':
 				$this->assign_service( $service, $with, Delivery::class, $this->delivery );
 				break;
+			case 'meta_boxes':
+				$this->assign_service( $service, $with, Meta_Boxes::class, $this->meta_boxes );
+				break;
 			default:
 				throw new \InvalidArgumentException( 'Unknown service: ' . $service );
 		}
@@ -270,6 +279,10 @@ final class Plugin {
 
 	public function delivery(): Delivery {
 		return $this->delivery;
+	}
+
+	public function meta_boxes(): Meta_Boxes {
+		return $this->meta_boxes;
 	}
 
 	public static function activate(): void {

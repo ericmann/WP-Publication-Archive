@@ -13,7 +13,7 @@ use WPPA\Streamer;
 class Test_Streamer extends \WP_UnitTestCase {
 
 	public function test_passthrough_emits_headers_then_file_bytes() {
-		$path = get_temp_dir() . 'wppa-streamer-test.txt';
+		$path = get_temp_dir() . 'streamer-test.txt';
 		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- reason: test-only fixture file.
 		file_put_contents( $path, 'file-bytes' );
 
@@ -58,7 +58,7 @@ class Test_Streamer extends \WP_UnitTestCase {
 			static function () {}
 		);
 
-		$path = get_temp_dir() . 'wppa-streamer-exit-test.txt';
+		$path = get_temp_dir() . 'streamer-exit-test.txt';
 		// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- reason: test-only fixture file.
 		file_put_contents( $path, 'x' );
 

@@ -5,7 +5,9 @@
  * type, taxonomy, rewrites, query vars, the schema upgrade and the
  * allow_url_fopen admin notice moved to WPPA\Post_Type, WPPA\Rewrites,
  * WPPA\Upgrade and WPPA\Plugin in P0-08; the view/download endpoints and
- * icon/MIME lookup moved to WPPA\Delivery and WPPA\Icons in P0-09.
+ * icon/MIME lookup moved to WPPA\Delivery and WPPA\Icons in P0-09; the meta
+ * boxes, save_meta and the admin (Thickbox) enqueue moved to
+ * WPPA\Meta_Boxes and WPPA\Assets in P0-10.
  *
  * `lib/` is transitional and is deleted by P0-15.
  */
@@ -32,10 +34,6 @@ class WP_Publication_Archive_Loader {
 		require_once WP_PUB_ARCH_DIR . 'lib/class.publication-widget.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-cat-count-widget.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-category-widget.php';
-
-		// Wireup actions
-		add_action( 'init', array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
-		add_action( 'save_post', array( 'WP_Publication_Archive', 'save_meta' ) );
 
 		// Wireup filters
 		add_filter( 'excerpt_length', array( 'WP_Publication_Archive', 'custom_excerpt_length' ) );

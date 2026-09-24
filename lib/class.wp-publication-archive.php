@@ -133,9 +133,7 @@ class WP_Publication_Archive {
 	 */
 	public static function enqueue_scripts_and_styles() {
 		if ( is_admin() ) {
-			wp_enqueue_script( 'media-upload' );
-			wp_enqueue_script( 'thickbox' );
-			wp_enqueue_style( 'thickbox' );
+			\WPPA\Plugin::instance()->assets()->enqueue_admin();
 		}
 	}
 
@@ -162,9 +160,7 @@ class WP_Publication_Archive {
 	 * Register custom meta boxes for the Publication oage.
 	 */
 	public static function pub_meta_boxes() {
-		add_meta_box( 'publication_uri', __( 'Publication', 'wp-publication-archive' ), array( 'WP_Publication_Archive', 'doc_uri_box' ), 'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_alternates', __( 'Alternate Files', 'wp-publication-archive' ), array( 'WP_Publication_Archive', 'doc_alternates_box' ), 'publication', 'normal', 'high', '' );
-		add_meta_box( 'publication_thumb', __( 'Thumbnail', 'wp-publication-archive' ),   array( 'WP_Publication_Archive', 'doc_thumb_box'), 'publication', 'normal', 'high', '' );
+		\WPPA\Plugin::instance()->meta_boxes()->add();
 	}
 
 	/**
@@ -173,36 +169,7 @@ class WP_Publication_Archive {
 	 * @param WP_Post $post
 	 */
 	public static function doc_uri_box( $post ) {
-		wp_nonce_field( plugin_basename( __FILE__ ), 'wpa_nonce' );
-
-		$uri = get_post_meta( $post->ID, 'wpa_upload_doc', true );
-		echo '<p>' . __( 'Please provide the absolute url of the file (including the <code>http://</code>):', 'wp-publication-archive' ) . '</p>';
-		echo '<input type="text" id="wpa_upload_doc" name="wpa_upload_doc" value="' . $uri . '" size="25" style="width:85%" />';
-		echo '<input class="button" id="upload_doc_button" type="button" value="' . __( 'Upload Publication', 'wp-publication-archive' ) . '" alt="' . __( 'Upload Publication', 'wp-publication-archive' ) . '" />';
-		?>
-    <script type="text/javascript">
-        ( function ( window, $, undefined ) {
-            var handle_doc_upload = function () {
-                var document = window.document;
-
-                window.orig_send_to_editor = window.send_to_editor;
-                window.send_to_editor = function ( html ) {
-                    document.getElementById( 'wpa_upload_doc' ).value = $( html ).attr( 'href' );
-
-                    window.tb_remove();
-
-                    // Restore original handler
-                    window.send_to_editor = window.orig_send_to_editor;
-                };
-
-                window.tb_show( '<?php _e( 'Upload Publication', 'wp-publication-archive' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
-                return false;
-            };
-
-            $( '#upload_doc_button' ).on( 'click', handle_doc_upload );
-        } )( this, jQuery );
-    </script>
-	<?php
+		\WPPA\Plugin::instance()->meta_boxes()->render_doc( $post );
 	}
 
 	/**
@@ -211,35 +178,7 @@ class WP_Publication_Archive {
 	 * @param WP_Post $post
 	 */
 	public static function doc_thumb_box( $post ) {
-		$thumb = get_post_meta( $post->ID, 'wpa-upload_image', true );
-
-		echo '<p>' . __( 'Please provide the absolute url for a thumbnail image (including the <code>http://</code>):', 'wp-publication-archive' ) . '</p>';
-		echo '<input type="text" id="wpa-upload_image" name="wpa-upload_image" value=" ' . $thumb . '" size="36" size="25" style="width:85%" />';
-		echo '<input class="button" id="wpa-upload_image_button" type="button" value="' . __( 'Upload Thumbnail', 'wp-publication-archive' ) . '" alt="' . __( 'Upload Thumbnail', 'wp-publication-archive' ) . '" />';
-		?>
-		<script type="text/javascript">
-			( function( window, $, undefined ) {
-				var handle_thumb_upload = function() {
-					var document = window.document;
-
-					window.orig_send_to_editor = window.send_to_editor;
-					window.send_to_editor = function( html ) {
-						document.getElementById( 'wpa-upload_image' ).value = $( html ).attr( 'href' );
-
-						window.tb_remove();
-
-						// Restore original handler
-						window.send_to_editor = window.orig_send_to_editor;
-					};
-
-					window.tb_show( '<?php _e( 'Upload Thumbnail', 'wp-publication-archive' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
-					return false;
-				}
-
-				$( '#wpa-upload_image_button' ).on( 'click', handle_thumb_upload );
-			} )( this, jQuery );
-		</script>
-	<?php
+		\WPPA\Plugin::instance()->meta_boxes()->render_thumb( $post );
 	}
 
 	/**
@@ -248,114 +187,7 @@ class WP_Publication_Archive {
 	 * @param WP_Post $post
 	 */
 	public static function doc_alternates_box( $post ) {
-		$alternates = get_post_meta( $post->ID, 'wpa-upload_alternates' );
-
-		echo '<p>' . __( 'These files are considered alternates to the publication listed above (i.e. foreign language translations of the same document).', 'wp-publication-archive' ) . '</p>';
-		echo '<table id="wpa-alternate-table" style="width:100%;">';
-		echo '<thead><tr style="text-align:left;"><th>Description</th><th>Absolute Url</th><th></th></tr></thead>';
-		echo '<tbody>';
-		foreach( $alternates as $alternate ) {
-			echo '<tr>';
-			echo '<td style="width:30%;"><input style="width:100%;" type="text" name="wpa-alternates[description][]" value="' . esc_attr( $alternate['description'] ) . '" /></td>';
-			echo '<td style="width:60%;"><input style="width:100%;" type="text" name="wpa-alternates[url][]" value="' . esc_attr( $alternate['url'] ) . '" /></td>';
-			echo '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . __( 'upload', 'wp-publication-archive' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . __( 'delete', 'wp-publication-archive' ) . '</span></td>';
-			echo '</tr>';
-		}
-
-		echo '<tr>';
-		echo '<td style="width:30%;"><input style="width:100%;" type="text" name="wpa-alternates[description][]" value="" /></td>';
-		echo '<td style="width:60%;"><input style="width:100%;" type="text" name="wpa-alternates[url][]" value="" /></td>';
-		echo '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . __( 'upload', 'wp-publication-archive' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . __( 'delete', 'wp-publication-archive' ) . '</span></td>';
-		echo '</tr>';
-		echo '</tbody>';
-		echo '</table>';
-
-		echo '<input class="button" id="wpa-alternates-button" type="button" value="' . __( 'Add Row', 'wp-publication-archive' ) . '" alt="' . __( 'Add Row', 'wp-publication-archive' ) . '" />';
-?>
-		<script type="text/javascript">
-			( function ( window, $, undefined ) {
-				var document = window.document,
-					editor_store,
-					table = document.getElementById( "wpa-alternate-table" ),
-					row = document.createElement( 'tr' );
-
-				{
-					var td1 = document.createElement( 'td' );
-					td1.style.width = '30%';
-					row.appendChild( td1 );
-					var input1 = document.createElement( 'input' );
-					input1.style.width = '100%';
-					input1.setAttribute( 'type', 'text' );
-					input1.setAttribute( 'name', 'wpa-alternates[description][]' );
-					td1.appendChild( input1 );
-
-					var td2 = document.createElement( 'td' );
-					td2.style.width = '60%';
-					row.appendChild( td2 );
-					var input2 = document.createElement( 'input' );
-					input2.style.width = '100%';
-					input2.setAttribute( 'type', 'text' );
-					input2.setAttribute( 'name', 'wpa-alternates[url][]' );
-					td2.appendChild( input2 );
-
-					var td3 = document.createElement( 'td' );
-					td3.style.width = '10%';
-					td3.style.textAlign = 'center';
-					row.appendChild( td3 );
-					var span1 = document.createElement( 'span' );
-					span1.className = 'wpa-upload-row';
-					span1.style.borderBottom = '1px solid #000';
-					span1.style.cursor = 'pointer';
-					span1.innerText = '<?php _e( 'upload', 'wp-publication-archive' ); ?>';
-					td3.appendChild( span1 );
-					td3.appendChild( document.createTextNode( ' | ' ) );
-					var span2 = document.createElement( 'span' );
-					span2.className = 'wpa-delete-row';
-					span2.style.color = '#f00';
-					span2.style.borderBottom = '1px solid #f00';
-					span2.style.cursor = 'pointer';
-					span2.innerText = '<?php _e( 'delete', 'wp-publication-archive' ); ?>';
-					td3.appendChild( span2 );
-				}
-
-				var addRow = function( e ) {
-					e.preventDefault();
-
-					table.appendChild( row.cloneNode( true ) );
-				};
-
-				var deleteRow = function( e ) {
-					e.preventDefault();
-
-					$( this ).parents( 'tr' ).remove();
-				};
-
-				var uploadRow = function( e ) {
-					e.preventDefault();
-
-					var $this = $( this ),
-						target = $this.parents( 'tr' ).find( 'input[name="wpa-alternates[url][]"]' );
-
-					var send_handler = function( html ) {
-						target.val( $( html ).attr( 'href' ) );
-
-						window.tb_remove();
-
-						window.send_to_editor = editor_store;
-					};
-
-					editor_store = window.send_to_editor;
-					window.send_to_editor = send_handler;
-					window.tb_show( '<?php _e( 'Upload Alternate', 'wp-publication-archive' ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
-					return false;
-				};
-
-				$( document.getElementById( 'wpa-alternates-button' ) ).on( 'click', addRow );
-				$( table ).on( 'click', '.wpa-delete-row', deleteRow );
-				$( table ).on( 'click', '.wpa-upload-row', uploadRow );
-			} )( this, jQuery );
-		</script>
-<?php
+		\WPPA\Plugin::instance()->meta_boxes()->render_alternates( $post );
 	}
 
 	/**
@@ -366,41 +198,7 @@ class WP_Publication_Archive {
 	 * @return int
 	 */
 	public static function save_meta( $post_id ) {
-		$post = get_post( $post_id );
-		if ( $post->post_type != 'publication' ) {
-			return $post_id;
-		}
-
-		if ( ! isset( $_POST['wpa_nonce'] ) || ! wp_verify_nonce( $_POST['wpa_nonce'], plugin_basename( __FILE__ ) ) ) {
-			return $post_id;
-		}
-
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return $post_id;
-		}
-
-		$uri = isset( $_POST['wpa_upload_doc'] ) && '' != trim( $_POST['wpa_upload_doc'] ) ? esc_url_raw( $_POST['wpa_upload_doc'] ) : '';
-		$thumbnail = isset( $_POST['wpa-upload_image'] ) && '' != trim( $_POST['wpa-upload_image'] ) ? esc_url_raw( $_POST['wpa-upload_image'] ) : '';
-
-		update_post_meta( $post_id, 'wpa_upload_doc', $uri );
-		update_post_meta( $post_id, 'wpa-upload_image', $thumbnail );
-
-		// Handle alternate uploads
-		delete_post_meta( $post_id, 'wpa-upload_alternates' );
-		if ( isset( $_POST['wpa-alternates'] ) ) {
-			for ( $i = 0; $i <= count( $_POST['wpa-alternates']['url'] ); $i++ ) {
-				$description = $_POST['wpa-alternates']['description'][ $i ];
-				$url = $_POST['wpa-alternates']['url'][ $i ];
-
-				if ( '' === trim( $url ) ) {
-					continue;
-				}
-
-				add_post_meta( $post_id, 'wpa-upload_alternates', array( 'description' => $description, 'url' => $url ) );
-			}
-		}
-
-		return $post_id;
+		return \WPPA\Plugin::instance()->meta_boxes()->save( $post_id );
 	}
 
 	/**

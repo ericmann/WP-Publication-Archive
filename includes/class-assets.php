@@ -46,4 +46,19 @@ final class Assets {
 
 		wp_enqueue_style( Keys::STYLE_HANDLE );
 	}
+
+	/**
+	 * 3.0.1 WP_Publication_Archive::enqueue_scripts_and_styles()'s is_admin()
+	 * branch. Hooked to admin_enqueue_scripts, so it runs on every admin
+	 * page, as in 3.0.1 (D13, until P2-07).
+	 *
+	 * @param string $hook_suffix
+	 */
+	public function enqueue_admin( $hook_suffix = '' ): void {
+		unset( $hook_suffix );
+
+		wp_enqueue_script( 'media-upload' );
+		wp_enqueue_script( 'thickbox' );
+		wp_enqueue_style( 'thickbox' );
+	}
 }

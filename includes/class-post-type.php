@@ -49,7 +49,6 @@ final class Post_Type {
 					'category',
 					'post_tag',
 				),
-				'register_meta_box_cb' => array( \WP_Publication_Archive::class, 'pub_meta_boxes' ),
 				'can_export'           => true,
 				'menu_icon'            => Keys::MENU_ICON,
 			)
