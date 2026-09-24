@@ -27,7 +27,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-06 Streamer::send() — the one temp-file readfile (P11, D6)
 - [x] P1-07 Delivery per §6.2 — validate, withhold, redirect or proxy (D1 delivery, D17 end to end)
 - [x] P1-08 Escaped Publication_Item and list/dropdown templates; thumbnail through the bridge (D2 output, D3 front, D18)
-- [ ] P1-09 Gate 1 — security verified, constraints locked, branch pushed
+- [x] P1-09 Gate 1 — security verified, constraints locked, branch pushed
 - [ ] P2-01 Contracts (1/2) — Keys, Flags and Plugin for §6.1, §6.6 and §6.7; close D11 and D8's filter; Capabilities signatures; upgrade on init
 - [ ] P2-02 Contracts (2/2) — Capabilities granted on activation and init
 - [ ] P2-03 Post type and taxonomy in REST and the block editor (D12)
@@ -215,3 +215,12 @@ Removed every remaining WordPress.Security ignore from class-publication-item.ph
 Ran into a shared-DB race calling foundry_verify while a background composer test was still running against the same wp-env database — spurious failures across unrelated tests, not a code defect; re-running foundry_verify alone was clean. Logged as pipeline feedback.
 
 foundry_verify, composer test (with and without DAM, 262/244) all green.
+
+### P1-09 — d021709
+Appended the two constraint entries to docs/foundry.json exactly as specified. Closed the last remaining D3 WordPress.Security ignores: Categories::dropdown_categories()/list_categories() now wp_kses()/wp_kses_post() their output; the three widgets' before_widget/title/after_widget chrome goes through wp_kses_post(); the category-count widget's three inline-script values go through esc_js() (all three are plain identifiers/URLs with no chars esc_js() treats specially, confirmed by re-running the suite); Archive_Widget::form()'s admin markup goes through wp_kses_post().
+
+wp_kses()/wp_kses_post() normalise attribute quoting (single to double quotes) and drop extra whitespace, changing the pinned WIDGET_CAT_COUNT_DROPDOWN characterisation string — updated in class-v3-expected-output.php, named D3, per the task's explicit "if a fix needs a test change, name the D-item" allowance. No other pinned string changed.
+
+grep -rn "phpcs:(ignore|disable).*WordPress.Security" includes templates wp-publication-archive.php prints nothing; grep -rn "readfile(" includes prints exactly one line (class-streamer.php send()). foundry_verify (both new constraints self-tested), composer verify (DAM loaded, 262 tests), WPPA_DAM=0 composer test (244 tests) all green.
+
+Push failed: "This repository was archived so it is read-only" — same known limitation as P0-16's basePush failure at flight start. Logged, not task-blocking.
