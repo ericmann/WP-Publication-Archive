@@ -22,6 +22,16 @@ require_once $_tests_dir . '/includes/functions.php';
 tests_add_filter(
 	'muplugins_loaded',
 	function () {
+		if ( '1' === getenv( 'WPPA_TEST_DAM' ) ) {
+			$dam_file = WP_PLUGIN_DIR . '/vip-digital-asset-manager/index.php';
+
+			if ( ! file_exists( $dam_file ) ) {
+				throw new \RuntimeException( 'WPPA_TEST_DAM=1 but ' . $dam_file . ' is missing. Run bash bin/fetch-dam.sh.' );
+			}
+
+			require_once $dam_file;
+		}
+
 		require_once dirname( __DIR__ ) . '/wp-publication-archive.php';
 	}
 );

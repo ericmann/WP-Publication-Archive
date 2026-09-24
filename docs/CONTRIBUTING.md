@@ -50,6 +50,24 @@ tokens go on `:root` with the `--eam-` prefix. Tests that freeze time use
 3. Create `tests/unit/test-<slug>.php` or `tests/integration/test-<slug>.php`.
 4. `composer dump-autoload -o`.
 
+## The DAM
+
+`bash bin/fetch-dam.sh` clones the VIP Digital Asset Manager at the pinned
+`DAM_REF` (`bin/wp-env.conf`) into `.cache/vip-digital-asset-manager` and
+maps it into wp-env through `.wp-env.override.json` (gitignored). It needs
+SSH access to `github.a8c.com`; without it the fetch fails and `bin/test.sh`
+fails loudly rather than silently skipping the DAM group.
+
+- `WPPA_DAM=0 composer test` runs the suite without the DAM, excluding
+  `@group dam` tests.
+- With the DAM fetched (the default, `DAM=1`), `composer test` sets
+  `WPPA_TEST_DAM=1`, loads the DAM before this plugin, and excludes
+  `@group nodam` tests instead.
+- `phpstan/stubs/vip-dam.php` stubs the DAM's public surface so
+  `composer analyse` never needs a DAM checkout, including in CI.
+- DAM symbols (`VIP\DAM\*`, `VIP_DAM_*`) may appear only in `includes/class-dam-bridge.php`,
+  `tests/` and `phpstan/stubs/` (P14).
+
 ## Committing vendor/
 
 Default: `vendor/` is ignored and CI installs it.

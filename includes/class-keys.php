@@ -173,4 +173,9 @@ final class Keys {
 	const HOOK_TERM_LINK                  = 'term_link';
 	const HOOK_TERMS_CLAUSES              = 'terms_clauses';
 	const HOOK_ADD_META_BOXES_PUBLICATION = 'add_meta_boxes_publication';
+
+	// The DAM (§6.9, §7.4).
+	const HOOK_DAM_INDEXED_IDS = 'vip_dam_indexed_attachment_ids';
+	const DAM_PLUGIN_SLUG      = 'vip-digital-asset-manager';
+	const DAM_PLUGIN_FILE      = 'vip-digital-asset-manager/index.php';
 }

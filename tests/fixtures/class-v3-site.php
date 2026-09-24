@@ -59,7 +59,7 @@ final class V3_Site {
 
 		$pdf_path = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
 		if ( ! file_exists( $pdf_path ) ) {
-			$pdf_path = get_temp_dir() . 'wppa-fixture.pdf';
+			$pdf_path = get_temp_dir() . 'v3-site-fixture.pdf';
 			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- reason: sole writer of a throwaway test fixture file when WP core test data is unavailable.
 			file_put_contents( $pdf_path, "%PDF-1.4\n%%EOF" );
 		}

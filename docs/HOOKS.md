@@ -75,11 +75,11 @@ Hooks core or other plugins fire that the plugin listens to.
 
 ### Consumed from the DAM
 
-Added by P0-05; see §6.9.
+See §6.9. `Keys::HOOK_DAM_INDEXED_IDS`.
 
 | Hook | Arguments | Since |
 |---|---|---|
-| `vip_dam_indexed_attachment_ids` | `array $ids` | DAM |
+| `vip_dam_indexed_attachment_ids` | `array $ids, \WP_Post\|null $post` | DAM |
 
 ## Removed in 3.1.0
 

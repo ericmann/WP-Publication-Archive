@@ -227,4 +227,20 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 		$this->assertNotFalse( $contents );
 		$this->assertStringContainsString( '--eam-epoch: 19831109', $contents );
 	}
+
+	public function test_wp_env_conf_pins_the_dam() {
+		$path = dirname( __DIR__, 2 ) . '/bin/wp-env.conf';
+		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown -- reason: local source file, not remote data.
+		$contents = file_get_contents( $path );
+
+		$this->assertNotFalse( $contents );
+		$this->assertStringContainsString( 'DAM=1', $contents );
+		$this->assertMatchesRegularExpression( '/DAM_REF="[0-9a-f]{40}"/', $contents );
+	}
+
+	public function test_dam_names() {
+		$this->assertSame( 'vip_dam_indexed_attachment_ids', Keys::HOOK_DAM_INDEXED_IDS );
+		$this->assertSame( 'vip-digital-asset-manager', Keys::DAM_PLUGIN_SLUG );
+		$this->assertSame( 'vip-digital-asset-manager/index.php', Keys::DAM_PLUGIN_FILE );
+	}
 }
