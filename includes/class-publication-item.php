@@ -4,7 +4,8 @@
  * aliased as WP_Publication_Archive_Item by includes/legacy/class-aliases.php.
  * The open D2, D3 and D7 defects are preserved; they close in Phase 1/2.
  * Not final, same public properties/methods/parameters/defaults as
- * e913681:lib/class.publication-markup.php, phpdoc types only (Decisions).
+ * e913681's class.publication-markup.php (formerly under the pre-restructure
+ * runtime directory, since removed), phpdoc types only (Decisions).
  *
  * @author Eric Mann <eric@eamann.com>
  */

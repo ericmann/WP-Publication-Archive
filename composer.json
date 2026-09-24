@@ -19,8 +19,7 @@
 	},
 	"autoload": {
 		"classmap": [
-			"includes/",
-			"lib/"
+			"includes/"
 		]
 	},
 	"autoload-dev": {

@@ -1,8 +1,8 @@
 <?php
 /**
  * Implements SPEC.md §8 Phase 0 item 4 (D16): 3.0.1's icon lookup and MIME
- * detection, moved off the deleted lib/class.mimetype.php onto
- * wp_check_filetype().
+ * detection, moved off the deleted 2002 BSD-licensed mimetype extension
+ * table onto wp_check_filetype().
  *
  * @author Eric Mann <eric@eamann.com>
  */

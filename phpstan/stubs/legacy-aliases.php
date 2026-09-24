@@ -8,6 +8,12 @@
  */
 
 /**
+ * Real alias target: WP_Publication_Archive === WPPA\Legacy\Publication_Archive.
+ */
+class WP_Publication_Archive extends \WPPA\Legacy\Publication_Archive {
+}
+
+/**
  * Real alias target: WP_Publication_Archive_Item === Publication_Item.
  */
 class WP_Publication_Archive_Item extends \WPPA\Publication_Item {

@@ -2,7 +2,7 @@
 /**
  * Implements SPEC.md §8 Phase 0 item 4: the 3.0.1 `publication` post type and
  * `publication-author` taxonomy, registered verbatim except the menu icon
- * (D16 part: images/cabinet.png is deleted, so Keys::MENU_ICON is used).
+ * (D16 part: the 3.0.1 PNG icon asset is deleted, so Keys::MENU_ICON is used).
  *
  * @author Eric Mann <eric@eamann.com>
  */

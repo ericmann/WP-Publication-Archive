@@ -19,11 +19,12 @@ final class Aliases {
 	 */
 	public static function register(): void {
 		$aliases = array(
-			Keys::LEGACY_CLASS_ITEM             => \WPPA\Publication_Item::class,
-			Keys::LEGACY_CLASS_UTILITIES        => Utilities::class,
-			Keys::LEGACY_CLASS_CAT_COUNT_WIDGET => \WPPA\Widgets\Category_Count_Widget::class,
-			Keys::LEGACY_CLASS_ARCHIVE_WIDGET   => \WPPA\Widgets\Archive_Widget::class,
-			Keys::LEGACY_CLASS_RELATED_WIDGET   => \WPPA\Widgets\Related_Widget::class,
+			Keys::LEGACY_CLASS_ARCHIVE           => Publication_Archive::class,
+			Keys::LEGACY_CLASS_ITEM              => \WPPA\Publication_Item::class,
+			Keys::LEGACY_CLASS_UTILITIES         => Utilities::class,
+			Keys::LEGACY_CLASS_CAT_COUNT_WIDGET  => \WPPA\Widgets\Category_Count_Widget::class,
+			Keys::LEGACY_CLASS_ARCHIVE_WIDGET    => \WPPA\Widgets\Archive_Widget::class,
+			Keys::LEGACY_CLASS_RELATED_WIDGET    => \WPPA\Widgets\Related_Widget::class,
 		);
 
 		foreach ( $aliases as $alias => $target ) {

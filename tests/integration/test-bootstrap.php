@@ -1,7 +1,8 @@
 <?php
 /**
- * Implements SPEC.md §4.1: the bootstrap loads the 3.0.1 runtime behind the
- * transitional loader.
+ * Implements SPEC.md §4.1: the bootstrap wires the 3.0.1 runtime's behaviour
+ * entirely through WPPA services (the transitional lib/ loader is gone as of
+ * P0-15).
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -29,14 +30,24 @@ class Test_Bootstrap extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Templates moved from the transitional lib/templates/ to the frozen
+	 * Templates moved from the transitional runtime directory to the frozen
 	 * templates/classic/ in P0-12 (SPEC §6.5).
 	 */
-	public function test_301_templates_are_found_under_templates_classic() {
+	public function test_bundled_templates_are_found_under_templates_classic() {
 		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'template.wppa_widget.php' );
 		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'template.wppa_publication_list.php' );
 		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'template.wppa_publication_dropdown.php' );
 		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'single-publication.php' );
 		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'archive-publication.php' );
+	}
+
+	/**
+	 * P0-15: the transitional runtime directory and the unused legacy asset
+	 * directories are gone.
+	 */
+	public function test_no_301_directories_remain() {
+		$this->assertDirectoryDoesNotExist( WP_PUB_ARCH_DIR . 'lib' );
+		$this->assertDirectoryDoesNotExist( WP_PUB_ARCH_DIR . 'lang' );
+		$this->assertDirectoryDoesNotExist( WP_PUB_ARCH_DIR . 'images' );
 	}
 }

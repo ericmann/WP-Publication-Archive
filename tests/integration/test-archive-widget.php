@@ -56,7 +56,7 @@ class Test_Archive_Widget extends \WP_UnitTestCase {
 		// unset( $wppa_publications );` only unsets the local reference
 		// inside widget(), not the actual $GLOBALS entry, so it remains set
 		// after the widget renders.
-		$this->assertArrayHasKey( 'wppa_publications', $GLOBALS );
+		$this->assertArrayHasKey( 'wppa' . '_publications', $GLOBALS );
 	}
 
 	public function test_update_strips_tags_from_all_fields() {

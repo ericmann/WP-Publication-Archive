@@ -67,10 +67,6 @@ final class Plugin {
 		Legacy\Aliases::register();
 		Legacy\Utilities::create_instance();
 
-		// Transitional: the 3.0.1 runtime is required and wired here until
-		// P0-15 moves its remaining behaviour onto WPPA services.
-		\WP_Publication_Archive_Loader::load();
-
 		Hooks::booted( $instance );
 	}
 
