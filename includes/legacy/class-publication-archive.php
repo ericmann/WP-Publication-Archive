@@ -200,7 +200,7 @@ class Publication_Archive {
 	}
 
 	/**
-	 * Handle the 'wp-publication-archive' shortcode and provided filters.
+	 * Handle the plugin's shortcode and provided filters.
 	 *
 	 * @param array<string, mixed> $atts Shortcode arguments.
 	 *

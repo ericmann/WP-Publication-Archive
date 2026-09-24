@@ -79,8 +79,8 @@ final class Icons {
 	}
 
 	/**
-	 * D16: replaces mimetype::getType(). $name may be a URL or a bare
-	 * filename; only its path/basename is used.
+	 * D16: replaces the deleted 2002 mimetype extension table's type lookup.
+	 * $name may be a URL or a bare filename; only its path/basename is used.
 	 */
 	public function mime_for( string $name ): string {
 		$path = (string) wp_parse_url( $name, PHP_URL_PATH );

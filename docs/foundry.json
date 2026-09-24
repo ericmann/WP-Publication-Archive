@@ -549,6 +549,8 @@
         "throw new NotImplementedException( __METHOD__ );",
         "throw new \\WPPA\\NotImplementedException( __METHOD__ );"
       ]
-    }
+    },
+    {"id":"no-mimetype-class","description":"SPEC D16: the 2002 mimetype class is gone; MIME lookups go through wp_check_filetype(). Added by P0-16.","paths":["includes/","templates/","wp-publication-archive.php"],"pattern":"\\bnew\\s+\\\\?mimetype\\b|class\\.mimetype|\\bmimetype::","shouldMatch":["$mime = new mimetype();","require_once __DIR__ . '/class.mimetype.php';","$t = \\mimetype::getType( $f );"],"shouldNotMatch":["$type = wp_check_filetype( $name );","$mimetype = 'application/pdf';"]},
+    {"id":"no-legacy-string-callables","description":"SPEC §2 non-goals: no hook is registered under a 3.0.1 global class callable. Added by P0-16.","paths":["includes/","templates/","wp-publication-archive.php"],"exclude":["includes/class-keys.php"],"pattern":"array\\(\\s*['\"]WP_Publication_Archive|['\"]WP_Publication_Archive\\w*::","shouldMatch":["add_action( 'save_post', array( 'WP_Publication_Archive', 'save_meta' ) );","add_filter( 'template_include', array( \"WP_Publication_Archive_Utilities\", 'single_publication' ) );","$cb = 'WP_Publication_Archive::open_file';"],"shouldNotMatch":["$item = new \\WP_Publication_Archive_Item( $post );","register_widget( Keys::LEGACY_CLASS_ARCHIVE_WIDGET );"]}
   ]
 }
