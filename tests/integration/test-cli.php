@@ -33,7 +33,7 @@ class Test_Cli extends \WP_UnitTestCase {
 
 		$this->assertIsArray( $rows );
 		$this->assertSame(
-			array( 'lineage', 'version', 'php', 'wp', 'post_type_registered', 'rewrite_rules_present' ),
+			array( 'lineage', 'version', 'php', 'wp', 'post_type_registered', 'rewrite_rules_present', 'dam' ),
 			array_column( $rows, 'check' )
 		);
 	}
@@ -55,5 +55,27 @@ class Test_Cli extends \WP_UnitTestCase {
 		} finally {
 			remove_filter( 'pre_option_rewrite_rules', '__return_empty_array' );
 		}
+	}
+
+	/**
+	 * @group nodam
+	 */
+	public function test_dam_row_reports_absent_and_passes() {
+		Plugin::instance()->cli()->doctor( array(), array( 'format' => 'json' ) );
+
+		$rows = json_decode( (string) end( \WP_CLI::$lines ), true );
+
+		$dam_rows = array_values(
+			array_filter(
+				$rows,
+				static function ( array $row ): bool {
+					return 'dam' === $row['check'];
+				}
+			)
+		);
+
+		$this->assertCount( 1, $dam_rows );
+		$this->assertSame( 'pass', $dam_rows[0]['status'] );
+		$this->assertSame( 'absent', $dam_rows[0]['message'] );
 	}
 }

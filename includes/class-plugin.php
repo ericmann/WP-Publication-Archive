@@ -86,7 +86,6 @@ final class Plugin {
 		$this->clock     = new SystemClock();
 		$this->flags     = new Flags( $this->clock );
 		$this->assets    = new Assets( $this->flags );
-		$this->cli       = new Cli( $this->flags );
 		$this->rest      = new Rest( $this->flags );
 		$this->post_type = new Post_Type();
 		$this->rewrites  = new Rewrites( $this->flags );
@@ -99,6 +98,7 @@ final class Plugin {
 			}
 		);
 		$this->dam_bridge  = new Dam_Bridge( $this->url_policy );
+		$this->cli         = new Cli( $this->flags, $this->dam_bridge );
 		$this->streamer    = new Streamer( get_temp_dir() );
 		$this->delivery    = new Delivery( $this->url_policy, $this->streamer, $this->dam_bridge, $this->icons );
 		$this->meta_boxes  = new Meta_Boxes( $this->url_policy );
@@ -135,6 +135,7 @@ final class Plugin {
 		$this->add_hook( 'filter', Keys::HOOK_TERM_LINK, array( $this->categories, 'filter_category_link' ), 10, 3 );
 		$this->add_hook( 'filter', Keys::HOOK_TERMS_CLAUSES, array( $this->categories, 'filter_terms_by_cpt' ), 10, 3 );
 		$this->add_hook( 'filter', Keys::HOOK_ALLOWED_REDIRECT_HOSTS, array( $this->delivery, 'allowed_redirect_hosts' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_DAM_INDEXED_IDS, array( $this->dam_bridge, 'indexed_attachment_ids' ), 10, 2 );
 
 		// D11, preserved: only shown when PHP cannot fetch remote files.
 		if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {

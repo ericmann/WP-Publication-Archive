@@ -17,7 +17,7 @@ final class Url_Policy {
 	private $is_safe_external;
 
 	/**
-	 * @param callable(string):bool $is_safe_external wraps wp_http_validate_url().
+	 * @param callable(string):bool $is_safe_external wraps the caller's external-URL check.
 	 */
 	public function __construct( string $site_host, callable $is_safe_external ) {
 		$this->site_host        = $site_host;

@@ -14,8 +14,11 @@ final class Cli {
 
 	private Flags $flags;
 
-	public function __construct( Flags $flags ) {
+	private Dam_Bridge $dam;
+
+	public function __construct( Flags $flags, Dam_Bridge $dam ) {
 		$this->flags = $flags;
+		$this->dam   = $dam;
 	}
 
 	/**
@@ -106,7 +109,26 @@ final class Cli {
 			) . '}/'
 		);
 
+		$rows[] = $this->dam_row();
+
 		return $rows;
+	}
+
+	/**
+	 * @return array{check: string, status: string, message: string}
+	 */
+	private function dam_row(): array {
+		if ( ! $this->dam->active() ) {
+			return $this->row( 'dam', 'pass', 'absent' );
+		}
+
+		$attached = false !== has_filter( Keys::HOOK_DAM_INDEXED_IDS, array( $this->dam, 'indexed_attachment_ids' ) );
+
+		return $this->row(
+			'dam',
+			$attached ? 'pass' : 'fail',
+			$this->dam->version() . ', usage filter ' . ( $attached ? 'attached' : 'not attached' )
+		);
 	}
 
 	private function rewrite_rules_present(): bool {

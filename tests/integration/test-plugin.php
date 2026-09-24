@@ -136,7 +136,13 @@ class Test_Plugin extends \WP_UnitTestCase {
 		$this->assertSame( 10, has_filter( Keys::HOOK_ALLOWED_REDIRECT_HOSTS, array( $plugin->delivery(), 'allowed_redirect_hosts' ) ) );
 	}
 
-	public function test_dam_filter_not_yet_registered() {
-		$this->assertFalse( has_filter( Keys::HOOK_DAM_INDEXED_IDS ) );
+	/**
+	 * P1-02 registers this unconditionally (D19); with the DAM absent the
+	 * filter never fires.
+	 */
+	public function test_dam_filter_registered() {
+		$plugin = Plugin::instance();
+
+		$this->assertSame( 10, has_filter( Keys::HOOK_DAM_INDEXED_IDS, array( $plugin->dam_bridge(), 'indexed_attachment_ids' ) ) );
 	}
 }
