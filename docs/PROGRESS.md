@@ -26,7 +26,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-05 Dam_Bridge withholding and display URL (D17, D18 at the bridge)
 - [x] P1-06 Streamer::send() — the one temp-file readfile (P11, D6)
 - [x] P1-07 Delivery per §6.2 — validate, withhold, redirect or proxy (D1 delivery, D17 end to end)
-- [ ] P1-08 Escaped Publication_Item and list/dropdown templates; thumbnail through the bridge (D2 output, D3 front, D18)
+- [x] P1-08 Escaped Publication_Item and list/dropdown templates; thumbnail through the bridge (D2 output, D3 front, D18)
 - [ ] P1-09 Gate 1 — security verified, constraints locked, branch pushed
 - [ ] P2-01 Contracts (1/2) — Keys, Flags and Plugin for §6.1, §6.6 and §6.7; close D11 and D8's filter; Capabilities signatures; upgrade on init
 - [ ] P2-02 Contracts (2/2) — Capabilities granted on activation and init
@@ -204,3 +204,14 @@ Rewrote Delivery per §6.2: resolve stored URL (doc or matching alternate) → n
 Real findings, not assumptions: read wp-includes/http.php to confirm wp_http_validate_url() itself already blocks RFC 5735/6598 private and link-local ranges (including 169.254.0.0/16 cloud metadata) with no extra mocking needed. Found and fixed a real test-isolation gap: Plugin::replace('delivery', ...) doesn't rebind the allowed_redirect_hosts hook Plugin wired to the original instance at boot, so external-host redirect tests needed to explicitly remove/re-add that hook around the swap.
 
 foundry_verify, composer test:unit, composer test (with and without DAM, 239/257 respectively) all green; grep -c "readfile(" includes/class-streamer.php prints 1; P0-06/P0-07 characterisation unchanged.
+
+### P1-08 — 8129bfa
+Escaped every value Publication_Item and the dropdown template print: get_the_title() esc_url()'s the permalink and esc_html()'s the filtered title, the_title()/the_thumbnail() echo through wp_kses_post(), list_downloads() esc_html()'s alternate descriptions (D2), the dropdown template esc_attr(esc_url(...))'s the option value and esc_html()'s post_title (D3). get_the_thumbnail() now passes the resolved image URL through Plugin::instance()->dam_bridge()->display_url() before esc_url() (D18).
+
+Real bug found via the new D18 test, not assumed: esc_url()'s default protocol allowlist excludes 'data:', so Embargo_Guard::placeholder_url()'s data-URI placeholder was silently stripped to an empty src. Fixed by passing wp_allowed_protocols() + 'data' explicitly to esc_url().
+
+Removed every remaining WordPress.Security ignore from class-publication-item.php and templates/classic (grep confirms empty). Full suite re-run confirmed no pinned characterisation string changed.
+
+Ran into a shared-DB race calling foundry_verify while a background composer test was still running against the same wp-env database — spurious failures across unrelated tests, not a code defect; re-running foundry_verify alone was clean. Logged as pipeline feedback.
+
+foundry_verify, composer test (with and without DAM, 262/244) all green.
