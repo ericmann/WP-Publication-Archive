@@ -1,3 +1,12 @@
 .idea/
 Thumbs.db
 .foundry/implement.lock
+
+vendor/
+node_modules/
+.cache/
+dist/
+.wp-env.override.json
+.phpunit.result.cache
+*.log
+.DS_Store

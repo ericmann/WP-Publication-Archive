@@ -82,7 +82,7 @@ class WP_Publication_Archive_Widget extends WP_Widget {
 	 * Echo the content of the widget to the front-end user interface.
 	 *
 	 * Dynamically loads a template for the widget display. Default template is stored in
-	 * includes/template.wppa_widget.php. If a similarly-named file exists in the current theme, the theme's
+	 * lib/templates/template.wppa_widget.php. If a similarly-named file exists in the current theme, the theme's
 	 * version will be used instead.
 	 *
 	 * @param array $argsDisplay arguments including before_title, after_title, before_widget, and after_widget
@@ -127,7 +127,7 @@ class WP_Publication_Archive_Widget extends WP_Widget {
 		$template_name = apply_filters( 'wppa_widget_template', 'template.wppa_widget.php' );
 		$path = locate_template( $template_name );
 		if ( empty( $path ) ) {
-			$path = WP_PUB_ARCH_DIR . 'includes/' . $template_name;
+			$path = WP_PUB_ARCH_DIR . 'lib/templates/' . $template_name;
 		}
 
 		include( $path );

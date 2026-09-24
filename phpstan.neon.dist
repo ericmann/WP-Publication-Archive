@@ -1,0 +1,17 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 6
+	bootstrapFiles:
+		- phpstan/bootstrap.php
+	paths:
+		- includes
+		- wp-publication-archive.php
+		- bin/test-map.php
+	scanFiles:
+		- vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+		- vendor/php-stubs/wp-cli-stubs/wp-cli-commands-stubs.php
+		- vendor/php-stubs/wp-cli-stubs/wp-cli-i18n-stubs.php
+	scanDirectories:
+		- phpstan/stubs

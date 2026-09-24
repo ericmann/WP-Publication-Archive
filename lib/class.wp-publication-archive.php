@@ -836,7 +836,7 @@ class WP_Publication_Archive {
 
 		$path = locate_template( $template_name );
 		if ( empty( $path ) ) {
-			$path = WP_PUB_ARCH_DIR . 'includes/' . $template_name;
+			$path = WP_PUB_ARCH_DIR . 'lib/templates/' . $template_name;
 		}
 
 		// Get a global container variable and populate it with our data

@@ -394,7 +394,7 @@ class WP_Publication_Archive_Utilities {
 		$paths = array(
 			get_stylesheet_directory() . '/' . $template_name,
 			get_template_directory() . '/' . $template_name,
-			WP_PUB_ARCH_DIR . 'includes/' . $template_name
+			WP_PUB_ARCH_DIR . 'lib/templates/' . $template_name
 		);
 
 		foreach ( $paths as $path ) {

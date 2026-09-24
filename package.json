@@ -1,0 +1,10 @@
+{
+	"name": "wp-publication-archive",
+	"private": true,
+	"devDependencies": {
+		"@wordpress/env": "^11"
+	},
+	"scripts": {
+		"wp-env": "wp-env"
+	}
+}
