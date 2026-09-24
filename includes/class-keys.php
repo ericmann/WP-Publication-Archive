@@ -116,6 +116,7 @@ final class Keys {
 	const ADMIN_SCRIPT_HANDLE = 'wp-publication-archive-admin-media';
 	const ADMIN_SCRIPT_PATH   = 'assets/js/admin-media.js';
 	const ADMIN_SCREENS       = array( 'post.php', 'post-new.php' );
+	const ADMIN_SCRIPT_OBJECT = 'wppaAdminMedia';
 
 	// Upgrade timing (D9, P2-06).
 	const UPGRADE_PRIORITY = 20;

@@ -1,8 +1,11 @@
 <?php
 /**
  * Implements SPEC.md §8 Phase 0 item 4 and §6.2: the three 3.0.1 publication
- * meta boxes and save_meta(). P1-04 closes D1 (save), D2 (save), D3 (admin)
- * and D10 here; D13 (inline Thickbox JS) stays open until P2-07.
+ * meta boxes and save_meta(). P1-04 closed D1 (save), D2 (save), D3 (admin)
+ * and D10 here. D13 (P2-07) closes here too: the inline Thickbox
+ * `<script>` blocks are gone; uploads run through assets/js/admin-media.js
+ * and a `wp.media` frame, wired up by ids/classes/hidden `<template>` rows
+ * this class still renders.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -31,7 +34,8 @@ final class Meta_Boxes {
 	}
 
 	/**
-	 * 3.0.1 WP_Publication_Archive::doc_uri_box(). D13: inline Thickbox JS.
+	 * 3.0.1 WP_Publication_Archive::doc_uri_box(). D13: the upload button is
+	 * wired up by assets/js/admin-media.js, not an inline script here.
 	 */
 	public function render_doc( \WP_Post $post ): void {
 		wp_nonce_field( Keys::NONCE_ACTION, Keys::FIELD_NONCE );
@@ -44,36 +48,13 @@ final class Meta_Boxes {
 		echo '<p>' . wp_kses_post( __( "Please provide the absolute url of the file \x28including the <code>http://</code>):", 'wp-publication-archive' ) ) . '</p>';
 		echo '<input type="text" id="' . esc_attr( Keys::FIELD_DOC ) . '" name="' . esc_attr( Keys::FIELD_DOC ) . '" value="' . esc_attr( $uri ) . '" size="25" style="width:85%" />';
 		echo '<input class="button" id="upload_doc_button" type="button" value="' . esc_attr__( 'Upload Publication', 'wp-publication-archive' ) . '" alt="' . esc_attr__( 'Upload Publication', 'wp-publication-archive' ) . '" />';
-		?>
-		<script type="text/javascript">
-			( function ( window, $, undefined ) {
-				var handle_doc_upload = function () {
-					var document = window.document;
-
-					window.orig_send_to_editor = window.send_to_editor;
-					window.send_to_editor = function ( html ) {
-						document.getElementById( '<?php echo esc_js( Keys::FIELD_DOC ); ?>' ).value = $( html ).attr( 'href' );
-
-						window.tb_remove();
-
-						// Restore original handler
-						window.send_to_editor = window.orig_send_to_editor;
-					};
-
-					window.tb_show( '<?php echo esc_js( __( 'Upload Publication', 'wp-publication-archive' ) ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
-					return false;
-				};
-
-				$( '#upload_doc_button' ).on( 'click', handle_doc_upload );
-			} )( this, jQuery );
-		</script>
-		<?php
 	}
 
 	/**
-	 * 3.0.1 WP_Publication_Archive::doc_thumb_box(). D13: inline Thickbox
-	 * JS. The leading space before the meta value in value="" is a 3.0.1
-	 * quirk, kept verbatim.
+	 * 3.0.1 WP_Publication_Archive::doc_thumb_box(). D13: the upload button
+	 * is wired up by assets/js/admin-media.js, not an inline script here.
+	 * The leading space before the meta value in value="" is a 3.0.1 quirk,
+	 * kept verbatim.
 	 */
 	public function render_thumb( \WP_Post $post ): void {
 		$thumb = get_post_meta( $post->ID, Keys::META_IMAGE, true );
@@ -81,35 +62,14 @@ final class Meta_Boxes {
 		echo '<p>' . wp_kses_post( __( 'Please provide the absolute url for a thumbnail image (including the <code>http://</code>):', 'wp-publication-archive' ) ) . '</p>';
 		echo '<input type="text" id="' . esc_attr( Keys::FIELD_IMAGE ) . '" name="' . esc_attr( Keys::FIELD_IMAGE ) . '" value=" ' . esc_attr( $thumb ) . '" size="36" size="25" style="width:85%" />';
 		echo '<input class="button" id="wpa-upload_image_button" type="button" value="' . esc_attr__( 'Upload Thumbnail', 'wp-publication-archive' ) . '" alt="' . esc_attr__( 'Upload Thumbnail', 'wp-publication-archive' ) . '" />';
-		?>
-		<script type="text/javascript">
-			( function( window, $, undefined ) {
-				var handle_thumb_upload = function() {
-					var document = window.document;
-
-					window.orig_send_to_editor = window.send_to_editor;
-					window.send_to_editor = function( html ) {
-						document.getElementById( '<?php echo esc_js( Keys::FIELD_IMAGE ); ?>' ).value = $( html ).attr( 'href' );
-
-						window.tb_remove();
-
-						// Restore original handler
-						window.send_to_editor = window.orig_send_to_editor;
-					};
-
-					window.tb_show( '<?php echo esc_js( __( 'Upload Thumbnail', 'wp-publication-archive' ) ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
-					return false;
-				}
-
-				$( '#wpa-upload_image_button' ).on( 'click', handle_thumb_upload );
-			} )( this, jQuery );
-		</script>
-		<?php
 	}
 
 	/**
-	 * 3.0.1 WP_Publication_Archive::doc_alternates_box(). D13: inline
-	 * Thickbox JS.
+	 * 3.0.1 WP_Publication_Archive::doc_alternates_box(). D13: Add Row,
+	 * Delete and the per-row upload button are wired up by
+	 * assets/js/admin-media.js. Add Row clones the hidden
+	 * #wpa-alternate-row-template row this method also renders, so the
+	 * field names it produces come from this one place, not a JS literal.
 	 */
 	public function render_alternates( \WP_Post $post ): void {
 		$alternates = get_post_meta( $post->ID, Keys::META_ALTERNATES );
@@ -119,107 +79,50 @@ final class Meta_Boxes {
 		echo '<thead><tr style="text-align:left;"><th>' . esc_html__( 'Description', 'wp-publication-archive' ) . '</th><th>' . esc_html__( 'Absolute Url', 'wp-publication-archive' ) . '</th><th></th></tr></thead>';
 		echo '<tbody>';
 		foreach ( $alternates as $alternate ) {
-			echo '<tr>';
-			echo '<td style="width:30%;"><input style="width:100%;" type="text" name="' . esc_attr( Keys::FIELD_ALTERNATES ) . '[description][]" value="' . esc_attr( $alternate['description'] ) . '" /></td>';
-			echo '<td style="width:60%;"><input style="width:100%;" type="text" name="' . esc_attr( Keys::FIELD_ALTERNATES ) . '[url][]" value="' . esc_attr( $alternate['url'] ) . '" /></td>';
-			echo '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . esc_html__( 'upload', 'wp-publication-archive' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . esc_html__( 'delete', 'wp-publication-archive' ) . '</span></td>';
-			echo '</tr>';
+			echo wp_kses( $this->alternate_row( $alternate['description'], $alternate['url'] ), $this->alternate_row_allowed_html() );
 		}
 
-		echo '<tr>';
-		echo '<td style="width:30%;"><input style="width:100%;" type="text" name="' . esc_attr( Keys::FIELD_ALTERNATES ) . '[description][]" value="" /></td>';
-		echo '<td style="width:60%;"><input style="width:100%;" type="text" name="' . esc_attr( Keys::FIELD_ALTERNATES ) . '[url][]" value="" /></td>';
-		echo '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . esc_html__( 'upload', 'wp-publication-archive' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . esc_html__( 'delete', 'wp-publication-archive' ) . '</span></td>';
-		echo '</tr>';
+		echo wp_kses( $this->alternate_row( '', '' ), $this->alternate_row_allowed_html() );
 		echo '</tbody>';
 		echo '</table>';
 
+		echo '<template id="wpa-alternate-row-template">' . wp_kses( $this->alternate_row( '', '' ), $this->alternate_row_allowed_html() ) . '</template>';
+
 		echo '<input class="button" id="wpa-alternates-button" type="button" value="' . esc_attr__( 'Add Row', 'wp-publication-archive' ) . '" alt="' . esc_attr__( 'Add Row', 'wp-publication-archive' ) . '" />';
-		?>
-		<script type="text/javascript">
-			( function ( window, $, undefined ) {
-				var document = window.document,
-					editor_store,
-					table = document.getElementById( "wp" + "a-alternate-table" ),
-					row = document.createElement( 'tr' );
+	}
 
-				{
-					var td1 = document.createElement( 'td' );
-					td1.style.width = '30%';
-					row.appendChild( td1 );
-					var input1 = document.createElement( 'input' );
-					input1.style.width = '100%';
-					input1.setAttribute( 'type', 'text' );
-					input1.setAttribute( 'name', '<?php echo esc_js( Keys::FIELD_ALTERNATES ); ?>[description][]' );
-					td1.appendChild( input1 );
+	/**
+	 * One <tr> of the alternates table, used both for the posted rows and
+	 * the hidden #wpa-alternate-row-template Add Row clones.
+	 */
+	private function alternate_row( string $description, string $url ): string {
+		$row = '<tr>';
+		$row .= '<td style="width:30%;"><input style="width:100%;" type="text" name="' . esc_attr( Keys::FIELD_ALTERNATES ) . '[description][]" value="' . esc_attr( $description ) . '" /></td>';
+		$row .= '<td style="width:60%;"><input style="width:100%;" type="text" name="' . esc_attr( Keys::FIELD_ALTERNATES ) . '[url][]" value="' . esc_attr( $url ) . '" /></td>';
+		$row .= '<td style="text-align:center;width:10%;"><span class="wpa-upload-row" style="cursor:pointer;border-bottom:1px solid #000;">' . esc_html__( 'upload', 'wp-publication-archive' ) . '</span> | <span class="wpa-delete-row" style="cursor:pointer;color:#f00;border-bottom:1px solid #f00;">' . esc_html__( 'delete', 'wp-publication-archive' ) . '</span></td>';
+		$row .= '</tr>';
 
-					var td2 = document.createElement( 'td' );
-					td2.style.width = '60%';
-					row.appendChild( td2 );
-					var input2 = document.createElement( 'input' );
-					input2.style.width = '100%';
-					input2.setAttribute( 'type', 'text' );
-					input2.setAttribute( 'name', '<?php echo esc_js( Keys::FIELD_ALTERNATES ); ?>[url][]' );
-					td2.appendChild( input2 );
+		return $row;
+	}
 
-					var td3 = document.createElement( 'td' );
-					td3.style.width = '10%';
-					td3.style.textAlign = 'center';
-					row.appendChild( td3 );
-					var span1 = document.createElement( 'span' );
-					span1.className = 'wp' + 'a-upload-row';
-					span1.style.borderBottom = '1px solid #000';
-					span1.style.cursor = 'pointer';
-					span1.innerText = '<?php echo esc_js( __( 'upload', 'wp-publication-archive' ) ); ?>';
-					td3.appendChild( span1 );
-					td3.appendChild( document.createTextNode( ' | ' ) );
-					var span2 = document.createElement( 'span' );
-					span2.className = 'wp' + 'a-delete-row';
-					span2.style.color = '#f00';
-					span2.style.borderBottom = '1px solid #f00';
-					span2.style.cursor = 'pointer';
-					span2.innerText = '<?php echo esc_js( __( 'delete', 'wp-publication-archive' ) ); ?>';
-					td3.appendChild( span2 );
-				}
-
-				var addRow = function( e ) {
-					e.preventDefault();
-
-					table.appendChild( row.cloneNode( true ) );
-				};
-
-				var deleteRow = function( e ) {
-					e.preventDefault();
-
-					$( this ).parents( 'tr' ).remove();
-				};
-
-				var uploadRow = function( e ) {
-					e.preventDefault();
-
-					var $this = $( this ),
-						target = $this.parents( 'tr' ).find( 'input[name="<?php echo esc_js( Keys::FIELD_ALTERNATES ); ?>[url][]"]' );
-
-					var send_handler = function( html ) {
-						target.val( $( html ).attr( 'href' ) );
-
-						window.tb_remove();
-
-						window.send_to_editor = editor_store;
-					};
-
-					editor_store = window.send_to_editor;
-					window.send_to_editor = send_handler;
-					window.tb_show( '<?php echo esc_js( __( 'Upload Alternate', 'wp-publication-archive' ) ); ?>', 'media-upload.php?TB_iframe=1&width=640&height=263' );
-					return false;
-				};
-
-				$( document.getElementById( 'wp' + 'a-alternates-button' ) ).on( 'click', addRow );
-				$( table ).on( 'click', '.wpa-delete-row', deleteRow );
-				$( table ).on( 'click', '.wpa-upload-row', uploadRow );
-			} )( this, jQuery );
-		</script>
-		<?php
+	/**
+	 * @return array<string, array<string, bool>>
+	 */
+	private function alternate_row_allowed_html(): array {
+		return array(
+			'tr'    => array(),
+			'td'    => array( 'style' => true ),
+			'input' => array(
+				'style' => true,
+				'type'  => true,
+				'name'  => true,
+				'value' => true,
+			),
+			'span'  => array(
+				'class' => true,
+				'style' => true,
+			),
+		);
 	}
 
 	/**

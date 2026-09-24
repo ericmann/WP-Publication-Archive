@@ -2,7 +2,7 @@
 /**
  * Implements SPEC.md §6.7: the 3.0.1 front-end stylesheet is registered
  * under its original handle on every request and enqueued only when the
- * plugin is enabled.
+ * plugin is enabled. D13 (P2-07): admin media enqueue replaces Thickbox.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -23,6 +23,9 @@ class Test_Assets extends \WP_UnitTestCase {
 		wp_dequeue_script( 'media-upload' );
 		wp_dequeue_script( 'thickbox' );
 		wp_dequeue_style( 'thickbox' );
+		wp_dequeue_script( Keys::ADMIN_SCRIPT_HANDLE );
+		wp_deregister_script( Keys::ADMIN_SCRIPT_HANDLE );
+		set_current_screen( 'front' );
 
 		parent::tear_down();
 	}
@@ -60,15 +63,23 @@ class Test_Assets extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * D13, until P2-07: 3.0.1 enqueued Thickbox unconditionally on every
-	 * admin page.
+	 * D13: the admin media script is limited to the publication edit
+	 * screens (Keys::ADMIN_SCREENS) and to a screen whose post type is this
+	 * plugin's; it never enqueues on any other admin page.
 	 */
-	public function test_admin_enqueues_thickbox_until_d13() {
-		$this->assets()->enqueue_admin();
+	public function test_admin_enqueue_is_limited_to_publication_screens() {
+		set_current_screen( Keys::POST_TYPE );
+		$this->assets()->enqueue_admin( 'post.php' );
+		$this->assertTrue( wp_script_is( Keys::ADMIN_SCRIPT_HANDLE, 'enqueued' ) );
+		wp_dequeue_script( Keys::ADMIN_SCRIPT_HANDLE );
 
-		$this->assertTrue( wp_script_is( 'media-upload', 'enqueued' ) );
-		$this->assertTrue( wp_script_is( 'thickbox', 'enqueued' ) );
-		$this->assertTrue( wp_style_is( 'thickbox', 'enqueued' ) );
+		set_current_screen( 'edit-post' );
+		$this->assets()->enqueue_admin( 'edit.php' );
+		$this->assertFalse( wp_script_is( Keys::ADMIN_SCRIPT_HANDLE, 'enqueued' ) );
+
+		set_current_screen( 'post' );
+		$this->assets()->enqueue_admin( 'post.php' );
+		$this->assertFalse( wp_script_is( Keys::ADMIN_SCRIPT_HANDLE, 'enqueued' ) );
 	}
 
 	public function test_base_css_contains_the_301_rules() {
