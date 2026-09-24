@@ -11,7 +11,10 @@
  * (class.publication-markup.php, deleted) moved to WPPA\Publication_Item,
  * aliased back by WPPA\Legacy\Aliases in P0-11; the shortcode, template
  * location and excerpt_length moved to WPPA\Shortcode and WPPA\Templates
- * in P0-12.
+ * in P0-12; the category helpers (class.wp-publication-archive-utilities.php,
+ * deleted) moved to WPPA\Categories/WPPA\Legacy\Utilities, and the
+ * category-count widget (class.wp-publication-archive-cat-count-widget.php,
+ * deleted) moved to WPPA\Widgets\Category_Count_Widget, in P0-13.
  *
  * `lib/` is transitional and is deleted by P0-15.
  */
@@ -32,10 +35,8 @@ class WP_Publication_Archive_Loader {
 		}
 		self::$loaded = true;
 
-		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-utilities.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.publication-widget.php';
-		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-cat-count-widget.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-category-widget.php';
 	}
 }

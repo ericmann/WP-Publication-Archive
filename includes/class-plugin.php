@@ -42,6 +42,8 @@ final class Plugin {
 
 	private Shortcode $shortcode;
 
+	private Categories $categories;
+
 	private bool $hooks_registered = false;
 
 	/** @var list<array{type: string, hook: string, callback: callable, priority: int}> */
@@ -63,6 +65,7 @@ final class Plugin {
 		$instance->upgrade->maybe_upgrade();
 
 		Legacy\Aliases::register();
+		Legacy\Utilities::create_instance();
 
 		// Transitional: the 3.0.1 runtime is required and wired here until
 		// P0-15 moves its remaining behaviour onto WPPA services.
@@ -94,6 +97,7 @@ final class Plugin {
 		$this->meta_boxes = new Meta_Boxes();
 		$this->templates  = new Templates();
 		$this->shortcode  = new Shortcode( $this->templates );
+		$this->categories = new Categories( $this->flags );
 	}
 
 	public function register_hooks(): void {
@@ -120,6 +124,9 @@ final class Plugin {
 		$this->add_hook( 'filter', Keys::HOOK_TEMPLATE_INCLUDE, array( $this->templates, 'single_template' ), 10, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_TEMPLATE_INCLUDE, array( $this->templates, 'archive_template' ), 10, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_EXCERPT_LENGTH, array( $this->templates, 'excerpt_length' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_WIDGETS_INIT, array( $this, 'register_widgets' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_TERM_LINK, array( $this->categories, 'filter_category_link' ), 10, 3 );
+		$this->add_hook( 'filter', Keys::HOOK_TERMS_CLAUSES, array( $this->categories, 'filter_terms_by_cpt' ), 10, 3 );
 
 		// D11, preserved: only shown when PHP cannot fetch remote files.
 		if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {
@@ -168,6 +175,17 @@ final class Plugin {
 		if ( class_exists( 'WP_CLI' ) ) {
 			\WP_CLI::add_command( Keys::CLI_COMMAND, $this->cli );
 		}
+	}
+
+	/**
+	 * Hooked to widgets_init. Registers the bundled widgets under their
+	 * 3.0.1 class names (Decisions), so the legacy names stay the factory
+	 * keys widget.php / the Legacy Widget block store in options.
+	 */
+	public function register_widgets(): void {
+		register_widget( Keys::LEGACY_CLASS_ARCHIVE_WIDGET );
+		register_widget( Keys::LEGACY_CLASS_CAT_COUNT_WIDGET );
+		register_widget( Keys::LEGACY_CLASS_RELATED_WIDGET );
 	}
 
 	/**
@@ -242,6 +260,9 @@ final class Plugin {
 			case 'shortcode':
 				$this->assign_service( $service, $with, Shortcode::class, $this->shortcode );
 				break;
+			case 'categories':
+				$this->assign_service( $service, $with, Categories::class, $this->categories );
+				break;
 			default:
 				throw new \InvalidArgumentException( 'Unknown service: ' . $service );
 		}
@@ -313,6 +334,10 @@ final class Plugin {
 
 	public function shortcode(): Shortcode {
 		return $this->shortcode;
+	}
+
+	public function categories(): Categories {
+		return $this->categories;
 	}
 
 	public static function activate(): void {

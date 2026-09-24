@@ -19,7 +19,9 @@ final class Aliases {
 	 */
 	public static function register(): void {
 		$aliases = array(
-			Keys::LEGACY_CLASS_ITEM => \WPPA\Publication_Item::class,
+			Keys::LEGACY_CLASS_ITEM             => \WPPA\Publication_Item::class,
+			Keys::LEGACY_CLASS_UTILITIES        => Utilities::class,
+			Keys::LEGACY_CLASS_CAT_COUNT_WIDGET => \WPPA\Widgets\Category_Count_Widget::class,
 		);
 
 		foreach ( $aliases as $alias => $target ) {

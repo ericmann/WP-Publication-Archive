@@ -161,4 +161,57 @@ final class Hooks {
 	public static function widget_summary_length( int $length ): int {
 		return (int) apply_filters( Keys::FILTER_WIDGET_SUMMARY_LENGTH, $length );
 	}
+
+	/**
+	 * @param mixed $label
+	 *
+	 * @return mixed
+	 */
+	public static function list_cats( $label ) {
+		return apply_filters( Keys::CORE_FILTER_LIST_CATS, $label );
+	}
+
+	public static function dropdown_cats( string $output ): string {
+		return (string) apply_filters( Keys::CORE_FILTER_DROPDOWN_CATS, $output );
+	}
+
+	/**
+	 * @param string               $output
+	 * @param array<string, mixed> $args
+	 *
+	 * @return string
+	 */
+	public static function list_categories( $output, array $args ) {
+		return apply_filters( Keys::CORE_FILTER_LIST_CATEGORIES, $output, $args );
+	}
+
+	/**
+	 * Passes exactly the arguments each caller gives (3.0.1 called this with
+	 * different argument counts from different widgets).
+	 *
+	 * @param mixed ...$args
+	 *
+	 * @return mixed
+	 */
+	public static function widget_title( ...$args ) {
+		return apply_filters( Keys::CORE_FILTER_WIDGET_TITLE, ...$args );
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function widget_categories_args( array $args ): array {
+		return (array) apply_filters( Keys::CORE_FILTER_WIDGET_CATEGORIES_ARGS, $args );
+	}
+
+	/**
+	 * @param array<string, mixed> $args
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function widget_categories_dropdown_args( array $args ): array {
+		return (array) apply_filters( Keys::CORE_FILTER_WIDGET_CATEGORIES_DROPDOWN_ARGS, $args );
+	}
 }

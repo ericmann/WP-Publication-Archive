@@ -46,12 +46,12 @@ These are WordPress core filters the plugin calls with `apply_filters()`
 
 | Hook | `Hooks::` method | Arguments | Since |
 |---|---|---|---|
-| `widget_title` | — | `string $title, array $instance, string $id_base` | ≤ 3.0.1 |
-| `list_cats` | — | `string $option_label` | ≤ 3.0.1 |
-| `wp_dropdown_cats` | — | `string $output` | ≤ 3.0.1 |
-| `widget_categories_args` | — | `array $cat_args` | ≤ 3.0.1 |
-| `widget_categories_dropdown_args` | — | `array $cat_args` | ≤ 3.0.1 |
-| `wp_list_categories` | — | `string $output, array $args` | ≤ 3.0.1 |
+| `widget_title` | `widget_title` | `string $title, array $instance, string $id_base` | ≤ 3.0.1 |
+| `list_cats` | `list_cats` | `string $option_label` | ≤ 3.0.1 |
+| `wp_dropdown_cats` | `dropdown_cats` | `string $output` | ≤ 3.0.1 |
+| `widget_categories_args` | `widget_categories_args` | `array $cat_args` | ≤ 3.0.1 |
+| `widget_categories_dropdown_args` | `widget_categories_dropdown_args` | `array $cat_args` | ≤ 3.0.1 |
+| `wp_list_categories` | `list_categories` | `string $output, array $args` | ≤ 3.0.1 |
 | `content_save_pre` | `content_save_pre` | `string $content` | ≤ 3.0.1 |
 
 ## Consumed hooks
@@ -70,6 +70,8 @@ Hooks core or other plugins fire that the plugin listens to.
 | `query_vars` | `array $vars` | ≤ 3.0.1 |
 | `excerpt_length` | `int $length` | ≤ 3.0.1 |
 | `widgets_init` | none | ≤ 3.0.1 |
+| `term_link` | `string $termlink, \WP_Term\|int $term, string $taxonomy` | ≤ 3.0.1 |
+| `terms_clauses` | `array $pieces, array $taxonomies, array $args` | ≤ 3.0.1 |
 | `template_include` | `string $template` | ≤ 3.0.1 |
 | `add_meta_boxes_publication` | `\WP_Post $post` | 3.1.0 |
 

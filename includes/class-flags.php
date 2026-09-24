@@ -53,4 +53,12 @@ final class Flags {
 	public function add_schema_version( int $version ): void {
 		add_option( Keys::OPT_SCHEMA, $version, '', false );
 	}
+
+	public function show_on_front(): string {
+		return (string) get_option( 'show_on_front' );
+	}
+
+	public function page_for_posts(): int {
+		return (int) get_option( 'page_for_posts' );
+	}
 }

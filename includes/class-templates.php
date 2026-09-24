@@ -105,8 +105,8 @@ final class Templates {
 
 	/**
 	 * Runs $render() with excerpt_length() answering the widget summary
-	 * length, replacing 3.0.1's add_filter()/remove_filter() around the
-	 * Related widget's loop (P3).
+	 * length, replacing 3.0.1's dynamic filter registration and removal
+	 * around the Related widget's loop (P3).
 	 */
 	public function with_widget_summary_length( callable $render ): void {
 		$this->widget_scope = true;
