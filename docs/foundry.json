@@ -1,0 +1,483 @@
+{
+  "_comment": "Seeded by hand before planning so the planner itself routes to Opus 5.5 (a project override is the only layer that reaches the planner). Targets Foundry 0.3.2 (serial implement). SPEC §7.1: the planner keeps every key below and every constraints entry, and may only add constraints.",
+  "verify": [
+    "composer lint",
+    "composer analyse",
+    "composer test:map",
+    "composer test:unit"
+  ],
+  "extraVerify": {
+    "includes/": [
+      {
+        "cmd": "composer test",
+        "timeoutMs": 1200000
+      }
+    ],
+    "templates/": [
+      {
+        "cmd": "composer test",
+        "timeoutMs": 1200000
+      }
+    ],
+    "tests/": [
+      {
+        "cmd": "composer test",
+        "timeoutMs": 1200000
+      }
+    ],
+    "bin/": [
+      {
+        "cmd": "composer test",
+        "timeoutMs": 1200000
+      }
+    ],
+    ".wp-env.json": [
+      {
+        "cmd": "composer test",
+        "timeoutMs": 1200000
+      }
+    ],
+    "wp-publication-archive.php": [
+      {
+        "cmd": "composer test",
+        "timeoutMs": 1200000
+      }
+    ],
+    "uninstall.php": [
+      {
+        "cmd": "composer test",
+        "timeoutMs": 1200000
+      }
+    ],
+    "composer.json": [
+      {
+        "cmd": "composer test",
+        "timeoutMs": 1200000
+      }
+    ]
+  },
+  "build": [
+    "composer build"
+  ],
+  "baseBranch": "master",
+  "branchPrefix": "build/",
+  "roles": {
+    "planner": {
+      "model": "claude-opus-5-5",
+      "effort": "high"
+    },
+    "implementer": {
+      "model": "sonnet",
+      "effort": "medium"
+    },
+    "reviewer": {
+      "model": "claude-opus-5-5",
+      "effort": "high"
+    },
+    "summarizer": {
+      "model": "claude-opus-5-5",
+      "effort": "medium"
+    }
+  },
+  "permissionMode": "acceptEdits",
+  "policies": {
+    "signing": "auto",
+    "push": true,
+    "pr": "draft"
+  },
+  "constraints": [
+    {
+      "id": "names-in-keys-only",
+      "description": "SPEC §3 P1: no string literal beginning with a plugin prefix outside class-keys.php. The text domain as the last argument of an i18n call and HTML attribute values are exempt.",
+      "paths": [
+        "includes/",
+        "wp-publication-archive.php",
+        "uninstall.php",
+        "tests/"
+      ],
+      "exclude": [
+        "includes/class-keys.php",
+        "tests/unit/test-keys.php"
+      ],
+      "pattern": "(?<!=)['\"](wppa[_-]|wpa[_-]|wp_pubarch|wp-publication-archive(?!['\"]\\s*\\)))",
+      "shouldMatch": [
+        "$mask = apply_filters( 'wppa_mask_url', false );",
+        "update_post_meta( $id, 'wpa-upload_image', $url );",
+        "get_post_meta( $id, 'wpa_upload_doc', true );",
+        "add_shortcode( 'wp-publication-archive', $cb );",
+        "$v = get_option( \"wp-publication-archive-core\" );",
+        "apply_filters( 'wp_pubarch_open_in_blank', false );"
+      ],
+      "shouldNotMatch": [
+        "update_post_meta( $id, Keys::META_IMAGE, $url );",
+        "__( 'Publications', 'wp-publication-archive' )",
+        "<input type=\"text\" name=\"wpa-alternates[url][]\" />",
+        "WP_CLI::add_command( Keys::CLI_COMMAND, $cli );"
+      ]
+    },
+    {
+      "id": "options-read-in-flags-only",
+      "description": "SPEC §3 P2: option functions only in class-flags.php.",
+      "paths": [
+        "includes/",
+        "wp-publication-archive.php"
+      ],
+      "exclude": [
+        "includes/class-flags.php"
+      ],
+      "pattern": "(?<![A-Za-z0-9_])(get|update|add|delete)_(site_|network_)?option\\s*\\(",
+      "shouldMatch": [
+        "$installed = get_option( Keys::OPT_SCHEMA );",
+        "update_option( Keys::OPT_SCHEMA, 3 );",
+        "add_option( Keys::OPT_SCHEMA, 3, '', 'no' );"
+      ],
+      "shouldNotMatch": [
+        "$v = $this->flags->schema_version();",
+        "acf_get_option( 'x' );"
+      ]
+    },
+    {
+      "id": "hooks-register-in-plugin-only",
+      "description": "SPEC §3 P3: add_action/add_filter/remove_*/add_shortcode only in class-plugin.php.",
+      "paths": [
+        "includes/",
+        "wp-publication-archive.php"
+      ],
+      "exclude": [
+        "includes/class-plugin.php"
+      ],
+      "pattern": "\\b(add_action|add_filter|remove_action|remove_filter|add_shortcode)\\s*\\(",
+      "shouldMatch": [
+        "add_filter( 'excerpt_length', array( $this, 'limit_summary_length' ) );",
+        "remove_filter( 'excerpt_length', array( $this, 'limit_summary_length' ) );",
+        "add_shortcode( Keys::SHORTCODE, $cb );"
+      ],
+      "shouldNotMatch": [
+        "has_filter( Keys::HOOK_POSTS_WHERE, $cb );",
+        "tests_add_filter( 'muplugins_loaded', $cb );"
+      ]
+    },
+    {
+      "id": "hooks-fire-in-hooks-only",
+      "description": "SPEC §3 P4: do_action/apply_filters only in class-hooks.php, one static method per hook (legacy names included).",
+      "paths": [
+        "includes/",
+        "wp-publication-archive.php",
+        "templates/"
+      ],
+      "exclude": [
+        "includes/class-hooks.php"
+      ],
+      "pattern": "\\b(do_action|apply_filters|do_action_ref_array|apply_filters_ref_array)\\s*\\(",
+      "shouldMatch": [
+        "$title = apply_filters( 'widget_title', $instance['title'] );",
+        "do_action( Keys::ACTION_BOOTED, $plugin );"
+      ],
+      "shouldNotMatch": [
+        "$title = Hooks::widget_title( $instance['title'] );",
+        "did_action( Keys::ACTION_BOOTED );"
+      ]
+    },
+    {
+      "id": "no-stub-markers",
+      "description": "SPEC §3 P5: TODO, FIXME and 'return null; // stub' match nothing under includes/ or templates/.",
+      "paths": [
+        "includes/",
+        "templates/"
+      ],
+      "pattern": "\\b(TODO|FIXME)\\b|return null; // stub",
+      "shouldMatch": [
+        "// TODO: implement",
+        "return null; // stub",
+        "/* FIXME later */"
+      ],
+      "shouldNotMatch": [
+        "throw new NotImplementedException( __METHOD__ );",
+        "$todo_list = array();"
+      ]
+    },
+    {
+      "id": "phpcs-ignore-needs-reason",
+      "description": "SPEC §3 P6: every phpcs:ignore/disable carries '-- reason:' on the same line.",
+      "paths": [
+        "includes/",
+        "templates/",
+        "wp-publication-archive.php",
+        "uninstall.php"
+      ],
+      "pattern": "phpcs:(ignore|disable)(?!.*-- reason:)",
+      "shouldMatch": [
+        "// phpcs:ignore WordPress.Security.EscapeOutput",
+        "// phpcs:disable",
+        "// phpcs:ignore Foo.Bar -- because"
+      ],
+      "shouldNotMatch": [
+        "// phpcs:ignore WordPress.Security.EscapeOutput -- reason: D3 (SPEC §1.1), removed by the D3 task",
+        "// phpcs:enable"
+      ]
+    },
+    {
+      "id": "security-ignores-name-a-defect",
+      "description": "SPEC §3 P7: a phpcs:ignore that silences a WordPress.Security sniff must name the open defect it belongs to; the Phase 1 gate removes every one.",
+      "paths": [
+        "includes/",
+        "templates/",
+        "wp-publication-archive.php",
+        "uninstall.php"
+      ],
+      "pattern": "phpcs:(ignore|disable).*WordPress\\.Security(?!.*-- reason: D(1|2|3|10)\\b)",
+      "shouldMatch": [
+        "// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: trusted",
+        "// phpcs:disable WordPress.Security.NonceVerification"
+      ],
+      "shouldNotMatch": [
+        "// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1)",
+        "// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions -- reason: sole reader"
+      ]
+    },
+    {
+      "id": "no-wall-clock",
+      "description": "SPEC §3 P8: time and date-formatting functions only in class-clock.php.",
+      "paths": [
+        "includes/",
+        "templates/"
+      ],
+      "exclude": [
+        "includes/class-clock.php"
+      ],
+      "pattern": "(?<![A-Za-z0-9_>:$])(time|current_time|date|gmdate|microtime|strtotime|wp_date|date_i18n)\\s*\\(",
+      "shouldMatch": [
+        "$now = time();",
+        "echo date( 'F j, Y', $ts );",
+        "wp_date( get_option( 'date_format' ), $ts )",
+        "date_i18n( 'Y' )"
+      ],
+      "shouldNotMatch": [
+        "$this->clock->format( $fmt, $ts )",
+        "get_the_date( '', $post )",
+        "mysql2date( 'U', $x )"
+      ]
+    },
+    {
+      "id": "no-file-scope-functions",
+      "description": "SPEC §3 P9: no function declaration at file scope under includes/ or in the bootstrap.",
+      "paths": [
+        "includes/",
+        "wp-publication-archive.php"
+      ],
+      "pattern": "^function\\s+[A-Za-z_]",
+      "shouldMatch": [
+        "function wp_pubarch_init() {"
+      ],
+      "shouldNotMatch": [
+        "\tpublic function now(): int {",
+        "    public static function boot(): void {"
+      ]
+    },
+    {
+      "id": "no-globals",
+      "description": "SPEC §3 P9: no 'global $' except $wpdb, $wp_version and the two frozen template globals (§6.5).",
+      "paths": [
+        "includes/",
+        "templates/"
+      ],
+      "pattern": "\\bglobal\\s+\\$(?!(wpdb|wp_version|wppa_container|wppa_publications)\\b)",
+      "shouldMatch": [
+        "global $post;",
+        "\tglobal $wp_query;"
+      ],
+      "shouldNotMatch": [
+        "global $wpdb;",
+        "global $wppa_container;",
+        "global $wppa_publications;"
+      ]
+    },
+    {
+      "id": "wp-cli-confined",
+      "description": "SPEC §4: nothing under includes/ references WP_CLI except class-cli.php and class-plugin.php.",
+      "paths": [
+        "includes/"
+      ],
+      "exclude": [
+        "includes/class-cli.php",
+        "includes/class-plugin.php"
+      ],
+      "pattern": "\\bWP_CLI\\b",
+      "shouldMatch": [
+        "\\WP_CLI::error( $msg );",
+        "use WP_CLI\\Utils;"
+      ],
+      "shouldNotMatch": [
+        "// registered for the CLI via Plugin::register_cli()"
+      ]
+    },
+    {
+      "id": "leaf-files-import-nothing",
+      "description": "SPEC §4: Keys, Clock, NotImplementedException and Url_Policy import nothing.",
+      "paths": [
+        "includes/class-keys.php",
+        "includes/class-clock.php",
+        "includes/class-not-implemented-exception.php",
+        "includes/class-url-policy.php"
+      ],
+      "pattern": "^use\\s+",
+      "shouldMatch": [
+        "use WPPA\\Keys;"
+      ],
+      "shouldNotMatch": [
+        "namespace WPPA;",
+        "final class Keys {"
+      ]
+    },
+    {
+      "id": "no-hardcoded-versions",
+      "description": "SPEC §5.4: PHP and WP minimums and the plugin version live in Keys only.",
+      "paths": [
+        "includes/",
+        "wp-publication-archive.php",
+        "tests/"
+      ],
+      "exclude": [
+        "includes/class-keys.php",
+        "tests/unit/test-keys.php"
+      ],
+      "pattern": "['\"](7\\.4|6\\.7|3\\.1\\.0)(\\.0)?['\"]",
+      "shouldMatch": [
+        "version_compare( PHP_VERSION, '7.4', '<' )",
+        "$min_wp = \"6.7\";",
+        "define( 'WP_PUB_ARCH_VERSION', '3.1.0' );"
+      ],
+      "shouldNotMatch": [
+        "version_compare( PHP_VERSION, Keys::MIN_PHP, '<' )",
+        " * Requires PHP: 7.4",
+        " * Version: 3.1.0"
+      ]
+    },
+    {
+      "id": "safe-remote-only",
+      "description": "SPEC §3 P10: only wp_safe_remote_get/head; never sslverify.",
+      "paths": [
+        "includes/",
+        "templates/",
+        "wp-publication-archive.php"
+      ],
+      "pattern": "\\bwp_remote_(get|head|post|request)\\s*\\(|sslverify",
+      "shouldMatch": [
+        "$r = wp_remote_head( $url, array( 'sslverify' => false ) );",
+        "wp_remote_get( $url );",
+        "'sslverify' => true,"
+      ],
+      "shouldNotMatch": [
+        "$r = wp_safe_remote_head( $url );",
+        "wp_safe_remote_get( $url, $args );",
+        "wp_remote_retrieve_header( $r, 'content-length' )"
+      ]
+    },
+    {
+      "id": "raw-file-read-confined",
+      "description": "SPEC §3 P11: readfile/fpassthru/fopen/file_get_contents/file() only in class-streamer.php.",
+      "paths": [
+        "includes/",
+        "templates/",
+        "wp-publication-archive.php",
+        "uninstall.php"
+      ],
+      "exclude": [
+        "includes/class-streamer.php"
+      ],
+      "pattern": "(?<![A-Za-z0-9_>:$])(readfile|fpassthru|fopen|file_get_contents|file)\\s*\\(",
+      "shouldMatch": [
+        "readfile( $uri );",
+        "$h = fopen( $path, 'rb' );",
+        "$lines = file( $path );",
+        "$c = file_get_contents( $url );"
+      ],
+      "shouldNotMatch": [
+        "wp_check_filetype( basename( $url ) )",
+        "sanitize_file_name( $name )",
+        "$this->streamer->file( $path )",
+        "is_file( $path )"
+      ]
+    },
+    {
+      "id": "no-extract",
+      "description": "SPEC §3 P12: extract() nowhere in the plugin.",
+      "paths": [
+        "includes/",
+        "templates/",
+        "wp-publication-archive.php"
+      ],
+      "pattern": "(?<![A-Za-z0-9_>:$])extract\\s*\\(",
+      "shouldMatch": [
+        "extract( $wppa_container );",
+        "extract($args, EXTR_SKIP);"
+      ],
+      "shouldNotMatch": [
+        "$ids = Usage::extract_ids( $post );",
+        "$this->extract( $x );"
+      ]
+    },
+    {
+      "id": "superglobals-confined",
+      "description": "SPEC §3 P13: $_POST/$_GET/$_REQUEST only in class-meta-boxes.php and class-shortcode.php.",
+      "paths": [
+        "includes/",
+        "templates/",
+        "wp-publication-archive.php"
+      ],
+      "exclude": [
+        "includes/class-meta-boxes.php",
+        "includes/class-shortcode.php"
+      ],
+      "pattern": "\\$_(POST|GET|REQUEST)\\b",
+      "shouldMatch": [
+        "$paged = $_GET['wpa-paged'];",
+        "if ( isset( $_POST['wpa_upload_doc'] ) ) {"
+      ],
+      "shouldNotMatch": [
+        "$paged = get_query_var( Keys::QV_PAGED );",
+        "$_SERVER['REQUEST_URI']"
+      ]
+    },
+    {
+      "id": "dam-symbols-confined",
+      "description": "SPEC §3 P14: the VIP DAM's symbols appear only in class-dam-bridge.php (and tests).",
+      "paths": [
+        "includes/",
+        "templates/",
+        "wp-publication-archive.php"
+      ],
+      "exclude": [
+        "includes/class-dam-bridge.php"
+      ],
+      "pattern": "VIP\\\\DAM\\\\|\\bVIP_DAM_",
+      "shouldMatch": [
+        "if ( \\VIP\\DAM\\Embargo_Guard::is_hidden( $id ) ) {",
+        "if ( defined( 'VIP_DAM_VERSION' ) ) {"
+      ],
+      "shouldNotMatch": [
+        "if ( $this->dam->is_withheld( $url ) ) {"
+      ]
+    },
+    {
+      "id": "no-legacy-asset-paths",
+      "description": "SPEC §4.1: nothing references the 3.0.1 directories lib/, lang/, images/ or includes/front-end.css.",
+      "paths": [
+        "includes/",
+        "templates/",
+        "wp-publication-archive.php"
+      ],
+      "pattern": "['\"/](lib|lang|images)/|includes/front-end\\.css",
+      "shouldMatch": [
+        "require_once 'lib/class.mimetype.php';",
+        "WP_PUB_ARCH_URL . 'images/cabinet.png'",
+        "WP_PUB_ARCH_URL . 'includes/front-end.css'"
+      ],
+      "shouldNotMatch": [
+        "Keys::ICON_DIR",
+        "'assets/icons/'",
+        "'languages'"
+      ]
+    }
+  ]
+}
