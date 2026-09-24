@@ -16,7 +16,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P0-11 Restructure (4/8) — Publication_Item and the alias layer
 - [x] P0-12 Restructure (5/8) — Shortcode, Templates and templates/classic
 - [x] P0-13 Restructure (6/8) — Categories, Legacy\Utilities and the category-count widget
-- [ ] P0-14 Restructure (7/8) — Archive and Related widgets
+- [x] P0-14 Restructure (7/8) — Archive and Related widgets
 - [ ] P0-15 Restructure (8/8) — Legacy\Publication_Archive and removal of lib/
 - [ ] P0-16 Gate 0 — foundation verified, constraints locked, branch pushed
 - [ ] P1-01 Contracts (1/2) — Keys, Hooks, Plugin wiring and signatures for Url_Policy, Dam_Bridge, Delivery and Streamer
@@ -118,5 +118,16 @@ Two real behavioural gotchas found and preserved, not fixed: (1) 3.0.1's own arg
 Also fixed a pre-existing false positive in class-templates.php (P0-12): a docblock spelling "add_filter()/remove_filter()" tripped hooks-register-in-plugin-only.
 
 Test-only gotcha: set_permalink_structure() doesn't restore the built-in 'category' taxonomy's permastruct once WP_Rewrite is reset; re-running create_initial_taxonomies() "fixes" links but silently drops 'publication' from category's registered object types, breaking hide_empty counting in later tests. Fixed by calling $wp_rewrite->add_permastruct('category', ...) directly and removing it in tear_down().
+
+foundry_verify, composer test (with and without DAM) all green; P0-06/P0-07 characterisation unchanged.
+
+### P0-14 — 69ddffe
+Moved WP_Publication_Archive_Widget/WP_Publication_Archive_Category_Widget to WPPA\Widgets\Archive_Widget/Related_Widget, aliased back by their 3.0.1 names; query_publications() moved to Post_Type::query() (3.0.1 defaults: posts_per_page -1, order ASC, orderby menu_order, forced post_type).
+
+Preserved two real 3.0.1 quirks verbatim rather than fixing them: (1) Archive_Widget's `global $wppa_publications; unset($wppa_publications);` only breaks the local reference, not $GLOBALS, so the global stays set after render — asserted, not "fixed". (2) form()/update() store 'orderby' but widget() reads 'order_by' (always unset) — same key-mismatch defect as 3.0.1.
+
+Guarded Related_Widget's get_queried_object()->ID access with isset() per the task's explicit design constraint (PHP 8 warning on non-post queried objects, e.g. category archives) — covered by test_widget_guards_against_a_non_post_queried_object.
+
+Test gotcha: WP_UnitTest_Factory_For_Post sets a non-empty default post_excerpt, which short-circuits get_the_excerpt()'s excerpt_length filter entirely; test_summary_length_scope_applies_only_inside_the_widget needed post_excerpt => '' to force auto-generated (and thus filterable) excerpts.
 
 foundry_verify, composer test (with and without DAM) all green; P0-06/P0-07 characterisation unchanged.
