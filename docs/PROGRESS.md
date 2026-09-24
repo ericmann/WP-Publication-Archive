@@ -4,7 +4,7 @@ Started: 2026-09-24T15:54:27.940Z
 
 ## Tasks
 - [x] P0-01 Toolchain, minimal Keys, and the 3.0.1 runtime behind a transitional loader
-- [ ] P0-02 Keys inventory, Clock, and docs/HOOKS.md
+- [x] P0-02 Keys inventory, Clock, and docs/HOOKS.md
 - [ ] P0-03 Flags, Hooks, Plugin and Assets; front-end stylesheet moves to assets/css/base.css
 - [ ] P0-04 Cli doctor, REST lineage route, humans.txt, docs, the v3 fixture and smoke tests
 - [ ] P0-05 The DAM in wp-env
@@ -51,3 +51,8 @@ Interpretation: dropped the template's multisite branch/SITES entirely from bin/
 Composer resolved wp-phpunit ^6.7 + phpunit 9.6 + polyfills ^3.0 on PHP platform 7.4.0 without needing the Q1 fallback.
 Verified: composer lint/analyse/test:map/test:unit all green; wp-env cli shows plugin active and post_type_exists('publication') true; composer test (WPPA_DAM=0) 11/11 green in tests-cli; foundry_verify all-green including every constraint.
 Note: local docker was already using ports 8888/8889 from an unrelated project; used WP_ENV_PORT=18888/WP_ENV_TESTS_PORT=18889 for local wp-env runs only (not committed anywhere, .wp-env.json unchanged).
+
+### P0-02 — 7000cb1
+Added the full 3.0.1 name/default inventory to Keys (model, options, meta keys, form fields, meta box ids, query vars/rewrite tags, endpoints, assets/paths, REST, template files, legacy class names, widget id_bases, defaults, exposed filters/action, core filters applied, consumed hooks). Added Clock (interface + SystemClock + FixedClock) in includes/class-clock.php, no `use` lines, PHP 7.4 syntax (no property/return types on interface methods). Wrote docs/HOOKS.md with exposed filters/action, core-applied filters, consumed hooks (+ DAM placeholder for P0-05), and a Removed-in-3.1.0 list (D4, D11).
+Interpretation: Since column uses "≤ 3.0.1" throughout (3.0.1 docblocks only had class/method-level @since, not per-hook); "3.1.0 (template)" for the two template-added hooks. Left DEFAULT_PROXY_TIMEOUT/DEFAULT_PROXY_MAX_BYTES (§5.3) out of Keys since P0-02's constant list does not name them — the proxy-delivery task should add them.
+Verified: foundry_verify all-green (constraints + lint/analyse/test:map/test:unit); composer test (WPPA_DAM=0) 26/26 in wp-env.
