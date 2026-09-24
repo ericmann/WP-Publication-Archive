@@ -20,6 +20,7 @@ class Test_Streamer extends \WP_UnitTestCase {
 		$seen_headers = array();
 
 		$streamer = new Streamer(
+			get_temp_dir(),
 			static function () {
 				throw new \RuntimeException( 'exit called' );
 			},
@@ -50,6 +51,7 @@ class Test_Streamer extends \WP_UnitTestCase {
 		$called = false;
 
 		$streamer = new Streamer(
+			get_temp_dir(),
 			static function () use ( &$called ) {
 				$called = true;
 

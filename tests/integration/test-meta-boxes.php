@@ -9,7 +9,7 @@
 namespace WPPA\Tests;
 
 use WPPA\Keys;
-use WPPA\Meta_Boxes;
+use WPPA\Plugin;
 
 class Test_Meta_Boxes extends \WP_UnitTestCase {
 
@@ -17,7 +17,7 @@ class Test_Meta_Boxes extends \WP_UnitTestCase {
 		global $wp_meta_boxes;
 		$wp_meta_boxes = array();
 
-		( new Meta_Boxes() )->add();
+		Plugin::instance()->meta_boxes()->add();
 
 		$ids = array();
 		foreach ( $wp_meta_boxes[ Keys::POST_TYPE ]['normal']['high'] as $box ) {
@@ -33,7 +33,7 @@ class Test_Meta_Boxes extends \WP_UnitTestCase {
 		$id = self::factory()->post->create( array( 'post_type' => Keys::POST_TYPE ) );
 
 		ob_start();
-		( new Meta_Boxes() )->render_doc( get_post( $id ) );
+		Plugin::instance()->meta_boxes()->render_doc( get_post( $id ) );
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'id="' . Keys::FIELD_DOC . '"', $output );
@@ -45,7 +45,7 @@ class Test_Meta_Boxes extends \WP_UnitTestCase {
 
 		$_POST[ Keys::FIELD_DOC ] = 'https://example.com/a.pdf';
 
-		( new Meta_Boxes() )->save( $id );
+		Plugin::instance()->meta_boxes()->save( $id );
 
 		$this->assertSame( '', get_post_meta( $id, Keys::META_DOC, true ) );
 
@@ -59,7 +59,7 @@ class Test_Meta_Boxes extends \WP_UnitTestCase {
 		$_POST[ Keys::FIELD_DOC ]   = 'https://example.com/a.pdf';
 		$_POST[ Keys::FIELD_IMAGE ] = 'https://example.com/a.jpg';
 
-		( new Meta_Boxes() )->save( $id );
+		Plugin::instance()->meta_boxes()->save( $id );
 
 		$this->assertSame( 'https://example.com/a.pdf', get_post_meta( $id, Keys::META_DOC, true ) );
 		$this->assertSame( 'https://example.com/a.jpg', get_post_meta( $id, Keys::META_IMAGE, true ) );
@@ -73,7 +73,7 @@ class Test_Meta_Boxes extends \WP_UnitTestCase {
 		$_POST[ Keys::FIELD_NONCE ] = wp_create_nonce( Keys::NONCE_ACTION );
 		$_POST[ Keys::FIELD_DOC ]   = 'https://example.com/a.pdf';
 
-		( new Meta_Boxes() )->save( $id );
+		Plugin::instance()->meta_boxes()->save( $id );
 
 		$this->assertSame( '', get_post_meta( $id, Keys::META_DOC, true ) );
 
@@ -97,7 +97,7 @@ class Test_Meta_Boxes extends \WP_UnitTestCase {
 			define( 'DOING_AUTOSAVE', true );
 		}
 
-		( new Meta_Boxes() )->save( $id );
+		Plugin::instance()->meta_boxes()->save( $id );
 
 		$this->assertSame( '', get_post_meta( $id, Keys::META_DOC, true ) );
 

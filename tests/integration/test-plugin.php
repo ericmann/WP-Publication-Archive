@@ -103,4 +103,40 @@ class Test_Plugin extends \WP_UnitTestCase {
 		$this->assertSame( 10, has_filter( Keys::HOOK_QUERY_VARS, array( $plugin->rewrites(), 'query_vars' ) ) );
 		$this->assertSame( 10, has_filter( Keys::HOOK_POST_TYPE_LINK, array( $plugin->rewrites(), 'filter_post_type_link' ) ) );
 	}
+
+	public function test_phase_1_services_are_constructed_and_replaceable() {
+		$plugin = Plugin::instance();
+
+		$this->assertInstanceOf( \WPPA\Url_Policy::class, $plugin->url_policy() );
+		$this->assertInstanceOf( \WPPA\Dam_Bridge::class, $plugin->dam_bridge() );
+
+		$original = $plugin->url_policy();
+		$replacement = new \WPPA\Url_Policy(
+			'example.org',
+			static function () {
+				return true;
+			}
+		);
+
+		$plugin->replace( 'url_policy', $replacement );
+		$this->assertSame( $replacement, $plugin->url_policy() );
+		$plugin->replace( 'url_policy', $original );
+
+		$original_dam = $plugin->dam_bridge();
+		$replacement_dam = new \WPPA\Dam_Bridge( $plugin->url_policy() );
+
+		$plugin->replace( 'dam_bridge', $replacement_dam );
+		$this->assertSame( $replacement_dam, $plugin->dam_bridge() );
+		$plugin->replace( 'dam_bridge', $original_dam );
+	}
+
+	public function test_allowed_redirect_hosts_filter_registered() {
+		$plugin = Plugin::instance();
+
+		$this->assertSame( 10, has_filter( Keys::HOOK_ALLOWED_REDIRECT_HOSTS, array( $plugin->delivery(), 'allowed_redirect_hosts' ) ) );
+	}
+
+	public function test_dam_filter_not_yet_registered() {
+		$this->assertFalse( has_filter( Keys::HOOK_DAM_INDEXED_IDS ) );
+	}
 }

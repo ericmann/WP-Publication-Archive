@@ -178,4 +178,14 @@ final class Keys {
 	const HOOK_DAM_INDEXED_IDS = 'vip_dam_indexed_attachment_ids';
 	const DAM_PLUGIN_SLUG      = 'vip-digital-asset-manager';
 	const DAM_PLUGIN_FILE      = 'vip-digital-asset-manager/index.php';
+
+	// URL policy and delivery (§5.3, §6.2).
+	const DEFAULT_MASK_URL        = false;
+	const DEFAULT_PROXY_TIMEOUT   = 30; // ⚠️ ASSUMPTION (§5.3).
+	const DEFAULT_PROXY_MAX_BYTES = 52428800; // ⚠️ ASSUMPTION (§5.3).
+	const FILTER_PROXY_TIMEOUT    = 'wppa_proxy_timeout';
+	const FILTER_PROXY_MAX_BYTES  = 'wppa_proxy_max_bytes';
+	const ERR_INVALID_URL              = 'wppa_invalid_url';
+	const HOOK_ALLOWED_REDIRECT_HOSTS  = 'allowed_redirect_hosts';
+	const CONTENT_TYPE_FALLBACK        = 'application/octet-stream';
 }

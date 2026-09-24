@@ -12,17 +12,31 @@ namespace WPPA;
 
 final class Streamer {
 
+	private string $temp_dir;
+
 	/** @var callable */
 	private $exit;
 
 	/** @var callable */
 	private $header;
 
-	public function __construct( ?callable $exit = null, ?callable $header = null ) {
-		$this->exit   = $exit ?? static function () {
+	private int $ob_floor;
+
+	public function __construct( string $temp_dir, ?callable $exit = null, ?callable $header = null, int $ob_floor = 0 ) {
+		$this->temp_dir = $temp_dir;
+		$this->exit     = $exit ?? static function () {
 			exit;
 		};
-		$this->header = $header ?? 'header';
+		$this->header   = $header ?? 'header';
+		$this->ob_floor = $ob_floor;
+	}
+
+	public function temp_dir(): string {
+		return $this->temp_dir;
+	}
+
+	public function ob_floor(): int {
+		return $this->ob_floor;
 	}
 
 	/**
@@ -38,5 +52,13 @@ final class Streamer {
 		readfile( $uri ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.readfile_readfile -- reason: D1/D6, 3.0.1 behaviour preserved until Phase 1 (P11: the one readfile() in the plugin).
 
 		( $this->exit )();
+	}
+
+	/**
+	 * SPEC §6.2 Streamer::send(): sends the temp file staged by proxy mode
+	 * (P1-07).
+	 */
+	public function send( string $path, string $content_type, ?string $filename ): void {
+		throw new NotImplementedException( __METHOD__ );
 	}
 }

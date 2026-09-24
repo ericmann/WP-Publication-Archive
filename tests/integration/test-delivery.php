@@ -10,12 +10,14 @@
 
 namespace WPPA\Tests;
 
+use WPPA\Dam_Bridge;
 use WPPA\Delivery;
 use WPPA\Icons;
 use WPPA\Keys;
 use WPPA\Plugin;
 use WPPA\Streamer;
 use WPPA\Tests\Fixtures\V3_Site;
+use WPPA\Url_Policy;
 
 class Test_Delivery extends \WP_UnitTestCase {
 
@@ -24,11 +26,16 @@ class Test_Delivery extends \WP_UnitTestCase {
 	/** @var list<string> */
 	private $headers = array();
 
+	/** @var \WPPA\Delivery */
+	private $original_delivery;
+
 	public function set_up() {
 		parent::set_up();
 
 		$this->exited  = false;
 		$this->headers = array();
+
+		$this->original_delivery = Plugin::instance()->delivery();
 
 		add_filter( Keys::FILTER_MASK_URL, '__return_false' );
 
@@ -42,13 +49,22 @@ class Test_Delivery extends \WP_UnitTestCase {
 			$this->headers[] = $line;
 		};
 
-		$delivery = new Delivery( new Streamer( $exit, $header ), new Icons(), $exit, $header );
+		$policy = new Url_Policy(
+			'example.org',
+			static function () {
+				return true;
+			}
+		);
+
+		$delivery = new Delivery( $policy, new Streamer( get_temp_dir(), $exit, $header ), new Dam_Bridge( $policy ), new Icons(), $exit, $header );
 
 		Plugin::instance()->replace( 'delivery', $delivery );
 	}
 
 	public function tear_down() {
 		remove_filter( Keys::FILTER_MASK_URL, '__return_false' );
+
+		Plugin::instance()->replace( 'delivery', $this->original_delivery );
 
 		parent::tear_down();
 	}
@@ -145,5 +161,11 @@ class Test_Delivery extends \WP_UnitTestCase {
 
 		$this->assertSame( 'Location: ' . $normalised, $this->headers[1] );
 		$this->assertStringStartsWith( 'https://', $normalised );
+	}
+
+	public function test_allowed_redirect_hosts_unchanged_when_no_redirect_in_progress() {
+		$hosts = array( 'example.com' );
+
+		$this->assertSame( $hosts, Plugin::instance()->delivery()->allowed_redirect_hosts( $hosts ) );
 	}
 }

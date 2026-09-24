@@ -11,7 +11,11 @@ namespace WPPA;
 
 final class Delivery {
 
+	private Url_Policy $policy;
+
 	private Streamer $streamer;
+
+	private Dam_Bridge $dam;
 
 	private Icons $icons;
 
@@ -21,8 +25,16 @@ final class Delivery {
 	/** @var callable */
 	private $header;
 
-	public function __construct( Streamer $streamer, Icons $icons, ?callable $exit = null, ?callable $header = null ) {
+	/**
+	 * Set only while a redirect to $redirect_host is in progress (P1-07,
+	 * P3); read by allowed_redirect_hosts(), which is on a live hook.
+	 */
+	private ?string $redirect_host = null;
+
+	public function __construct( Url_Policy $policy, Streamer $streamer, Dam_Bridge $dam, Icons $icons, ?callable $exit = null, ?callable $header = null ) {
+		$this->policy   = $policy;
 		$this->streamer = $streamer;
+		$this->dam      = $dam;
 		$this->icons    = $icons;
 		$this->exit     = $exit ?? static function () {
 			exit;
@@ -30,12 +42,56 @@ final class Delivery {
 		$this->header   = $header ?? 'header';
 	}
 
+	public function policy(): Url_Policy {
+		return $this->policy;
+	}
+
 	public function streamer(): Streamer {
 		return $this->streamer;
 	}
 
+	public function dam(): Dam_Bridge {
+		return $this->dam;
+	}
+
 	public function icons(): Icons {
 		return $this->icons;
+	}
+
+	/**
+	 * Hooked to allowed_redirect_hosts. Adds the host wp_safe_redirect() is
+	 * about to send the client to, but only while such a redirect is in
+	 * progress (P1-07 sets/clears $redirect_host in try/finally around
+	 * wp_safe_redirect()); otherwise returns $hosts unchanged.
+	 *
+	 * @param array<int, string> $hosts
+	 *
+	 * @return array<int, string>
+	 */
+	public function allowed_redirect_hosts( array $hosts ): array {
+		if ( null === $this->redirect_host ) {
+			return $hosts;
+		}
+
+		$hosts[] = $this->redirect_host;
+
+		return $hosts;
+	}
+
+	/**
+	 * Runs $render() with $host added to allowed_redirect_hosts() for the
+	 * duration of the call. P1-07 wraps its wp_safe_redirect() with this
+	 * (P3), so wp_safe_redirect() accepts a host it has not been told about
+	 * in advance.
+	 */
+	public function with_redirect_host( string $host, callable $render ): void {
+		$this->redirect_host = $host;
+
+		try {
+			$render();
+		} finally {
+			$this->redirect_host = null;
+		}
 	}
 
 	/**

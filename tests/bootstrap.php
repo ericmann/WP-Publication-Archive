@@ -14,6 +14,9 @@ if ( ! $_tests_dir && getenv( 'WP_PHPUNIT__TESTS_CONFIG' ) ) {
 }
 
 if ( ! $_tests_dir ) {
+	// Each shim guards itself with class_exists( ..., false ); see the file.
+	require_once __DIR__ . '/class-wp-error-shim.php';
+
 	return;
 }
 

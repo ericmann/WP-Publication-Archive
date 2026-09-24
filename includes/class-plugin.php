@@ -32,6 +32,10 @@ final class Plugin {
 
 	private Icons $icons;
 
+	private Url_Policy $url_policy;
+
+	private Dam_Bridge $dam_bridge;
+
 	private Streamer $streamer;
 
 	private Delivery $delivery;
@@ -87,11 +91,18 @@ final class Plugin {
 		$this->post_type = new Post_Type();
 		$this->rewrites  = new Rewrites( $this->flags );
 		$this->upgrade   = new Upgrade( $this->flags );
-		$this->icons     = new Icons();
-		$this->streamer  = new Streamer();
-		$this->delivery   = new Delivery( $this->streamer, $this->icons );
-		$this->meta_boxes = new Meta_Boxes();
-		$this->templates  = new Templates();
+		$this->icons      = new Icons();
+		$this->url_policy = new Url_Policy(
+			(string) wp_parse_url( home_url(), PHP_URL_HOST ),
+			static function ( string $url ): bool {
+				return false !== wp_http_validate_url( $url );
+			}
+		);
+		$this->dam_bridge  = new Dam_Bridge( $this->url_policy );
+		$this->streamer    = new Streamer( get_temp_dir() );
+		$this->delivery    = new Delivery( $this->url_policy, $this->streamer, $this->dam_bridge, $this->icons );
+		$this->meta_boxes  = new Meta_Boxes( $this->url_policy );
+		$this->templates   = new Templates();
 		$this->shortcode  = new Shortcode( $this->templates );
 		$this->categories = new Categories( $this->flags );
 	}
@@ -123,6 +134,7 @@ final class Plugin {
 		$this->add_hook( 'action', Keys::HOOK_WIDGETS_INIT, array( $this, 'register_widgets' ), 10, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_TERM_LINK, array( $this->categories, 'filter_category_link' ), 10, 3 );
 		$this->add_hook( 'filter', Keys::HOOK_TERMS_CLAUSES, array( $this->categories, 'filter_terms_by_cpt' ), 10, 3 );
+		$this->add_hook( 'filter', Keys::HOOK_ALLOWED_REDIRECT_HOSTS, array( $this->delivery, 'allowed_redirect_hosts' ), 10, 1 );
 
 		// D11, preserved: only shown when PHP cannot fetch remote files.
 		if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {
@@ -241,6 +253,12 @@ final class Plugin {
 			case 'icons':
 				$this->assign_service( $service, $with, Icons::class, $this->icons );
 				break;
+			case 'url_policy':
+				$this->assign_service( $service, $with, Url_Policy::class, $this->url_policy );
+				break;
+			case 'dam_bridge':
+				$this->assign_service( $service, $with, Dam_Bridge::class, $this->dam_bridge );
+				break;
 			case 'streamer':
 				$this->assign_service( $service, $with, Streamer::class, $this->streamer );
 				break;
@@ -310,6 +328,14 @@ final class Plugin {
 
 	public function icons(): Icons {
 		return $this->icons;
+	}
+
+	public function url_policy(): Url_Policy {
+		return $this->url_policy;
+	}
+
+	public function dam_bridge(): Dam_Bridge {
+		return $this->dam_bridge;
 	}
 
 	public function streamer(): Streamer {

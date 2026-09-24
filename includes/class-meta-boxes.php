@@ -11,6 +11,16 @@ namespace WPPA;
 
 final class Meta_Boxes {
 
+	private Url_Policy $policy;
+
+	public function __construct( Url_Policy $policy ) {
+		$this->policy = $policy;
+	}
+
+	public function policy(): Url_Policy {
+		return $this->policy;
+	}
+
 	/**
 	 * Hooked to add_meta_boxes_publication.
 	 */

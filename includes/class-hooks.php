@@ -214,4 +214,12 @@ final class Hooks {
 	public static function widget_categories_dropdown_args( array $args ): array {
 		return (array) apply_filters( Keys::CORE_FILTER_WIDGET_CATEGORIES_DROPDOWN_ARGS, $args );
 	}
+
+	public static function proxy_timeout( int $timeout ): int {
+		return (int) apply_filters( Keys::FILTER_PROXY_TIMEOUT, $timeout );
+	}
+
+	public static function proxy_max_bytes( int $max_bytes ): int {
+		return (int) apply_filters( Keys::FILTER_PROXY_MAX_BYTES, $max_bytes );
+	}
 }

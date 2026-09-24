@@ -243,4 +243,21 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 		$this->assertSame( 'vip-digital-asset-manager', Keys::DAM_PLUGIN_SLUG );
 		$this->assertSame( 'vip-digital-asset-manager/index.php', Keys::DAM_PLUGIN_FILE );
 	}
+
+	public function test_proxy_tunable_defaults() {
+		$this->assertSame( 30, Keys::DEFAULT_PROXY_TIMEOUT );
+		$this->assertSame( 52428800, Keys::DEFAULT_PROXY_MAX_BYTES );
+		$this->assertSame( 'wppa_proxy_timeout', Keys::FILTER_PROXY_TIMEOUT );
+		$this->assertSame( 'wppa_proxy_max_bytes', Keys::FILTER_PROXY_MAX_BYTES );
+	}
+
+	public function test_mask_default_is_false() {
+		$this->assertFalse( Keys::DEFAULT_MASK_URL );
+	}
+
+	public function test_error_code_and_redirect_hook() {
+		$this->assertSame( 'wppa_invalid_url', Keys::ERR_INVALID_URL );
+		$this->assertSame( 'allowed_redirect_hosts', Keys::HOOK_ALLOWED_REDIRECT_HOSTS );
+		$this->assertSame( 'application/octet-stream', Keys::CONTENT_TYPE_FALLBACK );
+	}
 }

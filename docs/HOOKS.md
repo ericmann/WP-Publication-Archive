@@ -12,7 +12,7 @@ that adds the corresponding static method fills it in. `Since` is the
 |---|---|---|---|
 | `wppa_open_url` | `open_url` | `string $url` | ≤ 3.0.1 |
 | `wppa_download_url` | `download_url` | `string $url` | ≤ 3.0.1 |
-| `wppa_mask_url` | `mask_url` | `bool $mask` | ≤ 3.0.1 |
+| `wppa_mask_url` | `mask_url` | `bool $mask` (default becomes `false` in P1-07) | ≤ 3.0.1 |
 | `wppa_publication_icon` | `publication_icon` | `string $image_url, string $doctype` | ≤ 3.0.1 |
 | `wppa_list_limit` | `list_limit` | `int $limit` | ≤ 3.0.1 |
 | `wpa-pubs_per_page` | `pubs_per_page` | `int $limit` (deprecated, still applied first) | ≤ 3.0.1 |
@@ -32,6 +32,8 @@ that adds the corresponding static method fills it in. `Since` is the
 | `wpa-widget-summary-length` | `widget_summary_length` | `int $length` | ≤ 3.0.1 |
 | `wp_pubarch_open_in_blank` | `open_in_blank` | `bool $open_in_blank` | ≤ 3.0.1 |
 | `wp-publication-archive-enabled` | `filter_enabled` | `bool $enabled` (added in 3.1.0, template) | 3.1.0 |
+| `wppa_proxy_timeout` | `proxy_timeout` | `int $timeout` (added in 3.1.0, §5.3 ⚠️ ASSUMPTION default 30) | 3.1.0 |
+| `wppa_proxy_max_bytes` | `proxy_max_bytes` | `int $max_bytes` (added in 3.1.0, §5.3 ⚠️ ASSUMPTION default 52428800) | 3.1.0 |
 
 ## Exposed action
 
@@ -72,6 +74,7 @@ Hooks core or other plugins fire that the plugin listens to.
 | `widgets_init` | none | ≤ 3.0.1 |
 | `term_link` | `string $termlink, \WP_Term\|int $term, string $taxonomy` | ≤ 3.0.1 |
 | `terms_clauses` | `array $pieces, array $taxonomies, array $args` | ≤ 3.0.1 |
+| `allowed_redirect_hosts` | `array $hosts` | 3.1.0 |
 | `template_include` | `string $template` | ≤ 3.0.1 |
 | `add_meta_boxes_publication` | `\WP_Post $post` | 3.1.0 |
 
