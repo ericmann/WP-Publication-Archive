@@ -19,7 +19,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P0-14 Restructure (7/8) — Archive and Related widgets
 - [x] P0-15 Restructure (8/8) — Legacy\Publication_Archive and removal of lib/
 - [x] P0-16 Gate 0 — foundation verified, constraints locked, branch pushed
-- [ ] P1-01 Contracts (1/2) — Keys, Hooks, Plugin wiring and signatures for Url_Policy, Dam_Bridge, Delivery and Streamer
+- [x] P1-01 Contracts (1/2) — Keys, Hooks, Plugin wiring and signatures for Url_Policy, Dam_Bridge, Delivery and Streamer
 - [ ] P1-02 Contracts (2/2) — DAM usage filter (D19) and the dam doctor row
 - [ ] P1-03 Url_Policy::validate() and the §6.2 table test
 - [ ] P1-04 Meta box save and render through Url_Policy (D1 save, D2 save, D3 admin, D10)
@@ -151,3 +151,12 @@ Verified: composer verify (DAM loaded) green; WPPA_DAM=0 composer test green; np
 Push/CI: git push fails with "ERROR: This repository was archived so it is read-only" — the same failure foundry_run_start reported as basePush at flight start. gh is installed and authenticated, but there is no pushed commit for a CI run to attach to, so step 4 cannot be completed. Logged as pipeline feedback (not task-blocking: an operator-level GitHub repo state issue, not a code defect). CI: NOT VERIFIED (repository is archived/read-only, push rejected).
 
 Manual check: NOT VERIFIED (human) — SPEC §8 Phase 0 item 5's clean-clone/wp-env visual check needs a human.
+
+### P1-01 — ae63ad5
+Added Url_Policy (pure leaf, normalise()/is_same_site() implemented, validate() a stub) and Dam_Bridge (all methods stubs) per §6.2/§6.9. Updated Streamer (temp_dir/ob_floor + send() stub), Delivery (Url_Policy/Dam_Bridge wired in, allowed_redirect_hosts() live on the hook) and Meta_Boxes (Url_Policy stored, unused until P1-04) constructors. Plugin builds and wires all of it; added url_policy()/dam_bridge() accessors and replace() cases; registered allowed_redirect_hosts (10,1); did not register the DAM filter. Keys/Hooks/docs/HOOKS.md got the two proxy tunables, DEFAULT_MASK_URL, ERR_INVALID_URL, HOOK_ALLOWED_REDIRECT_HOSTS, CONTENT_TYPE_FALLBACK. tests/class-wp-error-shim.php + tests/bootstrap.php wire the WP_Error shim onto the unit-test path only.
+
+PHPStan forced two accessor additions beyond the task's named method list: Url_Policy::is_safe_external() (its only reader, validate(), is a stub) and Delivery::with_redirect_host() (P3 scaffold for the $redirect_host write side P1-07 will call around wp_safe_redirect()) — both real readers/writers, not suppressions.
+
+Found and fixed a real pre-existing test-isolation bug while wiring test_allowed_redirect_hosts_filter_registered: test-delivery.php's set_up() swapped Plugin's 'delivery' service but never restored it in tear_down(), so later tests comparing object identity against Plugin::instance()->delivery() saw the wrong instance.
+
+foundry_verify, composer test (with and without DAM), composer test:unit all green; P0-06/P0-07 characterisation unchanged.
