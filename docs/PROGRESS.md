@@ -35,7 +35,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-05 Rewrite rules — slug collisions (D5)
 - [x] P2-06 Upgrade on init, once, with no per-request option writes (D9)
 - [x] P2-07 admin-media.js replaces Thickbox and inline scripts (D13)
-- [ ] P2-08 Site-timezone dates and dead-code delegates (D7, D8 delegates)
+- [x] P2-08 Site-timezone dates and dead-code delegates (D7, D8 delegates)
 - [ ] P2-09 Widgets in the Legacy Widget block, id_base preservation, shortcode check (D14)
 - [ ] P2-10 Gate 2 — compatibility verified, constraints locked, branch pushed
 - [ ] P3-01 uninstall.php, .distignore and composer build
@@ -275,3 +275,12 @@ New Keys::ADMIN_SCRIPT_OBJECT = 'wppaAdminMedia' alongside P2-01's ADMIN_SCRIPT_
 Tests: new tests/integration/test-admin-media.php (6 methods per the task's acceptance list); tests/integration/test-assets.php's test_admin_enqueues_thickbox_until_d13 replaced with test_admin_enqueue_is_limited_to_publication_screens (checks the publication screen enqueues, a non-publication-post-type post.php screen and a differently-named admin screen both don't).
 
 foundry_verify green (constraints incl. no-security-ignores/no-thickbox-adjacent checks, lint, analyse, test:map, test:unit; composer test's 300s timeout too short for the DAM suite on this machine, as in prior tasks). WPPA_DAM=0 composer test: 282/282 green (1 expected skip) on a clean run; one run hit the recurring create_upload_object()/WP_Error environment flake already logged in P2-05/P2-06 (unrelated fixture, not touched here) — logged again via foundry_feedback_log since it's now recurred 3 tasks running. grep -rn "TB_iframe|send_to_editor|thickbox" includes assets/js prints nothing.
+
+### P2-08 — 2bced4e
+Publication_Item::get_the_authors() now formats the date via Plugin::instance()->clock()->format('F j, Y', (int) get_post_time('U', true, $this->post)) (wrapped in esc_html() at print time) instead of get_the_date() — same wp_date() backend, but reached the D7-mandated way. Legacy\Publication_Archive::the_content()/the_title() now just return their first argument (unset the now-unused $id param check in the_title docblock is gone too); publication_link() already did this since P2-01.
+
+Tests: test_d7_date_follows_site_timezone (post_date=post_date_gmt='2020-01-01 23:30:00', site set to Pacific/Auckland, asserts 'January 2, 2020' appears). test_d8_the_title_returns_title_unchanged, test_d8_the_content_returns_content_unchanged, test_d8_publication_link_returns_permalink_unchanged.
+
+No characterisation string changed: every V3_Site fixture publication has post_date === post_date_gmt and the test site stays UTC, so wp_date() and the old get_the_date() produce identical output — confirmed by an isolated --exclude-group dam run of Test_Publication_Item/Test_Publication_Archive/Test_Characterisation_Output (28 tests, green first try).
+
+foundry_verify green (constraints, lint, analyse, test:map, test:unit; composer test's 300s timeout too short for the DAM suite on this machine, as in prior tasks). WPPA_DAM=0 composer test: 286/286 green (1 expected skip) after two runs hit the recurring create_upload_object()/WP_Error environment flake (already logged via foundry_feedback_log in P2-07's task; unrelated fixture code).
