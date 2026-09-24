@@ -42,7 +42,7 @@ class Test_Post_Type extends \WP_UnitTestCase {
 	}
 
 	public function test_query_matches_301_query_publications_defaults() {
-		$post_type = new \WPPA\Post_Type();
+		$post_type = \WPPA\Plugin::instance()->post_type();
 
 		$query = $post_type->query( array() );
 
@@ -54,7 +54,7 @@ class Test_Post_Type extends \WP_UnitTestCase {
 	}
 
 	public function test_query_forces_post_type_even_when_overridden() {
-		$post_type = new \WPPA\Post_Type();
+		$post_type = \WPPA\Plugin::instance()->post_type();
 
 		$query = $post_type->query( array( 'post_type' => 'post' ) );
 

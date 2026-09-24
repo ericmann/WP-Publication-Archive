@@ -94,3 +94,6 @@ See §6.9. `Keys::HOOK_DAM_INDEXED_IDS`.
   them at all.
 - The `admin_notices` callback that warned when `allow_url_fopen` is off
   (D11).
+- The `post_type_link` callback (`Rewrites::filter_post_type_link()`,
+  `disarm()` and the armed/suspended flags): dead code that removed and
+  re-added a filter nothing else added (D8).

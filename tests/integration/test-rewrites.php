@@ -1,8 +1,8 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4 and Decisions D8: Rewrites owns the
- * 3.0.1 rewrite rules, query vars and link generation, including the
- * post_type_link hijack.
+ * Implements SPEC.md §8 Phase 0 item 4: Rewrites owns the 3.0.1 rewrite
+ * rules, query vars and link generation. D8 (Decisions, P2-01) deleted the
+ * dead post_type_link hijack.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -83,22 +83,4 @@ class Test_Rewrites extends \WP_UnitTestCase {
 		$this->assertSame( home_url( '/?publication=attached-report&view=yes' ), $link );
 	}
 
-	public function test_permalink_is_hijacked_after_link_generation_until_d8() {
-		\WPPA\Plugin::instance()->rewrites()->open_link( $this->data['attached'] );
-
-		$permalink = get_permalink( $this->data['pipe'] );
-
-		$this->assertSame( site_url() . '/' . Keys::REWRITE_BASE . '/' . Keys::QV_OPEN . '/pipe-report', $permalink );
-	}
-
-	public function test_disarm_clears_the_hijack() {
-		$rewrites = \WPPA\Plugin::instance()->rewrites();
-
-		$rewrites->open_link( $this->data['attached'] );
-		$rewrites->disarm();
-
-		$permalink = get_permalink( $this->data['pipe'] );
-
-		$this->assertSame( site_url() . '/publication/pipe-report/', $permalink );
-	}
 }

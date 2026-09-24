@@ -180,18 +180,15 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * D8 pin: generating one publication's open link (with no explicit
-	 * permalink) leaves the 'post_type_link' filter registered, because
-	 * get_link() only removes it for the duration of its own get_permalink()
-	 * call. Every later get_permalink() for any publication is hijacked by
-	 * publication_link(), which passes the value of Keys::QV_OPEN as the
-	 * endpoint, not view.
+	 * D8 (P2-01): the post_type_link hijack is dead code, deleted rather
+	 * than ported. Generating one publication's open link no longer changes
+	 * how any other publication's permalink resolves.
 	 */
-	public function test_permalink_after_link_generation_matches_301() {
+	public function test_d8_permalink_unchanged_after_link_generation() {
 		\WP_Publication_Archive::get_open_link( $this->data['attached'] );
 
 		$permalink = get_permalink( $this->data['pipe'] );
 
-		$this->assertSame( site_url() . '/publication/' . Keys::QV_OPEN . '/pipe-report', $permalink );
+		$this->assertSame( site_url() . '/publication/pipe-report/', $permalink );
 	}
 }

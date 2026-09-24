@@ -61,4 +61,12 @@ final class Flags {
 	public function page_for_posts(): int {
 		return (int) get_option( 'page_for_posts' );
 	}
+
+	public function caps_granted(): bool {
+		return (bool) get_option( Keys::OPT_CAPS, false );
+	}
+
+	public function mark_caps_granted(): void {
+		update_option( Keys::OPT_CAPS, 1, false );
+	}
 }

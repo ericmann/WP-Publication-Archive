@@ -48,6 +48,8 @@ final class Plugin {
 
 	private Categories $categories;
 
+	private Capabilities $capabilities;
+
 	private bool $hooks_registered = false;
 
 	/** @var list<array{type: string, hook: string, callback: callable, priority: int}> */
@@ -65,8 +67,6 @@ final class Plugin {
 		wp_cache_add_global_groups( Keys::CACHE_GROUP );
 
 		$instance->register_hooks();
-
-		$instance->upgrade->maybe_upgrade();
 
 		Legacy\Aliases::register();
 		Legacy\Utilities::create_instance();
@@ -87,7 +87,6 @@ final class Plugin {
 		$this->flags     = new Flags( $this->clock );
 		$this->assets    = new Assets( $this->flags );
 		$this->rest      = new Rest( $this->flags );
-		$this->post_type = new Post_Type();
 		$this->rewrites  = new Rewrites( $this->flags );
 		$this->upgrade   = new Upgrade( $this->flags );
 		$this->icons      = new Icons();
@@ -97,6 +96,7 @@ final class Plugin {
 				return false !== wp_http_validate_url( $url );
 			}
 		);
+		$this->post_type   = new Post_Type( $this->url_policy );
 		$this->dam_bridge  = new Dam_Bridge( $this->url_policy );
 		$this->cli         = new Cli( $this->flags, $this->dam_bridge );
 		$this->streamer    = new Streamer( get_temp_dir() );
@@ -105,6 +105,7 @@ final class Plugin {
 		$this->templates   = new Templates();
 		$this->shortcode  = new Shortcode( $this->templates );
 		$this->categories = new Categories( $this->flags );
+		$this->capabilities = new Capabilities( $this->flags );
 	}
 
 	public function register_hooks(): void {
@@ -122,8 +123,8 @@ final class Plugin {
 		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->post_type, 'register' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->rewrites, 'register' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this, 'load_textdomain' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->upgrade, 'maybe_upgrade' ), Keys::UPGRADE_PRIORITY, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_QUERY_VARS, array( $this->rewrites, 'query_vars' ), 10, 1 );
-		$this->add_hook( 'filter', Keys::HOOK_POST_TYPE_LINK, array( $this->rewrites, 'filter_post_type_link' ), 10, 2 );
 		$this->add_hook( 'action', Keys::HOOK_TEMPLATE_REDIRECT, array( $this->delivery, 'handle' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_ADD_META_BOXES_PUBLICATION, array( $this->meta_boxes, 'add' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_SAVE_POST, array( $this->meta_boxes, 'save' ), 10, 1 );
@@ -136,11 +137,6 @@ final class Plugin {
 		$this->add_hook( 'filter', Keys::HOOK_TERMS_CLAUSES, array( $this->categories, 'filter_terms_by_cpt' ), 10, 3 );
 		$this->add_hook( 'filter', Keys::HOOK_ALLOWED_REDIRECT_HOSTS, array( $this->delivery, 'allowed_redirect_hosts' ), 10, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_DAM_INDEXED_IDS, array( $this->dam_bridge, 'indexed_attachment_ids' ), 10, 2 );
-
-		// D11, preserved: only shown when PHP cannot fetch remote files.
-		if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {
-			$this->add_hook( 'action', Keys::HOOK_ADMIN_NOTICES, array( $this, 'fopen_notice' ), 10, 1 );
-		}
 
 		$this->hooks_registered = true;
 	}
@@ -210,15 +206,6 @@ final class Plugin {
 	}
 
 	/**
-	 * Hooked to admin_notices, only when allow_url_fopen is off (D11).
-	 */
-	public function fopen_notice(): void {
-		echo '<div class="error"><p>' . wp_kses_post(
-			__( 'Please set <code>allow_url_fopen</code> to "On" in your PHP.ini file, otherwise WP Publication Archive downloads <strong>WILL NOT WORK!</strong>', 'wp-publication-archive' )
-		) . '<br /><a target="_blank" href="http://php.net/allow-url-fopen">' . esc_html__( 'More information ...', 'wp-publication-archive' ) . '</a></p></div>';
-	}
-
-	/**
 	 * Swap a service. Tests only.
 	 */
 	public function replace( string $service, object $with ): void {
@@ -277,6 +264,9 @@ final class Plugin {
 				break;
 			case 'categories':
 				$this->assign_service( $service, $with, Categories::class, $this->categories );
+				break;
+			case 'capabilities':
+				$this->assign_service( $service, $with, Capabilities::class, $this->capabilities );
 				break;
 			default:
 				throw new \InvalidArgumentException( 'Unknown service: ' . $service );
@@ -361,6 +351,10 @@ final class Plugin {
 
 	public function categories(): Categories {
 		return $this->categories;
+	}
+
+	public function capabilities(): Capabilities {
+		return $this->capabilities;
 	}
 
 	public static function activate(): void {

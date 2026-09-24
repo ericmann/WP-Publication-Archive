@@ -1,8 +1,10 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4 and Decisions D8: 3.0.1's rewrite
- * rules, query vars and link generation, including the faithful port of the
- * post_type_link hijack.
+ * Implements SPEC.md §8 Phase 0 item 4: 3.0.1's rewrite rules, query vars
+ * and link generation. D8 (Decisions) closes here: the post_type_link
+ * hijack (filter_post_type_link()/disarm() and the armed/suspended flags)
+ * is dead code that was never hooked to anything a live request reaches
+ * through a different path, so it is deleted rather than ported.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -12,19 +14,6 @@ namespace WPPA;
 final class Rewrites {
 
 	private Flags $flags;
-
-	/**
-	 * True while link() is generating a permalink through get_permalink(),
-	 * so filter_post_type_link() does not recurse into itself. D8.
-	 */
-	private bool $suspended = false;
-
-	/**
-	 * True once link() has run at least once this request. D8: from then on
-	 * filter_post_type_link() hijacks every post_type_link call for a
-	 * publication, exactly as 3.0.1 did.
-	 */
-	private bool $armed = false;
 
 	public function __construct( Flags $flags ) {
 		$this->flags = $flags;
@@ -72,15 +61,7 @@ final class Rewrites {
 	 */
 	public function link( int $publication_id, string $endpoint, ?string $permalink = null, ?string $key = null ): string {
 		if ( null === $permalink ) {
-			$this->suspended = true;
-
-			try {
-				$permalink = get_permalink( $publication_id );
-			} finally {
-				$this->suspended = false;
-			}
-
-			$this->armed = true;
+			$permalink = get_permalink( $publication_id );
 		}
 
 		if ( '' === $this->flags->permalink_structure() ) {
@@ -114,25 +95,5 @@ final class Rewrites {
 
 	public function alternate_download_link( int $id, ?string $key = null ): string {
 		return $this->link( $id, Keys::ENDPOINT_ALTDOWN, null, $key );
-	}
-
-	/**
-	 * Hooked to post_type_link. D8: once armed, every later permalink for a
-	 * publication is generated through link(), exactly as 3.0.1's
-	 * publication_link() did.
-	 */
-	public function filter_post_type_link( string $permalink, \WP_Post $post ): string {
-		if ( ! $this->armed || $this->suspended || Keys::POST_TYPE !== $post->post_type ) {
-			return $permalink;
-		}
-
-		return $this->link( $post->ID, Keys::QV_OPEN, $permalink );
-	}
-
-	/**
-	 * Tests only: clears the D8 hijack armed by a prior link() call.
-	 */
-	public function disarm(): void {
-		$this->armed = false;
 	}
 }

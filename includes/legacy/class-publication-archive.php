@@ -231,8 +231,9 @@ class Publication_Archive {
 	}
 
 	/**
-	 * The post link for Publications is actually a link to *open* the file,
-	 * rather than to open the post page.
+	 * D8 (Decisions, P2-01): this was 3.0.1's post_type_link hijack, dead
+	 * code that removed and re-added a filter nothing else added and that
+	 * no hook is ever registered with (§2). Returns $permalink unchanged.
 	 *
 	 * @param string   $permalink
 	 * @param \WP_Post $post
@@ -240,7 +241,9 @@ class Publication_Archive {
 	 * @return string
 	 */
 	public static function publication_link( $permalink, $post ) {
-		return \WPPA\Plugin::instance()->rewrites()->filter_post_type_link( $permalink, $post );
+		unset( $post );
+
+		return $permalink;
 	}
 
 	/**

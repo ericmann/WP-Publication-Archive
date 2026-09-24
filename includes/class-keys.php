@@ -89,6 +89,36 @@ final class Keys {
 	// REST.
 	const REST_NAMESPACE     = 'wp-publication-archive/v1';
 	const REST_ROUTE_LINEAGE = '/eam';
+	const REST_BASE          = 'publications';
+
+	// Author taxonomy REST/rewrite (§6.1, P2-04).
+	const TAX_AUTHOR_QUERY_VAR     = 'publication-author';
+	const TAX_AUTHOR_REWRITE_SLUG  = 'publication/author';
+
+	// Capabilities (§6.1, P2-02).
+	const CAPABILITY_TYPE = array( 'publication', 'publications' );
+	const CAP_ROLES       = array( 'administrator', 'editor', 'author' );
+	const CAP_MAP         = array(
+		'edit_posts'             => 'edit_publications',
+		'edit_others_posts'      => 'edit_others_publications',
+		'edit_private_posts'     => 'edit_private_publications',
+		'edit_published_posts'   => 'edit_published_publications',
+		'publish_posts'          => 'publish_publications',
+		'read_private_posts'     => 'read_private_publications',
+		'delete_posts'           => 'delete_publications',
+		'delete_private_posts'   => 'delete_private_publications',
+		'delete_published_posts' => 'delete_published_publications',
+		'delete_others_posts'    => 'delete_others_publications',
+	);
+	const OPT_CAPS = 'wp-publication-archive-caps';
+
+	// Admin media enqueue (§6.6/§6.7, P2-07).
+	const ADMIN_SCRIPT_HANDLE = 'wp-publication-archive-admin-media';
+	const ADMIN_SCRIPT_PATH   = 'assets/js/admin-media.js';
+	const ADMIN_SCREENS       = array( 'post.php', 'post-new.php' );
+
+	// Upgrade timing (D9, P2-06).
+	const UPGRADE_PRIORITY = 20;
 
 	// Template files.
 	const TEMPLATE_LIST     = 'template.wppa_publication_list.php';

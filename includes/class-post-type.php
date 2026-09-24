@@ -11,6 +11,16 @@ namespace WPPA;
 
 final class Post_Type {
 
+	private Url_Policy $policy;
+
+	public function __construct( Url_Policy $policy ) {
+		$this->policy = $policy;
+	}
+
+	public function policy(): Url_Policy {
+		return $this->policy;
+	}
+
 	/**
 	 * Hooked to init.
 	 */

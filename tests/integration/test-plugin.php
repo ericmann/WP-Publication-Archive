@@ -101,7 +101,6 @@ class Test_Plugin extends \WP_UnitTestCase {
 		$this->assertSame( 10, has_action( Keys::HOOK_INIT, array( $plugin->rewrites(), 'register' ) ) );
 		$this->assertSame( 10, has_action( Keys::HOOK_INIT, array( $plugin, 'load_textdomain' ) ) );
 		$this->assertSame( 10, has_filter( Keys::HOOK_QUERY_VARS, array( $plugin->rewrites(), 'query_vars' ) ) );
-		$this->assertSame( 10, has_filter( Keys::HOOK_POST_TYPE_LINK, array( $plugin->rewrites(), 'filter_post_type_link' ) ) );
 	}
 
 	public function test_phase_1_services_are_constructed_and_replaceable() {
@@ -144,5 +143,53 @@ class Test_Plugin extends \WP_UnitTestCase {
 		$plugin = Plugin::instance();
 
 		$this->assertSame( 10, has_filter( Keys::HOOK_DAM_INDEXED_IDS, array( $plugin->dam_bridge(), 'indexed_attachment_ids' ) ) );
+	}
+
+	/**
+	 * D11 (P2-01): the allow_url_fopen admin notice is misleading (nothing
+	 * in 3.1.0 needs allow_url_fopen) and is deleted, not ported.
+	 */
+	public function test_d11_no_allow_url_fopen_notice_is_defined_or_registered() {
+		$this->assertFalse( method_exists( Plugin::class, 'fopen_notice' ) );
+
+		$plugin_callback_found = false;
+
+		if ( ! empty( $GLOBALS['wp_filter'][ Keys::HOOK_ADMIN_NOTICES ] ) ) {
+			foreach ( $GLOBALS['wp_filter'][ Keys::HOOK_ADMIN_NOTICES ]->callbacks as $callbacks ) {
+				foreach ( $callbacks as $callback ) {
+					$function = $callback['function'];
+
+					$class = is_array( $function ) ? ( is_object( $function[0] ) ? get_class( $function[0] ) : $function[0] ) : null;
+
+					if ( null !== $class && 0 === strpos( $class, 'WPPA' ) ) {
+						$plugin_callback_found = true;
+					}
+				}
+			}
+		}
+
+		$this->assertFalse( $plugin_callback_found, 'Unexpected plugin callback on ' . Keys::HOOK_ADMIN_NOTICES );
+	}
+
+	/**
+	 * D8 (P2-01): the post_type_link hijack is dead code, deleted rather
+	 * than ported.
+	 */
+	public function test_d8_post_type_link_not_hooked_by_plugin() {
+		$plugin = Plugin::instance();
+
+		$this->assertFalse( method_exists( $plugin->rewrites(), 'filter_post_type_link' ) );
+		$this->assertFalse( has_filter( Keys::HOOK_POST_TYPE_LINK ) );
+	}
+
+	/**
+	 * D9 timing (P2-06 fixes the body): the schema upgrade now runs on init,
+	 * not at Plugin::boot().
+	 */
+	public function test_upgrade_runs_on_init_not_at_boot() {
+		$plugin  = Plugin::instance();
+		$upgrade = $plugin->upgrade();
+
+		$this->assertSame( Keys::UPGRADE_PRIORITY, has_action( Keys::HOOK_INIT, array( $upgrade, 'maybe_upgrade' ) ) );
 	}
 }

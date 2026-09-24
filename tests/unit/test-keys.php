@@ -260,4 +260,35 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 		$this->assertSame( 'allowed_redirect_hosts', Keys::HOOK_ALLOWED_REDIRECT_HOSTS );
 		$this->assertSame( 'application/octet-stream', Keys::CONTENT_TYPE_FALLBACK );
 	}
+
+	public function test_phase_2_names() {
+		$this->assertSame( 'publications', Keys::REST_BASE );
+		$this->assertSame( 'publication-author', Keys::TAX_AUTHOR_QUERY_VAR );
+		$this->assertSame( 'publication/author', Keys::TAX_AUTHOR_REWRITE_SLUG );
+
+		$this->assertSame( array( 'publication', 'publications' ), Keys::CAPABILITY_TYPE );
+		$this->assertSame( array( 'administrator', 'editor', 'author' ), Keys::CAP_ROLES );
+		$this->assertSame(
+			array(
+				'edit_posts'             => 'edit_publications',
+				'edit_others_posts'      => 'edit_others_publications',
+				'edit_private_posts'     => 'edit_private_publications',
+				'edit_published_posts'   => 'edit_published_publications',
+				'publish_posts'          => 'publish_publications',
+				'read_private_posts'     => 'read_private_publications',
+				'delete_posts'           => 'delete_publications',
+				'delete_private_posts'   => 'delete_private_publications',
+				'delete_published_posts' => 'delete_published_publications',
+				'delete_others_posts'    => 'delete_others_publications',
+			),
+			Keys::CAP_MAP
+		);
+		$this->assertSame( 'wp-publication-archive-caps', Keys::OPT_CAPS );
+
+		$this->assertSame( 'wp-publication-archive-admin-media', Keys::ADMIN_SCRIPT_HANDLE );
+		$this->assertSame( 'assets/js/admin-media.js', Keys::ADMIN_SCRIPT_PATH );
+		$this->assertSame( array( 'post.php', 'post-new.php' ), Keys::ADMIN_SCREENS );
+
+		$this->assertSame( 20, Keys::UPGRADE_PRIORITY );
+	}
 }
