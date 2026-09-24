@@ -124,6 +124,7 @@ final class Plugin {
 		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->rewrites, 'register' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this, 'load_textdomain' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->upgrade, 'maybe_upgrade' ), Keys::UPGRADE_PRIORITY, 1 );
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->capabilities, 'maybe_grant' ), 10, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_QUERY_VARS, array( $this->rewrites, 'query_vars' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_TEMPLATE_REDIRECT, array( $this->delivery, 'handle' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_ADD_META_BOXES_PUBLICATION, array( $this->meta_boxes, 'add' ), 10, 1 );
@@ -361,6 +362,7 @@ final class Plugin {
 		$instance = self::instance();
 		$instance->post_type->register();
 		$instance->rewrites->register();
+		$instance->capabilities->grant();
 
 		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: 3.0.1 behaviour, activation-only (SPEC §4.1).
 	}

@@ -109,9 +109,26 @@ final class Cli {
 			) . '}/'
 		);
 
+		$rows[] = $this->caps_granted_row();
+
 		$rows[] = $this->dam_row();
 
 		return $rows;
+	}
+
+	/**
+	 * @return array{check: string, status: string, message: string}
+	 */
+	private function caps_granted_row(): array {
+		$administrator = get_role( 'administrator' );
+		$admin_has_cap = null !== $administrator && $administrator->has_cap( 'edit_publications' );
+		$caps_granted  = $this->flags->caps_granted();
+
+		return $this->row(
+			'caps_granted',
+			( $caps_granted && $admin_has_cap ) ? 'pass' : 'fail',
+			$caps_granted ? 'granted' : 'not granted'
+		);
 	}
 
 	/**
