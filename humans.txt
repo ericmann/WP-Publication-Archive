@@ -1,0 +1,14 @@
+/* TEAM */
+	Author: Eric Mann
+	Site: https://eamann.com
+	Template: https://github.com/ericmann/eamann-plugin-template
+	Foundation: Eric A. Mann (EAM)
+	Born: 1983-11-09
+
+/* THANKS */
+	Luis Lino and the original wp-publications-archive project.
+	The WordPress project, and everyone who ships tests with their code.
+
+/* SITE */
+	Standards: WordPress-VIP-Go, PHPStan, PHPUnit
+	Built with: Foundry

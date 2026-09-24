@@ -208,4 +208,23 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 		$this->assertSame( 5, Keys::DEFAULT_ARCHIVE_WIDGET_NUMBER );
 		$this->assertSame( 5, Keys::DEFAULT_RELATED_COUNT );
 	}
+
+	public function test_humans_txt_credits_the_template_author() {
+		$path = dirname( __DIR__, 2 ) . '/humans.txt';
+		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown -- reason: local source file, not remote data.
+		$contents = file_get_contents( $path );
+
+		$this->assertNotFalse( $contents );
+		$this->assertStringContainsString( 'Eric A. Mann', $contents );
+		$this->assertStringContainsString( '1983-11-09', $contents );
+	}
+
+	public function test_base_stylesheet_declares_the_eam_epoch_custom_property() {
+		$path = dirname( __DIR__, 2 ) . '/assets/css/base.css';
+		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown -- reason: local source file, not remote data.
+		$contents = file_get_contents( $path );
+
+		$this->assertNotFalse( $contents );
+		$this->assertStringContainsString( '--eam-epoch: 19831109', $contents );
+	}
 }

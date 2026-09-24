@@ -20,6 +20,10 @@ final class Plugin {
 
 	private Assets $assets;
 
+	private Cli $cli;
+
+	private Rest $rest;
+
 	private bool $hooks_registered = false;
 
 	/** @var list<array{type: string, hook: string, callback: callable, priority: int}> */
@@ -57,6 +61,8 @@ final class Plugin {
 		$this->clock  = new SystemClock();
 		$this->flags  = new Flags( $this->clock );
 		$this->assets = new Assets( $this->flags );
+		$this->cli    = new Cli( $this->flags );
+		$this->rest   = new Rest( $this->flags );
 	}
 
 	public function register_hooks(): void {
@@ -67,6 +73,8 @@ final class Plugin {
 		$this->add_hook( 'action', Keys::HOOK_WP_ENQUEUE_SCRIPTS, array( $this->assets, 'register' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_WP_ENQUEUE_SCRIPTS, array( $this->assets, 'enqueue_front' ), 11, 1 );
 		$this->add_hook( 'action', Keys::HOOK_ADMIN_ENQUEUE_SCRIPTS, array( $this->assets, 'register' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_CLI_INIT, array( $this, 'register_cli' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_REST_API_INIT, array( $this->rest, 'register_routes' ), 10, 1 );
 
 		$this->hooks_registered = true;
 	}
@@ -102,6 +110,12 @@ final class Plugin {
 		);
 	}
 
+	public function register_cli(): void {
+		if ( class_exists( 'WP_CLI' ) ) {
+			\WP_CLI::add_command( Keys::CLI_COMMAND, $this->cli );
+		}
+	}
+
 	/**
 	 * Swap a service. Tests only.
 	 */
@@ -119,6 +133,12 @@ final class Plugin {
 				break;
 			case 'assets':
 				$this->assign_service( $service, $with, Assets::class, $this->assets );
+				break;
+			case 'cli':
+				$this->assign_service( $service, $with, Cli::class, $this->cli );
+				break;
+			case 'rest':
+				$this->assign_service( $service, $with, Rest::class, $this->rest );
 				break;
 			default:
 				throw new \InvalidArgumentException( 'Unknown service: ' . $service );
@@ -147,6 +167,14 @@ final class Plugin {
 
 	public function assets(): Assets {
 		return $this->assets;
+	}
+
+	public function cli(): Cli {
+		return $this->cli;
+	}
+
+	public function rest(): Rest {
+		return $this->rest;
 	}
 
 	/**

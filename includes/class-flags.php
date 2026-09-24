@@ -23,4 +23,13 @@ final class Flags {
 	public function enabled( string $context = 'default' ): bool {
 		return Hooks::filter_enabled( (bool) get_option( Keys::OPT_ENABLED, true ), $context );
 	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	public function rewrite_rules(): array {
+		$rules = get_option( 'rewrite_rules' );
+
+		return is_array( $rules ) ? $rules : array();
+	}
 }
