@@ -8,7 +8,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P0-03 Flags, Hooks, Plugin and Assets; front-end stylesheet moves to assets/css/base.css
 - [x] P0-04 Cli doctor, REST lineage route, humans.txt, docs, the v3 fixture and smoke tests
 - [x] P0-05 The DAM in wp-env
-- [ ] P0-06 Characterisation — URLs, link generators and template location
+- [x] P0-06 Characterisation — URLs, link generators and template location
 - [ ] P0-07 Characterisation — shortcode and widget output
 - [ ] P0-08 Restructure (1/8) — Post_Type, Rewrites, Upgrade and i18n
 - [ ] P0-09 Restructure (2/8) — Delivery, interim Streamer and Icons
@@ -73,3 +73,9 @@ Added bin/fetch-dam.sh (clones/fetches DAM_REPO into .cache/vip-digital-asset-ma
 Interpretation: DAM contract stub signatures copied verbatim from DAM_REF 9d7f1667608eb0f1cd537351546d2e4d505e8202 (DAM 4.0.2) inc/class-embargo-guard.php and inc/class-usage-index.php; Lifecycle stubbed as an empty class (no method named yet by PLAN or the not-yet-built bridge). Fixed a pre-existing names-in-keys-only hit in tests/fixtures/class-v3-site.php (a 'wppa-fixture.pdf' literal from P0-04) while here, since foundry_verify scans the whole repo every time.
 Gotcha for later DAM/test-group work: a PHPUnit @group annotation must be on the docblock immediately preceding the class token; a namespace/use statement between a file's top docblock and the class breaks that attachment silently (no error, the group is just not applied), so test-dam-contract.php carries a second, minimal docblock directly above `class Test_Dam_Contract`.
 Verified: bash bin/fetch-dam.sh pinned DAM 4.0.2; wp plugin list shows both plugins active; foundry_verify all-green; composer test with the DAM 64/64 (1 expected skip); WPPA_DAM=0 composer test 59/59; wp publication-archive doctor exits 0 with the DAM active.
+
+### P0-06 — 8999c2b
+Added tests/integration/test-characterisation-routing.php (17 tests) and tests/integration/test-characterisation-templates.php (7 tests) plus the fixtures/theme/characterisation-theme fixture (style.css + 5 marker override files: CHAR-LIST/DROPDOWN/WIDGET/SINGLE/ARCHIVE; the list override uses extract($wppa_container) to prove D15). Pinned 3.0.1 routing/link-generation behaviour reached only through WP_Publication_Archive's static API, do_shortcode(), the_widget().
+Interpretation: set_up() re-runs \WP_Publication_Archive::register_publication() (not just custom_rewrites()) because the CPT's rewrite permastruct binds to the $wp_rewrite instance live when the process-wide 'init' fired, before set_permalink_structure() ran; without re-registering, get_permalink() stays in query-string form even though using_permalinks() is true. Each test method has its own set_up() / single go_to() call — a second go_to() in one method observed stale query vars from the first (a WP test-suite quirk, not this plugin's). Two 3.0.1 quirks pinned as observed: plain permalinks produce "?publication=<slug>&view=yes" (literal endpoint name, not Keys::QV_OPEN); and D8 — after the first get_open_link()/get_download_link() call, every later get_permalink() for ANY publication is hijacked by publication_link(), using Keys::QV_OPEN ("wppa_open") as the path segment.
+Observed result for P2-05 (D5): bare "/publication/view/" and "/publication/download/" resolve to the publications literally slugged "view"/"download" — the endpoint rule requires a further path segment and does not match a bare request, so it falls through to the CPT's own single-post rule instead of being read as the view/download endpoint with no slug.
+Verified: foundry_verify all-green; composer test with the DAM 88/88 (1 expected skip); WPPA_DAM=0 composer test --filter Characterisation 24/24.
