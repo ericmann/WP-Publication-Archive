@@ -32,7 +32,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-02 Contracts (2/2) — Capabilities granted on activation and init
 - [x] P2-03 Post type and taxonomy in REST and the block editor (D12)
 - [x] P2-04 Registered publication meta in REST (D12 meta, D1 via REST)
-- [ ] P2-05 Rewrite rules — slug collisions (D5)
+- [x] P2-05 Rewrite rules — slug collisions (D5)
 - [ ] P2-06 Upgrade on init, once, with no per-request option writes (D9)
 - [ ] P2-07 admin-media.js replaces Thickbox and inline scripts (D13)
 - [ ] P2-08 Site-timezone dates and dead-code delegates (D7, D8 delegates)
@@ -250,3 +250,8 @@ Implemented Post_Type::register_meta() per §6.1: META_DOC/META_IMAGE (single st
 Tests added to tests/integration/test-post-type.php: REST reads (editor sees meta in edit context, anonymous does not), REST writes (local path -> '', same-site URL kept, alternates description sanitised + url validated, write denied for a user without edit_post), and a raw-DB test proving a pre-existing 3.0.1 pipe-form value is untouched until something writes it again (sanitize_callback only runs on write). set_up() now re-registers post_type() each test since WP_UnitTestCase's tear_down() calls unregister_all_meta_keys().
 
 foundry_verify green (all constraints, lint, analyse, test:map, test:unit). WPPA_DAM=0 composer test: 269/269 green (1 expected skip). Full DAM-loaded composer test showed 1 error + 2 failures, all in tests/integration/dam/test-dam-bridge-dam.php (D17/D18/D19 lifecycle/embargo tests) — file untouched by this task, unrelated to publication meta/REST, not reproduced by the task's own WPPA_DAM=0 verification command; likely environment/DB-contention flake on this machine (concurrent DB deadlock observed in the output). Left uninvestigated per this task's scope; worth a look if it recurs on a later DAM-touching task.
+
+### P2-05 — 43a9ad2
+Wrote the four D5 tests first (test_d5_slug_view_publication_resolves_at_publication_view, test_d5_slug_download_publication_resolves_at_publication_download, test_d5_view_endpoint_for_other_slug_opens_other_slug, test_d5_download_endpoint_for_slug_view_opens_view) in tests/integration/test-rewrites.php and ran them against the pre-task Rewrites::register(). All four already passed: the endpoint rules require a non-empty [^/]+ segment after view/download, so a bare /publication/view/ or /publication/download/ falls through to the CPT's own single-post rule and resolves the publication literally slugged view/download instead — matching the P0-06 characterisation log's prediction. No rule changed; kept as regression tests per the task's own instruction for the "already passes" branch. Interpretation: D5: not reproducible on the P0-08 Rewrites class; regression tests added.
+
+foundry_verify green (constraints, lint, analyse, test:map, test:unit); composer test's own 300s process-timeout is too short for the DAM-loaded suite on this (shared, busy) machine — same as several earlier tasks' logs, not a code defect. WPPA_DAM=0 composer test: one run hit 6 errors from an unrelated environment flake (create_upload_object() returning WP_Error under concurrent Docker load in tests/fixtures/class-v3-site.php, untouched by this task); a clean re-run and an isolated run of the affected test class both went green (273/273, 1 expected skip).
