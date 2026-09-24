@@ -20,7 +20,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P0-15 Restructure (8/8) — Legacy\Publication_Archive and removal of lib/
 - [x] P0-16 Gate 0 — foundation verified, constraints locked, branch pushed
 - [x] P1-01 Contracts (1/2) — Keys, Hooks, Plugin wiring and signatures for Url_Policy, Dam_Bridge, Delivery and Streamer
-- [ ] P1-02 Contracts (2/2) — DAM usage filter (D19) and the dam doctor row
+- [x] P1-02 Contracts (2/2) — DAM usage filter (D19) and the dam doctor row
 - [ ] P1-03 Url_Policy::validate() and the §6.2 table test
 - [ ] P1-04 Meta box save and render through Url_Policy (D1 save, D2 save, D3 admin, D10)
 - [ ] P1-05 Dam_Bridge withholding and display URL (D17, D18 at the bridge)
@@ -160,3 +160,10 @@ PHPStan forced two accessor additions beyond the task's named method list: Url_P
 Found and fixed a real pre-existing test-isolation bug while wiring test_allowed_redirect_hosts_filter_registered: test-delivery.php's set_up() swapped Plugin's 'delivery' service but never restored it in tear_down(), so later tests comparing object identity against Plugin::instance()->delivery() saw the wrong instance.
 
 foundry_verify, composer test (with and without DAM), composer test:unit all green; P0-06/P0-07 characterisation unchanged.
+
+### P1-02 — e9679f3
+Implemented Dam_Bridge::active()/version()/attachment_id_for()/indexed_attachment_ids() per §6.9 (is_withheld()/display_url() stay stubs, P1-05). Plugin registers vip_dam_indexed_attachment_ids (10,2) unconditionally; Cli's constructor gains Dam_Bridge and doctor_rows() appends a dam row last (absent/pass when inactive; version + attached/not-attached, pass iff has_filter() finds the registered callback).
+
+Learned the DAM's own extraction (extract_meta_attachment_ids()) only matches upload URLs that literally contain the site's base upload URL as a substring — the http|/https| pipe form never matches, confirming D19 and that our filter (adding attachment_id_for() of the normalised doc/image/each alternate url) is the fix. Used Usage_Index::index_post() (public static) to force-reindex posts whose meta was written via V3_Site::raw_meta() (which bypasses save_post), and VIP\DAM\Abilities\Media_Delete::execute() to prove the DAM refuses to delete an attachment a publication still references (asset_in_use).
+
+foundry_verify (DAM loaded, both new constraints self-tested), composer test with and without DAM, wp publication-archive doctor (shows "4.0.2, usage filter attached") all green.
