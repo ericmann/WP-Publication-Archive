@@ -2,8 +2,9 @@
 /**
  * Implements SPEC.md §8 Phase 0 item 4 and §6.9: 3.0.1's
  * WP_Publication_Archive_Item, aliased as WP_Publication_Archive_Item by
- * includes/legacy/class-aliases.php. P1-08 closes D2 (output) and D3
- * (front); D7 (date formatting) stays open until P2-08.
+ * includes/legacy/class-aliases.php. P1-08 closed D2 (output) and D3
+ * (front). D7 (P2-08) closes here too: the publication date is formatted
+ * through Clock::format() in the site timezone and locale.
  * Not final, same public properties/methods/parameters/defaults as
  * e913681's class.publication-markup.php (formerly under the pre-restructure
  * runtime directory, since removed), phpdoc types only (Decisions).
@@ -225,9 +226,9 @@ class Publication_Item {
 
 	/**
 	 * Get a list of authors for the publication. Also gets the date bound
-	 * to the publication object. D7 (interim): uses get_the_date() rather
-	 * than the wall-clock formatting 3.0.1 used, which ignored the site
-	 * timezone/locale.
+	 * to the publication object. D7: formatted through Clock::format() in
+	 * the site timezone and locale, not the wall-clock formatting 3.0.1
+	 * used.
 	 *
 	 * @param string $before
 	 * @param string $after
@@ -243,7 +244,8 @@ class Publication_Item {
 			$list = '<span class="author-list">' . $authors . '</span>';
 		}
 
-		$date = '<span class="date">(' . get_the_date( 'F j, Y', $this->post ) . ')</span>';
+		$formatted = Plugin::instance()->clock()->format( 'F j, Y', (int) get_post_time( 'U', true, $this->post ) );
+		$date      = '<span class="date">(' . esc_html( $formatted ) . ')</span>';
 
 		return $before . $list . $date . $after;
 	}

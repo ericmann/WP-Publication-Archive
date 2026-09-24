@@ -1,8 +1,8 @@
 <?php
 /**
  * Implements SPEC.md §8 Phase 0 item 4 and §6.9: 3.0.1's
- * WP_Publication_Archive_Item, now WPPA\Publication_Item. P1-08 closes D2
- * (output) and D3 (front); D7 stays open until P2-08.
+ * WP_Publication_Archive_Item, now WPPA\Publication_Item. P1-08 closed D2
+ * (output) and D3 (front); P2-08 closes D7.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -57,6 +57,31 @@ class Test_Publication_Item extends \WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Jane Doe', $output );
 		$this->assertStringContainsString( '<span class="date">', $output );
+	}
+
+	/**
+	 * D7: the date is formatted through Clock::format() (wp_date()) in the
+	 * site timezone, not the wall-clock formatting 3.0.1 used (which
+	 * ignored it). 2020-01-01 23:30:00 UTC is 2020-01-02 12:30 in
+	 * Pacific/Auckland (+13 DST in January).
+	 */
+	public function test_d7_date_follows_site_timezone() {
+		$id = self::factory()->post->create(
+			array(
+				'post_type'     => Keys::POST_TYPE,
+				'post_date'     => '2020-01-01 23:30:00',
+				'post_date_gmt' => '2020-01-01 23:30:00',
+			)
+		);
+
+		update_option( 'timezone_string', 'Pacific/Auckland' );
+
+		$item   = new Publication_Item( $id );
+		$output = $item->get_the_authors();
+
+		$this->assertStringContainsString( 'January 2, 2020', $output );
+
+		delete_option( 'timezone_string' );
 	}
 
 	public function test_title_filter_receives_title_and_id() {

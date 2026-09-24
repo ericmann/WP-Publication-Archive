@@ -30,6 +30,29 @@ class Test_Publication_Archive extends \WP_UnitTestCase {
 		$this->assertSame( 'distinct', Publication_Archive::search_distinct( 'distinct' ) );
 	}
 
+	/**
+	 * D8 (P2-08): the_content(), the_title() and publication_link() are
+	 * never hooked to anything (§2); they return their first argument
+	 * unchanged.
+	 */
+	public function test_d8_the_title_returns_title_unchanged() {
+		$id = self::factory()->post->create( array( 'post_type' => Keys::POST_TYPE ) );
+
+		$this->assertSame( 'Some Title', Publication_Archive::the_title( 'Some Title', $id ) );
+		$this->assertSame( 'Some Title', Publication_Archive::the_title( 'Some Title' ) );
+	}
+
+	public function test_d8_the_content_returns_content_unchanged() {
+		$this->assertSame( 'Some content.', Publication_Archive::the_content( 'Some content.' ) );
+	}
+
+	public function test_d8_publication_link_returns_permalink_unchanged() {
+		$id   = self::factory()->post->create( array( 'post_type' => Keys::POST_TYPE ) );
+		$post = get_post( $id );
+
+		$this->assertSame( 'https://example.com/permalink/', Publication_Archive::publication_link( 'https://example.com/permalink/', $post ) );
+	}
+
 	public function test_no_hook_is_registered_with_a_legacy_callable() {
 		global $wp_filter;
 

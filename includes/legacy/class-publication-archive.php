@@ -247,25 +247,20 @@ class Publication_Archive {
 	}
 
 	/**
-	 * Filter the content of a Publication.
+	 * D8 (P2-08): this filter is never hooked to anything (§2); returns
+	 * $content unchanged.
 	 *
 	 * @param string $content Regular post content from the `wp_posts` table.
 	 *
-	 * @return string Actual summary description of the Publication, or unfiltered text if this isn't a Publication.
+	 * @return string
 	 */
 	public static function the_content( $content ) {
-		$post = get_post();
-		if ( null === $post || 'publication' != $post->post_type ) {
-			return $content;
-		}
-
-		$pub = new \WPPA\Publication_Item( $post );
-
-		return $pub->summary;
+		return $content;
 	}
 
 	/**
-	 * Filter the title to append "(Download Publication)" where necessary.
+	 * D8 (P2-08): this filter is never hooked to anything (§2); returns
+	 * $title unchanged.
 	 *
 	 * @param string $title Original title.
 	 * @param int    $id    Post ID.
@@ -273,19 +268,9 @@ class Publication_Archive {
 	 * @return string
 	 */
 	public static function the_title( $title, $id = 0 ) {
-		// If the filter is called without passing in an ID, it's being called incorrectly. Rather than spewing a PHP warning,
-		// we will just exit out. This code was added specifically to handle bad plugins like All-in-One Event Calendar.
-		if ( 0 == $id ) {
-			return $title;
-		}
+		unset( $id );
 
-		$post = get_post( $id );
-		if ( 'publication' != $post->post_type || is_admin() ) {
-			return $title;
-		}
-
-		// translators: %s is the publication's post title.
-		return sprintf( __( '%s (Publication)', 'wp-publication-archive' ), $title );
+		return $title;
 	}
 
 	/**
