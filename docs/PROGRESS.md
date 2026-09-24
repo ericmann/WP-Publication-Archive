@@ -23,7 +23,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-02 Contracts (2/2) — DAM usage filter (D19) and the dam doctor row
 - [x] P1-03 Url_Policy::validate() and the §6.2 table test
 - [x] P1-04 Meta box save and render through Url_Policy (D1 save, D2 save, D3 admin, D10)
-- [ ] P1-05 Dam_Bridge withholding and display URL (D17, D18 at the bridge)
+- [x] P1-05 Dam_Bridge withholding and display URL (D17, D18 at the bridge)
 - [ ] P1-06 Streamer::send() — the one temp-file readfile (P11, D6)
 - [ ] P1-07 Delivery per §6.2 — validate, withhold, redirect or proxy (D1 delivery, D17 end to end)
 - [ ] P1-08 Escaped Publication_Item and list/dropdown templates; thumbnail through the bridge (D2 output, D3 front, D18)
@@ -181,3 +181,10 @@ save() now routes doc/image/alternate URLs through a new validated_url() helper 
 Learned sanitize_text_field() strips <script>...</script> content entirely, not just the tags — test_d2 asserts 'English', not 'alert(1)English'.
 
 foundry_verify, composer test (with and without DAM), and Test_Meta_Boxes filtered run all green; P0-06/P0-07 characterisation unchanged.
+
+### P1-05 — e1474cd
+Implemented Dam_Bridge::is_withheld()/display_url() per §6.9: withheld iff DAM active, $url resolves to a same-site attachment, the current user cannot edit it, and Embargo_Guard::is_hidden() or the attachment is trashed; display_url() returns Embargo_Guard::placeholder_url() when withheld, else the URL unchanged. Both return the inactive-DAM defaults (false / unchanged URL) when the DAM is absent.
+
+Test fixtures embargo/archive attachments through the DAM's own Abilities (Rights_Set for embargo_until, Media_Lifecycle_Set for archive_after) rather than writing the DAM's meta keys directly, per the task's instruction. Confirmed WordPress's default editor role (edit_others_posts) satisfies the current_user_can('edit_post', $id) check for any attachment regardless of author, matching the task's "factory editor" wording without needing an administrator.
+
+foundry_verify, composer test (with and without DAM) all green; P0-06/P0-07 characterisation unchanged.
