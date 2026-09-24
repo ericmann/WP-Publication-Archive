@@ -4,7 +4,9 @@
  * post type and `publication-author` taxonomy, registered verbatim except
  * the menu icon (D16 part: the 3.0.1 PNG icon asset is deleted, so
  * Keys::MENU_ICON is used) and D12 (P2-03): both are now exposed to REST
- * and the block editor, with publication capabilities.
+ * and the block editor, with publication capabilities. P2-04 registers the
+ * §5.1 meta keys for REST, edit-context only, with Url_Policy sanitising on
+ * write (D12 meta, D1 via REST).
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -29,6 +31,7 @@ final class Post_Type {
 	public function register(): void {
 		$this->register_author();
 		$this->register_publication();
+		$this->register_meta();
 	}
 
 	/**
@@ -76,6 +79,7 @@ final class Post_Type {
 				'supports'             => array(
 					'title',
 					'editor',
+					'custom-fields',
 				),
 				'taxonomies'           => array(
 					'category',
@@ -86,6 +90,84 @@ final class Post_Type {
 				'show_in_rest'         => true,
 				'rest_base'            => Keys::REST_BASE,
 			)
+		);
+	}
+
+	/**
+	 * SPEC.md §6.1: the three §5.1 meta keys, exposed to REST in the edit
+	 * context only (D12 meta), with Url_Policy sanitising on write (D1 via
+	 * REST).
+	 */
+	private function register_meta(): void {
+		$url_args = array(
+			'single'            => true,
+			'type'              => 'string',
+			'show_in_rest'      => array(
+				'schema' => array(
+					'type'    => 'string',
+					'format'  => 'uri',
+					'context' => array( 'edit' ),
+				),
+			),
+			'auth_callback'     => array( $this, 'can_edit' ),
+			'sanitize_callback' => array( $this, 'sanitize_url_meta' ),
+		);
+
+		register_post_meta( Keys::POST_TYPE, Keys::META_DOC, $url_args );
+		register_post_meta( Keys::POST_TYPE, Keys::META_IMAGE, $url_args );
+
+		register_post_meta(
+			Keys::POST_TYPE,
+			Keys::META_ALTERNATES,
+			array(
+				'single'            => false,
+				'type'              => 'object',
+				'show_in_rest'      => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'description' => array( 'type' => 'string' ),
+							'url'         => array( 'type' => 'string' ),
+						),
+						'context'    => array( 'edit' ),
+					),
+				),
+				'auth_callback'     => array( $this, 'can_edit' ),
+				'sanitize_callback' => array( $this, 'sanitize_alternate_meta' ),
+			)
+		);
+	}
+
+	public function can_edit( bool $allowed, string $meta_key, int $object_id ): bool {
+		unset( $allowed, $meta_key );
+
+		return current_user_can( 'edit_post', $object_id );
+	}
+
+	public function sanitize_url_meta( string $meta_value ): string {
+		$validated = $this->policy->validate( $meta_value );
+
+		return $validated instanceof \WP_Error ? '' : $validated;
+	}
+
+	/**
+	 * @param mixed $meta_value
+	 * @return array{description: string, url: string}
+	 */
+	public function sanitize_alternate_meta( $meta_value ): array {
+		$description = is_array( $meta_value ) && isset( $meta_value['description'] )
+			? sanitize_text_field( (string) $meta_value['description'] )
+			: '';
+
+		$url = is_array( $meta_value ) && isset( $meta_value['url'] )
+			? (string) $meta_value['url']
+			: '';
+
+		$validated = $this->policy->validate( $url );
+
+		return array(
+			'description' => $description,
+			'url'         => $validated instanceof \WP_Error ? '' : $validated,
 		);
 	}
 
