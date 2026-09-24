@@ -25,7 +25,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-04 Meta box save and render through Url_Policy (D1 save, D2 save, D3 admin, D10)
 - [x] P1-05 Dam_Bridge withholding and display URL (D17, D18 at the bridge)
 - [x] P1-06 Streamer::send() — the one temp-file readfile (P11, D6)
-- [ ] P1-07 Delivery per §6.2 — validate, withhold, redirect or proxy (D1 delivery, D17 end to end)
+- [x] P1-07 Delivery per §6.2 — validate, withhold, redirect or proxy (D1 delivery, D17 end to end)
 - [ ] P1-08 Escaped Publication_Item and list/dropdown templates; thumbnail through the bridge (D2 output, D3 front, D18)
 - [ ] P1-09 Gate 1 — security verified, constraints locked, branch pushed
 - [ ] P2-01 Contracts (1/2) — Keys, Flags and Plugin for §6.1, §6.6 and §6.7; close D11 and D8's filter; Capabilities signatures; upgrade on init
@@ -197,3 +197,10 @@ tests/fixtures/streamer-child.php is a real bare-PHP child process (spawned via 
 Real interaction found: calling send() with the default ob_floor (0) inside a PHPUnit-run test pops whatever ambient buffer PHPUnit's own risky-test detection already opened, which PHPUnit then flags as risky. Every non-child-process unit test now wraps its own ob_start()/ob_get_clean() with ob_floor = ob_get_level() (captured after ob_start()) to keep its own buffer intact instead of being swept by send()'s D6 cleanup.
 
 composer test:unit --filter Streamer, foundry_verify, composer test (with and without DAM) all green; P0-06/P0-07 characterisation unchanged.
+
+### P1-07 — 373e0aa
+Rewrote Delivery per §6.2: resolve stored URL (doc or matching alternate) → normalise → Hooks::open_url()/download_url() → Url_Policy::validate() (404 on \WP_Error) → Dam_Bridge::is_withheld() (same 404) → Delivery::decide() picks redirect (default, mask off) or proxy. Redirect wraps wp_safe_redirect() in with_redirect_host()/allowed_redirect_hosts(). Proxy does wp_safe_remote_head() for a size check, then wp_safe_remote_get(stream=>true, filename=>wp_tempnam()) on error/over-cap falls back to redirect, else Streamer::send() with mime_for()-or-response-header-or-fallback content type and (downloads only) a sanitized Content-Disposition filename. Streamer::passthrough() deleted; class-streamer.php now has exactly one readfile(.
+
+Real findings, not assumptions: read wp-includes/http.php to confirm wp_http_validate_url() itself already blocks RFC 5735/6598 private and link-local ranges (including 169.254.0.0/16 cloud metadata) with no extra mocking needed. Found and fixed a real test-isolation gap: Plugin::replace('delivery', ...) doesn't rebind the allowed_redirect_hosts hook Plugin wired to the original instance at boot, so external-host redirect tests needed to explicitly remove/re-add that hook around the swap.
+
+foundry_verify, composer test:unit, composer test (with and without DAM, 239/257 respectively) all green; grep -c "readfile(" includes/class-streamer.php prints 1; P0-06/P0-07 characterisation unchanged.
