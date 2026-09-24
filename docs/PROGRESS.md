@@ -1,6 +1,6 @@
 # WP Publication Archive 3.1.0 build progress
-Branch: (set by implement)
-Started: (set by implement)
+Branch: build/2026-09-24
+Started: 2026-09-24T15:54:27.940Z
 
 ## Tasks
 - [ ] P0-01 Toolchain, minimal Keys, and the 3.0.1 runtime behind a transitional loader
