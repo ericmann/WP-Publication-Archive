@@ -478,6 +478,77 @@
         "'assets/icons/'",
         "'languages'"
       ]
+    },
+    {
+      "id": "tunables-in-keys-only",
+      "description": "SPEC §5.3: tunable defaults are Keys constants; no tunable numeric literal outside class-keys.php (hook defaults, query sizes, proxy caps).",
+      "paths": [
+        "includes/",
+        "templates/"
+      ],
+      "exclude": [
+        "includes/class-keys.php"
+      ],
+      "pattern": "\\b52428800\\b|['\"](timeout|limit|number|count|numberposts|posts_per_page)['\"]\\s*=>\\s*[0-9]|Hooks::[a-z_]+\\(\\s*[0-9]+\\s*[,)]",
+      "shouldMatch": [
+        "$max = 52428800;",
+        "'timeout'  => 30,",
+        "'limit'      => 10,",
+        "'count' => 5,",
+        "$limit = Hooks::list_limit( 10 );",
+        "return Hooks::widget_summary_length( 20 );"
+      ],
+      "shouldNotMatch": [
+        "'timeout' => Hooks::proxy_timeout( Keys::DEFAULT_PROXY_TIMEOUT ),",
+        "'limit'      => Keys::DEFAULT_LIST_LIMIT,",
+        "'numberposts' => -1,",
+        "'posts_per_page' => - 1,",
+        "$length = Hooks::widget_summary_length( Keys::DEFAULT_WIDGET_SUMMARY_LENGTH );"
+      ]
+    },
+    {
+      "id": "url-policy-is-pure",
+      "description": "SPEC §3 P17 and §6.2: Url_Policy is a pure leaf; its WordPress dependencies arrive through its constructor, so it calls no WordPress function.",
+      "paths": [
+        "includes/class-url-policy.php"
+      ],
+      "pattern": "(?<![A-Za-z0-9_>:$\\\\])(wp_[a-z0-9_]+|home_url|site_url|get_[a-z0-9_]+|esc_[a-z0-9_]+|sanitize_[a-z0-9_]+|apply_filters|do_action|is_wp_error|__|_e)\\s*\\(",
+      "shouldMatch": [
+        "$host = wp_parse_url( $url, PHP_URL_HOST );",
+        "$home = home_url();",
+        "return get_option( 'siteurl' );",
+        "return esc_url_raw( $url );",
+        "if ( is_wp_error( $result ) ) {",
+        "$msg = __( 'Invalid', 'wp-publication-archive' );"
+      ],
+      "shouldNotMatch": [
+        "$parts = parse_url( $url ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- reason: leaf (P17)",
+        "return ( $this->is_safe_external )( $url );",
+        "return new \\WP_Error( Keys::ERR_INVALID_URL );",
+        "$host = $this->get_host( $url );",
+        "throw new NotImplementedException( __METHOD__ );"
+      ]
+    },
+    {
+      "id": "stub-form-exact",
+      "description": "SPEC §3 P5: a stub is exactly `throw new NotImplementedException( __METHOD__ );`.",
+      "paths": [
+        "includes/",
+        "templates/"
+      ],
+      "exclude": [
+        "includes/class-not-implemented-exception.php"
+      ],
+      "pattern": "new\\s+\\\\?(WPPA\\\\)?NotImplementedException\\s*\\((?!\\s*__METHOD__\\s*\\))",
+      "shouldMatch": [
+        "throw new NotImplementedException( 'later' );",
+        "throw new NotImplementedException();",
+        "throw new \\WPPA\\NotImplementedException( __FUNCTION__ );"
+      ],
+      "shouldNotMatch": [
+        "throw new NotImplementedException( __METHOD__ );",
+        "throw new \\WPPA\\NotImplementedException( __METHOD__ );"
+      ]
     }
   ]
 }
