@@ -22,7 +22,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-01 Contracts (1/2) — Keys, Hooks, Plugin wiring and signatures for Url_Policy, Dam_Bridge, Delivery and Streamer
 - [x] P1-02 Contracts (2/2) — DAM usage filter (D19) and the dam doctor row
 - [x] P1-03 Url_Policy::validate() and the §6.2 table test
-- [ ] P1-04 Meta box save and render through Url_Policy (D1 save, D2 save, D3 admin, D10)
+- [x] P1-04 Meta box save and render through Url_Policy (D1 save, D2 save, D3 admin, D10)
 - [ ] P1-05 Dam_Bridge withholding and display URL (D17, D18 at the bridge)
 - [ ] P1-06 Streamer::send() — the one temp-file readfile (P11, D6)
 - [ ] P1-07 Delivery per §6.2 — validate, withhold, redirect or proxy (D1 delivery, D17 end to end)
@@ -174,3 +174,10 @@ Implemented Url_Policy::validate() per §6.2's three steps: normalise, reject un
 test_d1_validate_table covers all ten §6.2 rows via a single dataProvider, each asserting both the accept/reject outcome and (for the 'never' rows) that the external validator callable was never invoked — proving same-site and malformed URLs short-circuit before reaching it.
 
 composer test:unit --filter Url_Policy, foundry_verify, and the full wp-env suite (WPPA_DAM=0 and with DAM) all green; P0-06/P0-07 characterisation unchanged.
+
+### P1-04 — 971eb8b
+save() now routes doc/image/alternate URLs through a new validated_url() helper (trim, Url_Policy::validate(), '' on \WP_Error) instead of esc_url_raw() — closes D1. Alternates loop bound fixed from <= to < — closes D10. Alternate descriptions and every raw $_POST value go through sanitize_text_field()/map_deep(...,'sanitize_text_field') — closes D2. render_doc()/render_thumb() now esc_attr() their stored values — closes D3 (admin). Removed every WordPress.Security phpcs:ignore from this file, as required, by making sanitization real (map_deep) rather than suppressing the sniff's false positive around Url_Policy::validate().
+
+Learned sanitize_text_field() strips <script>...</script> content entirely, not just the tags — test_d2 asserts 'English', not 'alert(1)English'.
+
+foundry_verify, composer test (with and without DAM), and Test_Meta_Boxes filtered run all green; P0-06/P0-07 characterisation unchanged.
