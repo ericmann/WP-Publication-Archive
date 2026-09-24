@@ -53,7 +53,7 @@ define( 'WP_PUB_ARCH_VERSION', \WPPA\Keys::VERSION );
 define( 'WP_PUB_ARCH_URL', plugin_dir_url( __FILE__ ) );
 define( 'WP_PUB_ARCH_DIR', plugin_dir_path( __FILE__ ) );
 
-register_activation_hook( __FILE__, array( \WP_Publication_Archive_Loader::class, 'activate' ) );
-register_deactivation_hook( __FILE__, array( \WP_Publication_Archive_Loader::class, 'deactivate' ) );
+register_activation_hook( __FILE__, array( \WPPA\Plugin::class, 'activate' ) );
+register_deactivation_hook( __FILE__, array( \WPPA\Plugin::class, 'deactivate' ) );
 
-\WP_Publication_Archive_Loader::load();
+\WPPA\Plugin::boot();

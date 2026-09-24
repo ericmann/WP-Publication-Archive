@@ -392,8 +392,6 @@ class WP_Publication_Archive {
 			wp_enqueue_script( 'media-upload' );
 			wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
-		} else {
-			wp_enqueue_style( 'wp-publication-archive-frontend', WP_PUB_ARCH_URL . 'includes/front-end.css', array(), WP_PUB_ARCH_VERSION, 'all' );
 		}
 	}
 

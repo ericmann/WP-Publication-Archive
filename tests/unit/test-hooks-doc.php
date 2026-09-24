@@ -36,4 +36,26 @@ class Test_Hooks_Doc extends \PHPUnit\Framework\TestCase {
 			);
 		}
 	}
+
+	public function test_every_documented_method_exists() {
+		$path = dirname( __DIR__, 2 ) . '/docs/HOOKS.md';
+		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown -- reason: local source file, not remote data.
+		$contents = file_get_contents( $path );
+
+		$this->assertNotFalse( $contents );
+
+		preg_match_all( '/^\|\s*`[^`]+`\s*\|\s*`([a-z_]+)`\s*\|/m', $contents, $matches );
+
+		$this->assertNotEmpty( $matches[1] );
+
+		foreach ( array_unique( $matches[1] ) as $method ) {
+			$this->assertTrue(
+				method_exists( \WPPA\Hooks::class, $method ),
+				sprintf( 'docs/HOOKS.md names Hooks::%s(), which does not exist', $method )
+			);
+
+			$reflection = new \ReflectionMethod( \WPPA\Hooks::class, $method );
+			$this->assertTrue( $reflection->isStatic() );
+		}
+	}
 }

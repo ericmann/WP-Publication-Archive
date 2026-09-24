@@ -31,13 +31,13 @@ that adds the corresponding static method fills it in. `Since` is the
 | `wpa-summary-length` | — | `int $length` | ≤ 3.0.1 |
 | `wpa-widget-summary-length` | — | `int $length` | ≤ 3.0.1 |
 | `wp_pubarch_open_in_blank` | — | `bool $open_in_blank` | ≤ 3.0.1 |
-| `wp-publication-archive-enabled` | — | `bool $enabled` (added in 3.1.0, template) | 3.1.0 |
+| `wp-publication-archive-enabled` | `filter_enabled` | `bool $enabled` (added in 3.1.0, template) | 3.1.0 |
 
 ## Exposed action
 
 | Hook | `Hooks::` method | Arguments | Since |
 |---|---|---|---|
-| `wppa_booted` | — | `\WPPA\Plugin $plugin` (added in 3.1.0, template) | 3.1.0 |
+| `wppa_booted` | `booted` | `\WPPA\Plugin $plugin` (added in 3.1.0, template) | 3.1.0 |
 
 ## Core hooks the plugin applies
 
