@@ -31,7 +31,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-01 Contracts (1/2) — Keys, Flags and Plugin for §6.1, §6.6 and §6.7; close D11 and D8's filter; Capabilities signatures; upgrade on init
 - [x] P2-02 Contracts (2/2) — Capabilities granted on activation and init
 - [x] P2-03 Post type and taxonomy in REST and the block editor (D12)
-- [ ] P2-04 Registered publication meta in REST (D12 meta, D1 via REST)
+- [x] P2-04 Registered publication meta in REST (D12 meta, D1 via REST)
 - [ ] P2-05 Rewrite rules — slug collisions (D5)
 - [ ] P2-06 Upgrade on init, once, with no per-request option writes (D9)
 - [ ] P2-07 admin-media.js replaces Thickbox and inline scripts (D13)
@@ -243,3 +243,10 @@ foundry_verify, composer test (with and without DAM, 273/255), and `wp publicati
 
 ### P2-03 — dc2a288
 Exposed publication CPT and publication-author taxonomy to REST/block editor (D12): show_in_rest+rest_base, capability_type=Keys::CAPABILITY_TYPE+map_meta_cap on the CPT; show_in_rest+public+query_var+rewrite on the taxonomy. Added Cli::rest_enabled_row() and extended rewrite_rules_present() to require a publication/author/ rule. Root-caused a baseline test failure: register_taxonomy() silently drops rewrite when permalink_structure is empty at call time (boot uses plain permalinks), so the taxonomy's rewrite struct never existed until Test_Cli's set_up() explicitly re-registers post type/taxonomy/rewrites and flushes under pretty permalinks. Fixed test_capability_type assertion to compare Keys::CAPABILITY_TYPE[0] since WP normalizes the public capability_type property to the singular string. foundry_verify all green; composer test (DAM=1, 280 tests) and composer test:unit both OK.
+
+### P2-04 — e3458a7
+Implemented Post_Type::register_meta() per §6.1: META_DOC/META_IMAGE (single string, show_in_rest schema type=string format=uri context=edit, auth_callback current_user_can('edit_post',$id), sanitize_callback Url_Policy::validate() storing '' on \WP_Error). META_ALTERNATES: single=false, type=object, schema properties description/url, same auth_callback; sanitize_alternate_meta() runs sanitize_text_field() on description and validate() on url. CPT gained 'custom-fields' support so register_post_meta() attaches.
+
+Tests added to tests/integration/test-post-type.php: REST reads (editor sees meta in edit context, anonymous does not), REST writes (local path -> '', same-site URL kept, alternates description sanitised + url validated, write denied for a user without edit_post), and a raw-DB test proving a pre-existing 3.0.1 pipe-form value is untouched until something writes it again (sanitize_callback only runs on write). set_up() now re-registers post_type() each test since WP_UnitTestCase's tear_down() calls unregister_all_meta_keys().
+
+foundry_verify green (all constraints, lint, analyse, test:map, test:unit). WPPA_DAM=0 composer test: 269/269 green (1 expected skip). Full DAM-loaded composer test showed 1 error + 2 failures, all in tests/integration/dam/test-dam-bridge-dam.php (D17/D18/D19 lifecycle/embargo tests) — file untouched by this task, unrelated to publication meta/REST, not reproduced by the task's own WPPA_DAM=0 verification command; likely environment/DB-contention flake on this machine (concurrent DB deadlock observed in the output). Left uninvestigated per this task's scope; worth a look if it recurs on a later DAM-touching task.
