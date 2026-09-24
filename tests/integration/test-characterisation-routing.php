@@ -52,7 +52,7 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 
 		global $wp_query;
 		$this->assertSame( 'attached-report', $wp_query->query_vars['publication'] );
-		$this->assertSame( 'yes', $wp_query->query_vars['wppa_open'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_OPEN ] );
 	}
 
 	public function test_download_url_sets_download_query_var() {
@@ -60,7 +60,7 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 
 		global $wp_query;
 		$this->assertSame( 'attached-report', $wp_query->query_vars['publication'] );
-		$this->assertSame( 'yes', $wp_query->query_vars['wppa_download'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_DOWNLOAD ] );
 	}
 
 	public function test_altview_url_sets_open_and_alt() {
@@ -68,8 +68,8 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 
 		global $wp_query;
 		$this->assertSame( 'alternates-report', $wp_query->query_vars['publication'] );
-		$this->assertSame( 'yes', $wp_query->query_vars['wppa_open'] );
-		$this->assertSame( 'English', $wp_query->query_vars['wppa_alt'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_OPEN ] );
+		$this->assertSame( 'English', $wp_query->query_vars[ Keys::QV_ALT ] );
 	}
 
 	public function test_altdown_url_sets_download_and_alt() {
@@ -77,8 +77,8 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 
 		global $wp_query;
 		$this->assertSame( 'alternates-report', $wp_query->query_vars['publication'] );
-		$this->assertSame( 'yes', $wp_query->query_vars['wppa_download'] );
-		$this->assertSame( 'English', $wp_query->query_vars['wppa_alt'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_DOWNLOAD ] );
+		$this->assertSame( 'English', $wp_query->query_vars[ Keys::QV_ALT ] );
 	}
 
 	public function test_category_url_lists_publications_in_category() {
@@ -95,7 +95,7 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 		$this->go_to( add_query_arg( array( 'publication' => 'attached-report', Keys::QV_OPEN => 'yes' ), home_url( '/' ) ) );
 
 		global $wp_query;
-		$this->assertSame( 'yes', $wp_query->query_vars['wppa_open'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_OPEN ] );
 		$this->assertSame( $this->data['attached'], get_queried_object_id() );
 	}
 
@@ -103,7 +103,7 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 		$this->go_to( add_query_arg( array( 'publication' => 'attached-report', Keys::QV_DOWNLOAD => 'yes' ), home_url( '/' ) ) );
 
 		global $wp_query;
-		$this->assertSame( 'yes', $wp_query->query_vars['wppa_download'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_DOWNLOAD ] );
 		$this->assertSame( $this->data['attached'], get_queried_object_id() );
 	}
 
@@ -120,7 +120,7 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 
 		global $wp_query;
 		$this->assertSame( 'view', $wp_query->query_vars['publication'] );
-		$this->assertArrayNotHasKey( 'wppa_open', $wp_query->query_vars );
+		$this->assertArrayNotHasKey( Keys::QV_OPEN, $wp_query->query_vars );
 		$this->assertSame( $this->data['slug_view'], get_queried_object_id() );
 	}
 
@@ -129,7 +129,7 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 
 		global $wp_query;
 		$this->assertSame( 'download', $wp_query->query_vars['publication'] );
-		$this->assertArrayNotHasKey( 'wppa_download', $wp_query->query_vars );
+		$this->assertArrayNotHasKey( Keys::QV_DOWNLOAD, $wp_query->query_vars );
 		$this->assertSame( $this->data['slug_download'], get_queried_object_id() );
 	}
 
@@ -138,7 +138,7 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 
 		global $wp_query;
 		$this->assertSame( 'attached-report', $wp_query->query_vars['publication'] );
-		$this->assertSame( 'yes', $wp_query->query_vars['wppa_open'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_OPEN ] );
 		$this->assertSame( $this->data['attached'], get_queried_object_id() );
 	}
 
@@ -168,7 +168,7 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 
 	/**
 	 * Pin (spec issues): with plain permalinks, get_link() appends the
-	 * literal endpoint name ("view"), not Keys::QV_OPEN ("wppa_open"), as a
+	 * literal endpoint name (view), not the value of Keys::QV_OPEN, as a
 	 * query arg on the post's own (query-string) permalink.
 	 */
 	public function test_open_link_with_plain_permalinks_matches_301() {
@@ -184,8 +184,8 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 	 * permalink) leaves the 'post_type_link' filter registered, because
 	 * get_link() only removes it for the duration of its own get_permalink()
 	 * call. Every later get_permalink() for any publication is hijacked by
-	 * publication_link(), which passes the query-var name 'wppa_open'
-	 * (Keys::QV_OPEN) as the endpoint, not 'view'.
+	 * publication_link(), which passes the value of Keys::QV_OPEN as the
+	 * endpoint, not view.
 	 */
 	public function test_permalink_after_link_generation_matches_301() {
 		\WP_Publication_Archive::get_open_link( $this->data['attached'] );
