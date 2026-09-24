@@ -1,8 +1,10 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: the 3.0.1 schema upgrade, run
- * directly from Plugin::boot() rather than a hook (D9 preserved until
- * P2-06).
+ * Implements SPEC.md §8 Phase 0 item 4 and §6.1: the 3.0.1 schema upgrade.
+ * D9 (P2-06): Plugin hooks maybe_upgrade() to init at
+ * Keys::UPGRADE_PRIORITY (after Post_Type/Rewrites register the current
+ * request's rules); it runs once, sets the schema option with autoload
+ * off, and does no option or rewrite work on any later request.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -22,7 +24,9 @@ final class Upgrade {
 	}
 
 	/**
-	 * Called directly by Plugin::boot(). Not hooked (D9).
+	 * Hooked to init at Keys::UPGRADE_PRIORITY, after Post_Type and Rewrites
+	 * have registered the rules for this request (D9). Writes no option and
+	 * flushes nothing when the schema is already current.
 	 */
 	public function maybe_upgrade(): void {
 		$from = $this->flags->schema_version();
@@ -32,9 +36,7 @@ final class Upgrade {
 
 			$this->flags->set_schema_version( Keys::SCHEMA_VERSION );
 
-			flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: 3.0.1 behaviour (D9), runs once per schema upgrade.
-		} else {
-			$this->flags->add_schema_version( Keys::SCHEMA_VERSION );
+			flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: 3.0.1 behaviour (D9), runs once per schema upgrade, soft flush per §6.1.
 		}
 	}
 

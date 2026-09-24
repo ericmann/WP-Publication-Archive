@@ -47,11 +47,7 @@ final class Flags {
 	}
 
 	public function set_schema_version( int $version ): void {
-		update_option( Keys::OPT_SCHEMA, $version );
-	}
-
-	public function add_schema_version( int $version ): void {
-		add_option( Keys::OPT_SCHEMA, $version, '', false );
+		update_option( Keys::OPT_SCHEMA, $version, false );
 	}
 
 	public function show_on_front(): string {
