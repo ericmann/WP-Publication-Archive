@@ -11,7 +11,9 @@ namespace WPPA\Tests;
 use WPPA\Keys;
 use WPPA\Legacy\Utilities;
 use WPPA\Publication_Item;
+use WPPA\Widgets\Archive_Widget;
 use WPPA\Widgets\Category_Count_Widget;
+use WPPA\Widgets\Related_Widget;
 
 class Test_Aliases extends \WP_UnitTestCase {
 
@@ -39,5 +41,30 @@ class Test_Aliases extends \WP_UnitTestCase {
 		$widget_reflection = new \ReflectionClass( Keys::LEGACY_CLASS_CAT_COUNT_WIDGET );
 		$this->assertSame( Category_Count_Widget::class, $widget_reflection->getName() );
 		$this->assertFalse( $widget_reflection->isFinal() );
+	}
+
+	public function test_widget_aliases_resolve_and_are_the_factory_keys() {
+		\WPPA\Plugin::instance()->register_widgets();
+
+		global $wp_widget_factory;
+
+		$this->assertTrue( class_exists( Keys::LEGACY_CLASS_ARCHIVE_WIDGET, false ) );
+		$this->assertTrue( class_exists( Keys::LEGACY_CLASS_RELATED_WIDGET, false ) );
+
+		$archive_reflection = new \ReflectionClass( Keys::LEGACY_CLASS_ARCHIVE_WIDGET );
+		$this->assertSame( Archive_Widget::class, $archive_reflection->getName() );
+		$this->assertFalse( $archive_reflection->isFinal() );
+
+		$related_reflection = new \ReflectionClass( Keys::LEGACY_CLASS_RELATED_WIDGET );
+		$this->assertSame( Related_Widget::class, $related_reflection->getName() );
+		$this->assertFalse( $related_reflection->isFinal() );
+
+		$this->assertArrayHasKey( Keys::LEGACY_CLASS_ARCHIVE_WIDGET, $wp_widget_factory->widgets );
+		$this->assertInstanceOf( Archive_Widget::class, $wp_widget_factory->widgets[ Keys::LEGACY_CLASS_ARCHIVE_WIDGET ] );
+		$this->assertSame( Keys::WIDGET_ARCHIVE_ID_BASE, $wp_widget_factory->widgets[ Keys::LEGACY_CLASS_ARCHIVE_WIDGET ]->id_base );
+
+		$this->assertArrayHasKey( Keys::LEGACY_CLASS_RELATED_WIDGET, $wp_widget_factory->widgets );
+		$this->assertInstanceOf( Related_Widget::class, $wp_widget_factory->widgets[ Keys::LEGACY_CLASS_RELATED_WIDGET ] );
+		$this->assertSame( Keys::WIDGET_RELATED_ID_BASE, $wp_widget_factory->widgets[ Keys::LEGACY_CLASS_RELATED_WIDGET ]->id_base );
 	}
 }

@@ -40,4 +40,24 @@ class Test_Post_Type extends \WP_UnitTestCase {
 		$this->assertFalse( $taxonomy->query_var );
 		$this->assertFalse( $taxonomy->rewrite );
 	}
+
+	public function test_query_matches_301_query_publications_defaults() {
+		$post_type = new \WPPA\Post_Type();
+
+		$query = $post_type->query( array() );
+
+		$this->assertInstanceOf( \WP_Query::class, $query );
+		$this->assertSame( -1, $query->get( 'posts_per_page' ) );
+		$this->assertSame( 'ASC', $query->get( 'order' ) );
+		$this->assertSame( 'menu_order', $query->get( 'orderby' ) );
+		$this->assertSame( Keys::POST_TYPE, $query->get( 'post_type' ) );
+	}
+
+	public function test_query_forces_post_type_even_when_overridden() {
+		$post_type = new \WPPA\Post_Type();
+
+		$query = $post_type->query( array( 'post_type' => 'post' ) );
+
+		$this->assertSame( Keys::POST_TYPE, $query->get( 'post_type' ) );
+	}
 }

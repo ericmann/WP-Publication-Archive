@@ -19,6 +19,25 @@ final class Post_Type {
 		$this->register_publication();
 	}
 
+	/**
+	 * 3.0.1 query_publications(). Utility function returning a WP_Query of
+	 * Publication posts.
+	 *
+	 * @param array<string, mixed> $args
+	 */
+	public function query( array $args ): \WP_Query {
+		$defaults = array(
+			'posts_per_page' => -1, // phpcs:ignore WordPressVIPMinimum.Performance.NoPaging.posts_per_page_posts_per_page -- reason: 3.0.1 behaviour, query_publications() default is unpaginated.
+			'order'          => 'ASC',
+			'orderby'        => 'menu_order',
+		);
+
+		$query_args              = wp_parse_args( $args, $defaults );
+		$query_args['post_type'] = Keys::POST_TYPE;
+
+		return new \WP_Query( $query_args );
+	}
+
 	private function register_publication(): void {
 		$labels = array(
 			'name'               => __( 'Publications', 'wp-publication-archive' ),

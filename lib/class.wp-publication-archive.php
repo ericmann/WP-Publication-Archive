@@ -342,18 +342,7 @@ class WP_Publication_Archive {
 	 * @since  2.5
 	 */
 	public static function query_publications( $args ) {
-		$defaults = array(
-			'posts_per_page' => - 1,
-			'order'          => 'ASC',
-			'orderby'        => 'menu_order'
-		);
-
-		$query_args              = wp_parse_args( $args, $defaults );
-		$query_args['post_type'] = 'publication';
-
-		$results = new WP_Query( $query_args );
-
-		return $results;
+		return \WPPA\Plugin::instance()->post_type()->query( $args );
 	}
 
 	/**

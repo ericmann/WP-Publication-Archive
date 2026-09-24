@@ -14,7 +14,11 @@
  * in P0-12; the category helpers (class.wp-publication-archive-utilities.php,
  * deleted) moved to WPPA\Categories/WPPA\Legacy\Utilities, and the
  * category-count widget (class.wp-publication-archive-cat-count-widget.php,
- * deleted) moved to WPPA\Widgets\Category_Count_Widget, in P0-13.
+ * deleted) moved to WPPA\Widgets\Category_Count_Widget, in P0-13; the
+ * archive widget (class.publication-widget.php, deleted) and the related
+ * widget (class.wp-publication-archive-category-widget.php, deleted) moved
+ * to WPPA\Widgets\Archive_Widget and WPPA\Widgets\Related_Widget, and
+ * query_publications() moved to WPPA\Post_Type::query(), in P0-14.
  *
  * `lib/` is transitional and is deleted by P0-15.
  */
@@ -36,7 +40,5 @@ class WP_Publication_Archive_Loader {
 		self::$loaded = true;
 
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive.php';
-		require_once WP_PUB_ARCH_DIR . 'lib/class.publication-widget.php';
-		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-category-widget.php';
 	}
 }
