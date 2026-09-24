@@ -46,7 +46,7 @@ class WP_Publication_Archive_Utilities {
 	 */
 	public static function create_instance() {
 		if ( is_a( self::$instance, 'WP_Publication_Archive_Utilities' ) ) {
-			throw new Exception( __( 'Utilities object already initialized', 'wp_pubarch_translate' ) );
+			throw new Exception( __( 'Utilities object already initialized', 'wp-publication-archive' ) );
 		}
 
 		self::$instance = new self();

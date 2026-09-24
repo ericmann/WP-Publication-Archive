@@ -61,4 +61,46 @@ class Test_Plugin extends \WP_UnitTestCase {
 		$this->assertTrue( class_exists( 'WP_Publication_Archive', false ) );
 		$this->assertTrue( post_type_exists( 'publication' ) );
 	}
+
+	/**
+	 * D4: fails on the pre-task code, where WP_Publication_Archive::search()
+	 * is added to posts_where_request.
+	 */
+	public function test_d4_no_plugin_callback_on_search_request_filters() {
+		foreach ( array( Keys::HOOK_POSTS_WHERE, Keys::HOOK_POSTS_JOIN, Keys::HOOK_POSTS_DISTINCT ) as $hook ) {
+			$plugin_callback_found = false;
+
+			if ( ! empty( $GLOBALS['wp_filter'][ $hook ] ) ) {
+				foreach ( $GLOBALS['wp_filter'][ $hook ]->callbacks as $callbacks ) {
+					foreach ( $callbacks as $callback ) {
+						$function = $callback['function'];
+
+						$class = is_array( $function ) ? ( is_object( $function[0] ) ? get_class( $function[0] ) : $function[0] ) : null;
+
+						if ( null !== $class && ( 0 === strpos( $class, 'WPPA' ) || 'WP_Publication_Archive' === $class ) ) {
+							$plugin_callback_found = true;
+						}
+					}
+				}
+			}
+
+			$this->assertFalse( $plugin_callback_found, 'Unexpected plugin callback on ' . $hook );
+		}
+	}
+
+	public function test_d4_legacy_search_methods_return_their_argument() {
+		$this->assertSame( 'where', \WP_Publication_Archive::search( 'where' ) );
+		$this->assertSame( 'join', \WP_Publication_Archive::search_join( 'join' ) );
+		$this->assertSame( 'distinct', \WP_Publication_Archive::search_distinct( 'distinct' ) );
+	}
+
+	public function test_model_and_routing_hooks_registered() {
+		$plugin = Plugin::instance();
+
+		$this->assertSame( 10, has_action( Keys::HOOK_INIT, array( $plugin->post_type(), 'register' ) ) );
+		$this->assertSame( 10, has_action( Keys::HOOK_INIT, array( $plugin->rewrites(), 'register' ) ) );
+		$this->assertSame( 10, has_action( Keys::HOOK_INIT, array( $plugin, 'load_textdomain' ) ) );
+		$this->assertSame( 10, has_filter( Keys::HOOK_QUERY_VARS, array( $plugin->rewrites(), 'query_vars' ) ) );
+		$this->assertSame( 10, has_filter( Keys::HOOK_POST_TYPE_LINK, array( $plugin->rewrites(), 'filter_post_type_link' ) ) );
+	}
 }

@@ -22,4 +22,8 @@ final class Hooks {
 	public static function booted( Plugin $plugin ): void {
 		do_action( Keys::ACTION_BOOTED, $plugin );
 	}
+
+	public static function content_save_pre( string $content ): string {
+		return (string) apply_filters( Keys::CORE_FILTER_CONTENT_SAVE_PRE, $content );
+	}
 }

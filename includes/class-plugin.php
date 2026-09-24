@@ -24,6 +24,12 @@ final class Plugin {
 
 	private Rest $rest;
 
+	private Post_Type $post_type;
+
+	private Rewrites $rewrites;
+
+	private Upgrade $upgrade;
+
 	private bool $hooks_registered = false;
 
 	/** @var list<array{type: string, hook: string, callback: callable, priority: int}> */
@@ -42,8 +48,10 @@ final class Plugin {
 
 		$instance->register_hooks();
 
+		$instance->upgrade->maybe_upgrade();
+
 		// Transitional: the 3.0.1 runtime is required and wired here until
-		// P0-15 moves its behaviour onto WPPA services.
+		// P0-15 moves its remaining behaviour onto WPPA services.
 		\WP_Publication_Archive_Loader::load();
 
 		Hooks::booted( $instance );
@@ -58,11 +66,14 @@ final class Plugin {
 	}
 
 	private function __construct() {
-		$this->clock  = new SystemClock();
-		$this->flags  = new Flags( $this->clock );
-		$this->assets = new Assets( $this->flags );
-		$this->cli    = new Cli( $this->flags );
-		$this->rest   = new Rest( $this->flags );
+		$this->clock     = new SystemClock();
+		$this->flags     = new Flags( $this->clock );
+		$this->assets    = new Assets( $this->flags );
+		$this->cli       = new Cli( $this->flags );
+		$this->rest      = new Rest( $this->flags );
+		$this->post_type = new Post_Type();
+		$this->rewrites  = new Rewrites( $this->flags );
+		$this->upgrade   = new Upgrade( $this->flags );
 	}
 
 	public function register_hooks(): void {
@@ -75,6 +86,17 @@ final class Plugin {
 		$this->add_hook( 'action', Keys::HOOK_ADMIN_ENQUEUE_SCRIPTS, array( $this->assets, 'register' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_CLI_INIT, array( $this, 'register_cli' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_REST_API_INIT, array( $this->rest, 'register_routes' ), 10, 1 );
+
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->post_type, 'register' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->rewrites, 'register' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this, 'load_textdomain' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_QUERY_VARS, array( $this->rewrites, 'query_vars' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_POST_TYPE_LINK, array( $this->rewrites, 'filter_post_type_link' ), 10, 2 );
+
+		// D11, preserved: only shown when PHP cannot fetch remote files.
+		if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {
+			$this->add_hook( 'action', Keys::HOOK_ADMIN_NOTICES, array( $this, 'fopen_notice' ), 10, 1 );
+		}
 
 		$this->hooks_registered = true;
 	}
@@ -117,6 +139,27 @@ final class Plugin {
 	}
 
 	/**
+	 * Hooked to init. No translation function may run before init
+	 * (WordPress 6.7 just-in-time notice).
+	 */
+	public function load_textdomain(): void {
+		load_plugin_textdomain(
+			Keys::TEXT_DOMAIN,
+			false,
+			dirname( plugin_basename( WP_PUB_ARCH_DIR . Keys::SLUG . '.php' ) ) . '/' . Keys::LANGUAGES_DIR
+		);
+	}
+
+	/**
+	 * Hooked to admin_notices, only when allow_url_fopen is off (D11).
+	 */
+	public function fopen_notice(): void {
+		echo '<div class="error"><p>' . wp_kses_post(
+			__( 'Please set <code>allow_url_fopen</code> to "On" in your PHP.ini file, otherwise WP Publication Archive downloads <strong>WILL NOT WORK!</strong>', 'wp-publication-archive' )
+		) . '<br /><a target="_blank" href="http://php.net/allow-url-fopen">' . esc_html__( 'More information ...', 'wp-publication-archive' ) . '</a></p></div>';
+	}
+
+	/**
 	 * Swap a service. Tests only.
 	 */
 	public function replace( string $service, object $with ): void {
@@ -139,6 +182,15 @@ final class Plugin {
 				break;
 			case 'rest':
 				$this->assign_service( $service, $with, Rest::class, $this->rest );
+				break;
+			case 'post_type':
+				$this->assign_service( $service, $with, Post_Type::class, $this->post_type );
+				break;
+			case 'rewrites':
+				$this->assign_service( $service, $with, Rewrites::class, $this->rewrites );
+				break;
+			case 'upgrade':
+				$this->assign_service( $service, $with, Upgrade::class, $this->upgrade );
 				break;
 			default:
 				throw new \InvalidArgumentException( 'Unknown service: ' . $service );
@@ -177,17 +229,27 @@ final class Plugin {
 		return $this->rest;
 	}
 
-	/**
-	 * Delegates to the 3.0.1 loader. Transitional until P0-15.
-	 */
-	public static function activate(): void {
-		\WP_Publication_Archive_Loader::activate();
+	public function post_type(): Post_Type {
+		return $this->post_type;
 	}
 
-	/**
-	 * Delegates to the 3.0.1 loader. Transitional until P0-15.
-	 */
+	public function rewrites(): Rewrites {
+		return $this->rewrites;
+	}
+
+	public function upgrade(): Upgrade {
+		return $this->upgrade;
+	}
+
+	public static function activate(): void {
+		$instance = self::instance();
+		$instance->post_type->register();
+		$instance->rewrites->register();
+
+		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: 3.0.1 behaviour, activation-only (SPEC §4.1).
+	}
+
 	public static function deactivate(): void {
-		\WP_Publication_Archive_Loader::deactivate();
+		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: 3.0.1 behaviour, deactivation-only (SPEC §4.1).
 	}
 }

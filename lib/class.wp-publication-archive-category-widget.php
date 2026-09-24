@@ -22,9 +22,9 @@ class WP_Publication_Archive_Category_Widget extends WP_Widget {
 	public function __construct() {
 		$widget_ops = array(
 			'classname'   => 'widget_pub_related',
-			'description' => __( 'A list of related publications (based on category).', 'wp_pubarch_translate' )
+			'description' => __( 'A list of related publications (based on category).', 'wp-publication-archive' )
 		);
-		parent::__construct( false, __( 'Related Publications', 'wp_pubarch_translate' ), $widget_ops );
+		parent::__construct( false, __( 'Related Publications', 'wp-publication-archive' ), $widget_ops );
 
 		$this->utilities = WP_Publication_Archive_Utilities::get_instance();
 	}
@@ -51,14 +51,14 @@ class WP_Publication_Archive_Category_Widget extends WP_Widget {
 		?>
 		<p>
 			<label
-				for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'wp_pubarch_translate' ); ?></label>
+				for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'wp-publication-archive' ); ?></label>
 			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
 			       name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>"/>
 		</p>
 
 		<p>
 			<label
-				for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show publication counts', 'wp_pubarch_translate' ); ?></label>
+				for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show publication counts', 'wp-publication-archive' ); ?></label>
 			<input class="widefat" id="<?php echo $this->get_field_id( 'count' ); ?>"
 			       name="<?php echo $this->get_field_name( 'count' ); ?>" type="text" value="<?php echo $count; ?>" />
 		</p>
@@ -88,7 +88,7 @@ class WP_Publication_Archive_Category_Widget extends WP_Widget {
 	 * @param array $instance
 	 */
 	public function widget( $args, $instance ) {
-		$title    = apply_filters( 'widget_title', empty( $instance['title'] ) ? __( 'Related Publications', 'wp_pubarch_translate' ) : $instance['title'], $instance, $this->id_base );
+		$title    = apply_filters( 'widget_title', empty( $instance['title'] ) ? __( 'Related Publications', 'wp-publication-archive' ) : $instance['title'], $instance, $this->id_base );
 		$count    = (int) $instance['count'];
 
 		echo $args['before_widget'];

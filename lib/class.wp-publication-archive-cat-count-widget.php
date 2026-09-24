@@ -24,9 +24,9 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 	public function __construct() {
 		$widget_ops = array(
 			'classname'   => 'widget_pub_categories',
-			'description' => __( 'A list or dropdown of publication categories.', 'wp_pubarch_translate' )
+			'description' => __( 'A list or dropdown of publication categories.', 'wp-publication-archive' )
 		);
-		parent::__construct( false, __( 'Publication Categories', 'wp_pubarch_translate' ), $widget_ops );
+		parent::__construct( false, __( 'Publication Categories', 'wp-publication-archive' ), $widget_ops );
 
 		$this->utilities = WP_Publication_Archive_Utilities::get_instance();
 	}
@@ -48,7 +48,7 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 		?>
 		<p>
 			<label
-				for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'wp_pubarch_translate' ); ?></label>
+				for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'wp-publication-archive' ); ?></label>
 			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
 			       name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>"/>
 		</p>
@@ -57,12 +57,12 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'dropdown' ); ?>"
 			       name="<?php echo $this->get_field_name( 'dropdown' ); ?>"<?php checked( $dropdown ); ?> />
 			<label
-				for="<?php echo $this->get_field_id( 'dropdown' ); ?>"><?php _e( 'Display as dropdown', 'wp_pubarch_translate' ); ?></label><br/>
+				for="<?php echo $this->get_field_id( 'dropdown' ); ?>"><?php _e( 'Display as dropdown', 'wp-publication-archive' ); ?></label><br/>
 
 			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>"
 			       name="<?php echo $this->get_field_name( 'count' ); ?>"<?php checked( $count ); ?> />
 			<label
-				for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show publication counts', 'wp_pubarch_translate' ); ?></label><br/>
+				for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show publication counts', 'wp-publication-archive' ); ?></label><br/>
 		</p>
 	<?php
 	}
@@ -91,7 +91,7 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 	 * @param array $instance
 	 */
 	public function widget( $args, $instance ) {
-		$title    = apply_filters( 'widget_title', empty( $instance['title'] ) ? __( 'Publication Categories', 'wp_pubarch_translate' ) : $instance['title'], $instance, $this->id_base );
+		$title    = apply_filters( 'widget_title', empty( $instance['title'] ) ? __( 'Publication Categories', 'wp-publication-archive' ) : $instance['title'], $instance, $this->id_base );
 		$count    = ! empty( $instance['count'] ) ? '1' : '0';
 		$dropdown = ! empty( $instance['dropdown'] ) ? '1' : '0';
 
@@ -102,7 +102,7 @@ class WP_Publication_Archive_Cat_Count_Widget extends WP_Widget {
 		$cat_args = array( 'orderby' => 'name', 'show_count' => $count );
 
 		if ( $dropdown ) {
-			$cat_args['show_option_none'] = __( 'Select Category', 'wp_pubarch_translate' );
+			$cat_args['show_option_none'] = __( 'Select Category', 'wp-publication-archive' );
 
 			$this->utilities->dropdown_categories( apply_filters( 'widget_categories_dropdown_args', $cat_args ) );
 			?>

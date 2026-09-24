@@ -288,9 +288,9 @@ class WP_Publication_Archive_Item {
 			$output .= 'target="_blank" ';
 		}
 		$output .= 'href="' . WP_Publication_Archive::get_open_link( $this->ID ) . '">';
-		$output .= __( 'View', 'wp_pubarch_translate' ) . '</a> | ';
+		$output .= __( 'View', 'wp-publication-archive' ) . '</a> | ';
 		$output .= '<a href="' . WP_Publication_Archive::get_download_link( $this->ID ) . '">';
-		$output .= __( 'Download', 'wp_pubarch_translate' ) . '</a>';
+		$output .= __( 'Download', 'wp-publication-archive' ) . '</a>';
 		$output .= '</span>';
 		$output .= '</div>';
 
@@ -404,13 +404,13 @@ class WP_Publication_Archive_Item {
 			return;
 		}
 
-		echo '<span class="title">' . __( 'Other Files:', 'wp_pubarch_translate' ) . ' </span>';
+		echo '<span class="title">' . __( 'Other Files:', 'wp-publication-archive' ) . ' </span>';
 		echo '<ul>';
 		foreach( $this->alternates as $alt ) {
 			echo '<li>';
 			echo '<strong>' . $alt['description'] . '</strong> &mdash; ';
-			echo '<a href="' . WP_Publication_Archive::get_alternate_open_link( $this->ID, $alt['description'] ) . '">' . __( 'View', 'wp_pubarch_translate' ) . '</a> | ';
-			echo '<a href="' . WP_Publication_Archive::get_alternate_download_link( $this->ID, $alt['description'] ) . '">' . __( 'Download', 'wp_pubarch_translate' ) . '</a>';
+			echo '<a href="' . WP_Publication_Archive::get_alternate_open_link( $this->ID, $alt['description'] ) . '">' . __( 'View', 'wp-publication-archive' ) . '</a> | ';
+			echo '<a href="' . WP_Publication_Archive::get_alternate_download_link( $this->ID, $alt['description'] ) . '">' . __( 'Download', 'wp-publication-archive' ) . '</a>';
 			echo '</li>';
 		}
 		echo '</ul>';

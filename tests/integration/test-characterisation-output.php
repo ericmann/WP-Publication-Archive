@@ -59,7 +59,7 @@ class Test_Characterisation_Output extends \WP_UnitTestCase {
 		$this->data['page_permalink'] = get_permalink( $page_id );
 
 		$GLOBALS['post'] = get_post( $page_id );
-		$this->go_to( add_query_arg( 'wpa-paged', 2, get_permalink( $page_id ) ) );
+		$this->go_to( add_query_arg( Keys::QV_PAGED, 2, get_permalink( $page_id ) ) );
 		$GLOBALS['post'] = get_post( $page_id );
 
 		$output = do_shortcode( '[' . Keys::SHORTCODE . ' showas="list" limit="2"]' );

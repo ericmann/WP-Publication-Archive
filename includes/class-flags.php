@@ -32,4 +32,25 @@ final class Flags {
 
 		return is_array( $rules ) ? $rules : array();
 	}
+
+	public function permalink_structure(): string {
+		return (string) get_option( 'permalink_structure' );
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function schema_version() {
+		$version = get_option( Keys::OPT_SCHEMA );
+
+		return false === $version ? null : (int) $version;
+	}
+
+	public function set_schema_version( int $version ): void {
+		update_option( Keys::OPT_SCHEMA, $version );
+	}
+
+	public function add_schema_version( int $version ): void {
+		add_option( Keys::OPT_SCHEMA, $version, '', false );
+	}
 }

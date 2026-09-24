@@ -52,7 +52,7 @@ These are WordPress core filters the plugin calls with `apply_filters()`
 | `widget_categories_args` | — | `array $cat_args` | ≤ 3.0.1 |
 | `widget_categories_dropdown_args` | — | `array $cat_args` | ≤ 3.0.1 |
 | `wp_list_categories` | — | `string $output, array $args` | ≤ 3.0.1 |
-| `content_save_pre` | — | `string $content` | ≤ 3.0.1 |
+| `content_save_pre` | `content_save_pre` | `string $content` | ≤ 3.0.1 |
 
 ## Consumed hooks
 
