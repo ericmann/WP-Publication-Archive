@@ -3,7 +3,7 @@ Branch: build/2026-09-24
 Started: 2026-09-24T15:54:27.940Z
 
 ## Tasks
-- [ ] P0-01 Toolchain, minimal Keys, and the 3.0.1 runtime behind a transitional loader
+- [x] P0-01 Toolchain, minimal Keys, and the 3.0.1 runtime behind a transitional loader
 - [ ] P0-02 Keys inventory, Clock, and docs/HOOKS.md
 - [ ] P0-03 Flags, Hooks, Plugin and Assets; front-end stylesheet moves to assets/css/base.css
 - [ ] P0-04 Cli doctor, REST lineage route, humans.txt, docs, the v3 fixture and smoke tests
@@ -44,3 +44,10 @@ Started: 2026-09-24T15:54:27.940Z
 
 ## Log
 (one entry per task, appended by implement)
+
+### P0-01 — 7b2e8f0
+Added template toolchain (composer.json, package.json, phpcs.xml.dist, phpstan.neon.dist+bootstrap, phpunit.xml.dist, .wp-env.json, bin/*, .github/workflows/verify.yml) and minimal Keys/NotImplementedException in the WPPA namespace. Moved the 3.0.1 runtime behind lib/class.wp-publication-archive-loader.php (idempotent load(), init(), activate(), deactivate(), fopen_disabled()); bootstrap wp-publication-archive.php now only defines legacy constants, registers activation/deactivation hooks and calls Loader::load() - no functions, add_*, options, or 'lib/' string. Moved the five includes/*.php templates to lib/templates/ and repointed the three WP_PUB_ARCH_DIR . 'includes/' fallbacks (find_template in utilities.php, widget() in publication-widget.php, shortcode_handler in wp-publication-archive.php) to 'lib/templates/'. includes/front-end.css intentionally untouched (asset URL, not a template fallback).
+Interpretation: dropped the template's multisite branch/SITES entirely from bin/wp-env.conf and bin/setup-wp-env.sh per the SPEC import instructions (drop multisite fixture). Loader::activate() calls only init(), matching 3.0.1's wp_pubarch_activate() (load() already ran when the bootstrap executed for the request).
+Composer resolved wp-phpunit ^6.7 + phpunit 9.6 + polyfills ^3.0 on PHP platform 7.4.0 without needing the Q1 fallback.
+Verified: composer lint/analyse/test:map/test:unit all green; wp-env cli shows plugin active and post_type_exists('publication') true; composer test (WPPA_DAM=0) 11/11 green in tests-cli; foundry_verify all-green including every constraint.
+Note: local docker was already using ports 8888/8889 from an unrelated project; used WP_ENV_PORT=18888/WP_ENV_TESTS_PORT=18889 for local wp-env runs only (not committed anywhere, .wp-env.json unchanged).
