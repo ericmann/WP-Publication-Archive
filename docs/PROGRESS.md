@@ -21,7 +21,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P0-16 Gate 0 — foundation verified, constraints locked, branch pushed
 - [x] P1-01 Contracts (1/2) — Keys, Hooks, Plugin wiring and signatures for Url_Policy, Dam_Bridge, Delivery and Streamer
 - [x] P1-02 Contracts (2/2) — DAM usage filter (D19) and the dam doctor row
-- [ ] P1-03 Url_Policy::validate() and the §6.2 table test
+- [x] P1-03 Url_Policy::validate() and the §6.2 table test
 - [ ] P1-04 Meta box save and render through Url_Policy (D1 save, D2 save, D3 admin, D10)
 - [ ] P1-05 Dam_Bridge withholding and display URL (D17, D18 at the bridge)
 - [ ] P1-06 Streamer::send() — the one temp-file readfile (P11, D6)
@@ -167,3 +167,10 @@ Implemented Dam_Bridge::active()/version()/attachment_id_for()/indexed_attachmen
 Learned the DAM's own extraction (extract_meta_attachment_ids()) only matches upload URLs that literally contain the site's base upload URL as a substring — the http|/https| pipe form never matches, confirming D19 and that our filter (adding attachment_id_for() of the normalised doc/image/each alternate url) is the fix. Used Usage_Index::index_post() (public static) to force-reindex posts whose meta was written via V3_Site::raw_meta() (which bypasses save_post), and VIP\DAM\Abilities\Media_Delete::execute() to prove the DAM refuses to delete an attachment a publication still references (asset_in_use).
 
 foundry_verify (DAM loaded, both new constraints self-tested), composer test with and without DAM, wp publication-archive doctor (shows "4.0.2, usage filter attached") all green.
+
+### P1-03 — 640ccea
+Implemented Url_Policy::validate() per §6.2's three steps: normalise, reject unless parse_url() gives scheme http/https and a non-empty host, accept if is_same_site() else accept only when the constructor's $is_safe_external($url) is true; returns the normalised URL on success or new \WP_Error(Keys::ERR_INVALID_URL) on rejection.
+
+test_d1_validate_table covers all ten §6.2 rows via a single dataProvider, each asserting both the accept/reject outcome and (for the 'never' rows) that the external validator callable was never invoked — proving same-site and malformed URLs short-circuit before reaching it.
+
+composer test:unit --filter Url_Policy, foundry_verify, and the full wp-env suite (WPPA_DAM=0 and with DAM) all green; P0-06/P0-07 characterisation unchanged.
