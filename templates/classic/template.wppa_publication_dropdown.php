@@ -29,7 +29,7 @@ $publications = $wppa_container['publications'];
 		<select name="dropdown" onchange="window.location.href=this.form.dropdown.options[this.form.dropdown.selectedIndex].value">
 			<option value=""><?php _e( 'Select file', 'wp-publication-archive' ); ?></option>
 <?php foreach( $publications as $publication ) { ?>
-			<option value="<?php echo esc_url( WP_Publication_Archive::get_open_link( $publication->ID ) ); ?>"><?php echo $publication->post_title; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), post_title echoed unescaped. ?></option>
+			<option value="<?php echo esc_attr( esc_url( WP_Publication_Archive::get_open_link( $publication->ID ) ) ); ?>"><?php echo esc_html( $publication->post_title ); ?></option>
 <?php } ?>
 		</select>
 	</form>

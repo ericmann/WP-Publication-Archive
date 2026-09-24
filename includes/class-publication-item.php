@@ -1,8 +1,9 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: 3.0.1's WP_Publication_Archive_Item,
- * aliased as WP_Publication_Archive_Item by includes/legacy/class-aliases.php.
- * The open D2, D3 and D7 defects are preserved; they close in Phase 1/2.
+ * Implements SPEC.md §8 Phase 0 item 4 and §6.9: 3.0.1's
+ * WP_Publication_Archive_Item, aliased as WP_Publication_Archive_Item by
+ * includes/legacy/class-aliases.php. P1-08 closes D2 (output) and D3
+ * (front); D7 (date formatting) stays open until P2-08.
  * Not final, same public properties/methods/parameters/defaults as
  * e913681's class.publication-markup.php (formerly under the pre-restructure
  * runtime directory, since removed), phpdoc types only (Decisions).
@@ -168,8 +169,8 @@ class Publication_Item {
 	 * @return string
 	 */
 	public function get_the_title( $before = '<div class="publication_title">', $after = '</div>' ) {
-		$title = '<a href="' . get_permalink( $this->ID ) . '">';
-		$title .= Hooks::item_title( $this->title, $this->ID );
+		$title = '<a href="' . esc_url( (string) get_permalink( $this->ID ) ) . '">';
+		$title .= esc_html( (string) Hooks::item_title( $this->title, $this->ID ) );
 		$title .= '</a>';
 
 		return $before . $title . $after;
@@ -183,7 +184,7 @@ class Publication_Item {
 	 * @return void
 	 */
 	public function the_title() {
-		echo $this->get_the_title(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), filtered title echoed unescaped.
+		echo wp_kses_post( $this->get_the_title() );
 	}
 
 	/**
@@ -195,13 +196,20 @@ class Publication_Item {
 	 * @return string
 	 */
 	public function get_the_thumbnail( $before = '<div class="publication_thumbnail">', $after = '</div>' ) {
-		$thumb = Hooks::item_upload_image( $this->upload_image, $this->ID );
+		$thumb = (string) Hooks::item_upload_image( $this->upload_image, $this->ID );
 
 		if ( '' == trim( $thumb ) ) {
 			return '';
 		}
 
-		return $before . '<img src="' . $thumb . '" />' . $after;
+		$thumb = Plugin::instance()->dam_bridge()->display_url( $thumb );
+
+		// D18: display_url() may return the DAM's data: URI placeholder for
+		// a withheld image; esc_url()'s default protocol allowlist doesn't
+		// include 'data', so it is added explicitly here.
+		$protocols = array_merge( wp_allowed_protocols(), array( 'data' ) );
+
+		return $before . '<img src="' . esc_url( $thumb, $protocols ) . '" />' . $after;
 	}
 
 	/**
@@ -212,7 +220,7 @@ class Publication_Item {
 	 * @return void
 	 */
 	public function the_thumbnail() {
-		echo $this->get_the_thumbnail(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), filtered thumbnail URL echoed unescaped into src.
+		echo wp_kses_post( $this->get_the_thumbnail() );
 	}
 
 	/**
@@ -397,9 +405,9 @@ class Publication_Item {
 	}
 
 	/**
-	 * List out the downloads associated with this publication. D2 (SPEC
-	 * §1.1): alternate descriptions are stored unsanitized and echoed here
-	 * unescaped.
+	 * List out the downloads associated with this publication. D2 closes
+	 * here: alternate descriptions (still stored unsanitized, D2 save) are
+	 * escaped at the point of echo.
 	 *
 	 * @return void
 	 */
@@ -412,7 +420,7 @@ class Publication_Item {
 		echo '<ul>';
 		foreach ( $this->alternates as $alt ) {
 			echo '<li>';
-			echo '<strong>' . $alt['description'] . '</strong> &mdash; '; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D2 (SPEC §1.1), alternate description echoed unescaped.
+			echo '<strong>' . esc_html( $alt['description'] ) . '</strong> &mdash; ';
 			echo '<a href="' . esc_url( Plugin::instance()->rewrites()->alternate_open_link( $this->ID, $alt['description'] ) ) . '">' . esc_html__( 'View', 'wp-publication-archive' ) . '</a> | ';
 			echo '<a href="' . esc_url( Plugin::instance()->rewrites()->alternate_download_link( $this->ID, $alt['description'] ) ) . '">' . esc_html__( 'Download', 'wp-publication-archive' ) . '</a>';
 			echo '</li>';

@@ -1,7 +1,8 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: 3.0.1's WP_Publication_Archive_Item,
- * now WPPA\Publication_Item, with D2, D3 and D7 preserved.
+ * Implements SPEC.md §8 Phase 0 item 4 and §6.9: 3.0.1's
+ * WP_Publication_Archive_Item, now WPPA\Publication_Item. P1-08 closes D2
+ * (output) and D3 (front); D7 stays open until P2-08.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -9,6 +10,7 @@
 namespace WPPA\Tests;
 
 use WPPA\Keys;
+use WPPA\Plugin;
 use WPPA\Publication_Item;
 use WPPA\Tests\Fixtures\V3_Site;
 
@@ -89,5 +91,83 @@ class Test_Publication_Item extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'English', $output );
 		$this->assertStringContainsString( __( 'View', 'wp-publication-archive' ), $output );
 		$this->assertStringContainsString( __( 'Download', 'wp-publication-archive' ), $output );
+	}
+
+	public function test_d2_script_alternate_description_renders_escaped() {
+		$item = new Publication_Item( $this->data['alternates'] );
+
+		ob_start();
+		$item->list_downloads();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '&lt;script&gt;alert(1)&lt;/script&gt;', $output );
+		$this->assertStringNotContainsString( '<script>alert(1)', $output );
+	}
+
+	public function test_d3_thumbnail_url_is_escaped() {
+		$id = self::factory()->post->create( array( 'post_type' => Keys::POST_TYPE ) );
+		V3_Site::raw_meta( $id, Keys::META_IMAGE, 'x" onerror="alert(1)' );
+
+		$item = new Publication_Item( $id );
+
+		$output = $item->get_the_thumbnail();
+
+		$this->assertStringNotContainsString( 'onerror="alert(1)', $output );
+	}
+
+	public function test_d3_filtered_title_is_escaped() {
+		add_filter(
+			Keys::FILTER_TITLE,
+			static function () {
+				return '<b>Bold</b> Title';
+			}
+		);
+
+		$item = new Publication_Item( $this->data['attached'] );
+
+		$output = $item->get_the_title();
+
+		$this->assertStringContainsString( '&lt;b&gt;Bold&lt;/b&gt; Title', $output );
+		$this->assertStringNotContainsString( '<b>Bold</b>', $output );
+
+		remove_all_filters( Keys::FILTER_TITLE );
+	}
+
+	public function test_d3_dropdown_escapes_post_title() {
+		global $wpdb;
+
+		$id = self::factory()->post->create(
+			array(
+				'post_type'   => Keys::POST_TYPE,
+				'post_title'  => 'Plain title',
+				'post_status' => 'publish',
+			)
+		);
+		V3_Site::raw_meta( $id, Keys::META_DOC, $this->data['attachment_url'] );
+
+		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- reason: test-only, writes a raw 3.0.1-shaped post_title the same way V3_Site::raw_meta() writes meta.
+			$wpdb->posts,
+			array( 'post_title' => '<b>Bold</b> Title' ),
+			array( 'ID' => $id )
+		);
+		clean_post_cache( $id );
+
+		$output = do_shortcode( '[' . Keys::SHORTCODE . ' showas="dropdown"]' );
+
+		$this->assertStringContainsString( '&lt;b&gt;Bold&lt;/b&gt; Title', $output );
+		$this->assertStringNotContainsString( '<b>Bold</b>', $output );
+	}
+
+	/**
+	 * @group nodam
+	 */
+	public function test_thumbnail_passes_through_display_url_unchanged_without_dam() {
+		$item = new Publication_Item( $this->data['thumbnail'] );
+
+		$this->assertFalse( Plugin::instance()->dam_bridge()->active() );
+
+		$output = $item->get_the_thumbnail();
+
+		$this->assertStringContainsString( 'src="' . esc_url( (string) $item->upload_image ) . '"', $output );
 	}
 }
