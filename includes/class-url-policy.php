@@ -67,9 +67,31 @@ final class Url_Policy {
 	}
 
 	/**
+	 * SPEC §6.2: 1. normalise(); 2. reject unless the scheme is http/https
+	 * and the host is non-empty; 3. accept if is_same_site(), otherwise
+	 * accept only if the constructor's $is_safe_external accepts it. On
+	 * success, returns the normalised URL.
+	 *
 	 * @return string|\WP_Error
 	 */
 	public function validate( string $url ) {
-		throw new NotImplementedException( __METHOD__ );
+		$normalised = $this->normalise( $url );
+
+		$scheme = parse_url( $normalised, PHP_URL_SCHEME ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- reason: leaf may not call WordPress (SPEC §3 P17)
+		$host   = parse_url( $normalised, PHP_URL_HOST ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- reason: leaf may not call WordPress (SPEC §3 P17)
+
+		if ( ! in_array( $scheme, array( 'http', 'https' ), true ) || ! is_string( $host ) || '' === $host ) {
+			return new \WP_Error( Keys::ERR_INVALID_URL );
+		}
+
+		if ( $this->is_same_site( $normalised ) ) {
+			return $normalised;
+		}
+
+		if ( ( $this->is_safe_external )( $normalised ) ) {
+			return $normalised;
+		}
+
+		return new \WP_Error( Keys::ERR_INVALID_URL );
 	}
 }
