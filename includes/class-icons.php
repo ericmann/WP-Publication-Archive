@@ -86,6 +86,6 @@ final class Icons {
 		$path = (string) wp_parse_url( $name, PHP_URL_PATH );
 		$type = wp_check_filetype( basename( $path ) )['type'];
 
-		return false === $type ? 'application/octet-stream' : $type;
+		return false === $type ? Keys::CONTENT_TYPE_FALLBACK : $type;
 	}
 }

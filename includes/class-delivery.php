@@ -1,8 +1,10 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: the 3.0.1 view and download
- * endpoints (`open_file()`/`download_file()`), ported onto Streamer and
- * Icons. D1, D6 and D17 fixes are Phase 1.
+ * Implements SPEC.md §6.2: the view and download endpoints. Every request
+ * validates its stored URL through Url_Policy and checks Dam_Bridge before
+ * it leaves this class, so an invalid or DAM-withheld file 404s instead of
+ * leaking bytes (D1, D17). Default mode redirects; opt-in proxy mode
+ * streams through a temp file via Streamer::send() (P1-06).
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -22,16 +24,21 @@ final class Delivery {
 	/** @var callable */
 	private $exit;
 
-	/** @var callable */
-	private $header;
-
 	/**
-	 * Set only while a redirect to $redirect_host is in progress (P1-07,
-	 * P3); read by allowed_redirect_hosts(), which is on a live hook.
+	 * Set only while a redirect to $redirect_host is in progress (P3); read
+	 * by allowed_redirect_hosts(), which is on a live hook.
 	 */
 	private ?string $redirect_host = null;
 
+	/**
+	 * $header is accepted for constructor-signature compatibility with
+	 * Streamer and older tests, but Delivery no longer emits headers
+	 * itself: wp_safe_redirect() sets its own, and the proxy path's headers
+	 * go through Streamer::send() instead. It may be left unused.
+	 */
 	public function __construct( Url_Policy $policy, Streamer $streamer, Dam_Bridge $dam, Icons $icons, ?callable $exit = null, ?callable $header = null ) {
+		unset( $header );
+
 		$this->policy   = $policy;
 		$this->streamer = $streamer;
 		$this->dam      = $dam;
@@ -39,7 +46,6 @@ final class Delivery {
 		$this->exit     = $exit ?? static function () {
 			exit;
 		};
-		$this->header   = $header ?? 'header';
 	}
 
 	public function policy(): Url_Policy {
@@ -61,8 +67,8 @@ final class Delivery {
 	/**
 	 * Hooked to allowed_redirect_hosts. Adds the host wp_safe_redirect() is
 	 * about to send the client to, but only while such a redirect is in
-	 * progress (P1-07 sets/clears $redirect_host in try/finally around
-	 * wp_safe_redirect()); otherwise returns $hosts unchanged.
+	 * progress ($redirect_host is set/cleared in try/finally around
+	 * wp_safe_redirect() by redirect()); otherwise returns $hosts unchanged.
 	 *
 	 * @param array<int, string> $hosts
 	 *
@@ -80,9 +86,8 @@ final class Delivery {
 
 	/**
 	 * Runs $render() with $host added to allowed_redirect_hosts() for the
-	 * duration of the call. P1-07 wraps its wp_safe_redirect() with this
-	 * (P3), so wp_safe_redirect() accepts a host it has not been told about
-	 * in advance.
+	 * duration of the call (P3), so wp_safe_redirect() accepts a host it
+	 * has not been told about in advance.
 	 */
 	public function with_redirect_host( string $host, callable $render ): void {
 		$this->redirect_host = $host;
@@ -113,125 +118,155 @@ final class Delivery {
 	 * 3.0.1 WP_Publication_Archive::open_file().
 	 */
 	public function open(): void {
-		if ( '' === (string) get_query_var( Keys::QV_OPEN ) ) {
-			return;
-		}
-
-		$uri = $this->resolve_uri();
-		$uri = Hooks::open_url( $uri );
-
-		if ( empty( $uri ) ) {
-			return;
-		}
-
-		if ( Hooks::mask_url( true ) ) {
-			$this->stream(
-				$uri,
-				array(
-					'HTTP/1.1 200 OK',
-					'Expires: Wed, 9 Nov 1983 05:00:00 GMT',
-				)
-			);
-		} else {
-			$this->redirect( $uri );
-		}
+		$this->deliver( Keys::QV_OPEN, false );
 	}
 
 	/**
 	 * 3.0.1 WP_Publication_Archive::download_file().
 	 */
 	public function download(): void {
-		if ( '' === (string) get_query_var( Keys::QV_DOWNLOAD ) ) {
-			return;
-		}
-
-		$uri = $this->resolve_uri();
-		$uri = Hooks::download_url( $uri );
-
-		if ( empty( $uri ) ) {
-			return;
-		}
-
-		if ( Hooks::mask_url( true ) ) {
-			$this->stream(
-				$uri,
-				array(
-					'HTTP/1.1 200 OK',
-					'Expires: Wed, 9 Nov 1983 05:00:00 GMT',
-					'Content-Disposition: attachment; filename=' . basename( $uri ),
-				)
-			);
-		} else {
-			$this->redirect( $uri );
-		}
+		$this->deliver( Keys::QV_DOWNLOAD, true );
 	}
 
 	/**
-	 * @return string
+	 * SPEC §6.2 Delivery::handle() steps, shared by open() and download().
 	 */
-	private function resolve_uri() {
-		$publication = new Publication_Item( get_post() );
+	private function deliver( string $query_var, bool $is_download ): void {
+		if ( '' === (string) get_query_var( $query_var ) ) {
+			return;
+		}
 
-		$uri = '';
+		$post = get_post();
+
+		if ( null === $post ) {
+			return;
+		}
+
+		$uri = $this->policy->normalise( $this->resolve_uri( $post ) );
+		$uri = $is_download ? Hooks::download_url( $uri ) : Hooks::open_url( $uri );
+
+		$validated = $this->policy->validate( $uri );
+
+		if ( ! is_string( $validated ) ) {
+			wp_die( esc_html__( 'File not found.', 'wp-publication-archive' ), '', array( 'response' => 404 ) );
+		}
+
+		if ( $this->dam->is_withheld( $validated ) ) {
+			wp_die( esc_html__( 'File not found.', 'wp-publication-archive' ), '', array( 'response' => 404 ) );
+		}
+
+		if ( 'redirect' === self::decide( Hooks::mask_url( Keys::DEFAULT_MASK_URL ), null, 0 ) ) {
+			$this->redirect( $validated );
+
+			return;
+		}
+
+		$this->proxy( $validated, $is_download );
+	}
+
+	/**
+	 * 3.0.1 key semantics: the stored doc URL, or the alternate whose
+	 * description equals urldecode( QV_ALT ).
+	 */
+	private function resolve_uri( \WP_Post $post ): string {
+		$publication = new Publication_Item( $post );
 
 		$alt = get_query_var( Keys::QV_ALT );
 
-		if ( '' !== (string) $alt ) {
-			foreach ( $publication->alternates as $candidate ) {
-				if ( urldecode( (string) $alt ) === $candidate['description'] ) {
-					$uri = $candidate['url'];
-					break;
-				}
-			}
-		} else {
-			$uri = str_replace( 'http|', 'http://', $publication->uri );
-			$uri = str_replace( 'https|', 'https://', $uri );
+		if ( '' === (string) $alt ) {
+			return (string) $publication->uri;
 		}
 
-		return $uri;
+		foreach ( $publication->alternates as $candidate ) {
+			if ( urldecode( (string) $alt ) === $candidate['description'] ) {
+				return (string) $candidate['url'];
+			}
+		}
+
+		return '';
+	}
+
+	private function redirect( string $url ): void {
+		$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+
+		$this->with_redirect_host(
+			$host,
+			static function () use ( $url ) {
+				wp_safe_redirect( $url, 302 ); // phpcs:ignore WordPressVIPMinimum.Security.ExitAfterRedirect.NoExit -- reason: the exit callable runs in redirect(), right after with_redirect_host() returns; the sniff can't see across this closure boundary.
+			}
+		);
+
+		( $this->exit )();
+	}
+
+	private function proxy( string $url, bool $is_download ): void {
+		$timeout = Hooks::proxy_timeout( Keys::DEFAULT_PROXY_TIMEOUT );
+
+		$head = wp_safe_remote_head( $url, array( 'timeout' => $timeout ) );
+
+		$content_length = null;
+
+		if ( ! is_wp_error( $head ) ) {
+			$content_length_header = wp_remote_retrieve_header( $head, 'content-length' );
+
+			if ( '' !== $content_length_header ) {
+				$content_length = (int) $content_length_header;
+			}
+		}
+
+		if ( 'redirect' === self::decide( true, $content_length, Hooks::proxy_max_bytes( Keys::DEFAULT_PROXY_MAX_BYTES ) ) ) {
+			$this->redirect( $url );
+
+			return;
+		}
+
+		$tmp = wp_tempnam( basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) );
+
+		$response = wp_safe_remote_get(
+			$url,
+			array(
+				'stream'   => true,
+				'filename' => $tmp,
+				'timeout'  => $timeout,
+			)
+		);
+
+		$code = wp_remote_retrieve_response_code( $response );
+
+		if ( is_wp_error( $response ) || (int) $code < 200 || (int) $code >= 300 ) {
+			if ( file_exists( $tmp ) ) {
+				wp_delete_file( $tmp );
+			}
+
+			$this->redirect( $url );
+
+			return;
+		}
+
+		$content_type = $this->icons->mime_for( $url );
+
+		if ( Keys::CONTENT_TYPE_FALLBACK === $content_type ) {
+			$response_type = wp_remote_retrieve_header( $response, 'content-type' );
+			$content_type  = '' !== $response_type ? (string) $response_type : Keys::CONTENT_TYPE_FALLBACK;
+		}
+
+		$filename = $is_download ? sanitize_file_name( basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) ) : null;
+
+		$this->streamer->send( $tmp, $content_type, $filename );
 	}
 
 	/**
-	 * @param array<int, string> $leading_headers
+	 * The pure redirect-or-proxy decision (unit tested).
 	 */
-	private function stream( string $uri, array $leading_headers ): void {
-		$content_length = false;
-		$last_modified  = false;
-
-		$request = wp_safe_remote_head( $uri );
-
-		if ( ! is_wp_error( $request ) ) {
-			$headers = wp_remote_retrieve_headers( $request );
-
-			if ( isset( $headers['content-length'] ) ) {
-				$content_length = $headers['content-length'];
-			}
-
-			if ( isset( $headers['last-modified'] ) ) {
-				$last_modified = $headers['last-modified'];
-			}
+	public static function decide( bool $mask, ?int $content_length, int $max_bytes ): string {
+		if ( ! $mask ) {
+			return 'redirect';
 		}
 
-		$headers = $leading_headers;
-
-		$headers[] = 'Content-type: ' . $this->icons->mime_for( basename( $uri ) );
-		$headers[] = 'Content-Transfer-Encoding: binary';
-
-		if ( false !== $content_length ) {
-			$headers[] = 'Content-Length: ' . $content_length;
+		if ( null !== $content_length && $content_length > $max_bytes ) {
+			return 'redirect';
 		}
 
-		if ( false !== $last_modified ) {
-			$headers[] = 'Last-Modified: ' . $last_modified;
-		}
-
-		$this->streamer->passthrough( $uri, $headers );
-	}
-
-	private function redirect( string $uri ): void {
-		( $this->header )( 'HTTP/1.1 303 See Other' );
-		( $this->header )( 'Location: ' . $uri );
-
-		( $this->exit )();
+		return 'proxy';
 	}
 }

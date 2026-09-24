@@ -1,9 +1,9 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: the interim 3.0.1 proxy transfer.
- * The one `readfile(` in the plugin (P11); D1 and D6 (a remote URL streamed
- * straight to the client with no size cap or local temp file) are preserved
- * until Phase 1.
+ * Implements SPEC.md §6.2 Streamer::send(): the plugin's one file-read call
+ * (P11). D1 and D6 (a remote URL streamed straight to the client
+ * with no size cap or local temp file) close in P1-07: Delivery now proxies
+ * only through a temp file this class owns and deletes.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -37,21 +37,6 @@ final class Streamer {
 
 	public function ob_floor(): int {
 		return $this->ob_floor;
-	}
-
-	/**
-	 * @param array<int, string> $headers
-	 */
-	public function passthrough( string $uri, array $headers ): void {
-		foreach ( $headers as $line ) {
-			( $this->header )( $line );
-		}
-
-		ob_clean(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.ob_clean_ob_clean -- reason: D1, 3.0.1 behaviour preserved until Phase 1.
-		flush();
-		readfile( $uri ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.readfile_readfile -- reason: D1/D6, 3.0.1 behaviour preserved until Phase 1 (P11: the one readfile() in the plugin).
-
-		( $this->exit )();
 	}
 
 	/**
