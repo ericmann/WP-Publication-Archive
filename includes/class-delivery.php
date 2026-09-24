@@ -114,7 +114,7 @@ final class Delivery {
 	 * @return string
 	 */
 	private function resolve_uri() {
-		$publication = new \WP_Publication_Archive_Item( get_post() );
+		$publication = new Publication_Item( get_post() );
 
 		$uri = '';
 
