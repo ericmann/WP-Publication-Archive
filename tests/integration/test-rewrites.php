@@ -83,4 +83,47 @@ class Test_Rewrites extends \WP_UnitTestCase {
 		$this->assertSame( home_url( '/?publication=attached-report&view=yes' ), $link );
 	}
 
+	/**
+	 * D5: a publication whose slug is literally "view" is reachable at its
+	 * own permalink. The endpoint rule '^publication/view/([^/]+)...'
+	 * requires a further non-empty segment, so a bare "/publication/view/"
+	 * request does not match it and falls through to the CPT's own
+	 * single-post rule instead.
+	 */
+	public function test_d5_slug_view_publication_resolves_at_publication_view() {
+		$this->go_to( site_url( '/publication/view/' ) );
+
+		global $wp_query;
+		$this->assertSame( 'view', $wp_query->query_vars['publication'] );
+		$this->assertArrayNotHasKey( Keys::QV_OPEN, $wp_query->query_vars );
+		$this->assertSame( $this->data['slug_view'], get_queried_object_id() );
+	}
+
+	public function test_d5_slug_download_publication_resolves_at_publication_download() {
+		$this->go_to( site_url( '/publication/download/' ) );
+
+		global $wp_query;
+		$this->assertSame( 'download', $wp_query->query_vars['publication'] );
+		$this->assertArrayNotHasKey( Keys::QV_DOWNLOAD, $wp_query->query_vars );
+		$this->assertSame( $this->data['slug_download'], get_queried_object_id() );
+	}
+
+	public function test_d5_view_endpoint_for_other_slug_opens_other_slug() {
+		$this->go_to( site_url( '/publication/view/attached-report/' ) );
+
+		global $wp_query;
+		$this->assertSame( 'attached-report', $wp_query->query_vars['publication'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_OPEN ] );
+		$this->assertSame( $this->data['attached'], get_queried_object_id() );
+	}
+
+	public function test_d5_download_endpoint_for_slug_view_opens_view() {
+		$this->go_to( site_url( '/publication/download/view/' ) );
+
+		global $wp_query;
+		$this->assertSame( 'view', $wp_query->query_vars['publication'] );
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_DOWNLOAD ] );
+		$this->assertSame( $this->data['slug_view'], get_queried_object_id() );
+	}
+
 }
