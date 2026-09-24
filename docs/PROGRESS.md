@@ -5,7 +5,7 @@ Started: 2026-09-24T15:54:27.940Z
 ## Tasks
 - [x] P0-01 Toolchain, minimal Keys, and the 3.0.1 runtime behind a transitional loader
 - [x] P0-02 Keys inventory, Clock, and docs/HOOKS.md
-- [ ] P0-03 Flags, Hooks, Plugin and Assets; front-end stylesheet moves to assets/css/base.css
+- [x] P0-03 Flags, Hooks, Plugin and Assets; front-end stylesheet moves to assets/css/base.css
 - [ ] P0-04 Cli doctor, REST lineage route, humans.txt, docs, the v3 fixture and smoke tests
 - [ ] P0-05 The DAM in wp-env
 - [ ] P0-06 Characterisation — URLs, link generators and template location
@@ -56,3 +56,9 @@ Note: local docker was already using ports 8888/8889 from an unrelated project; 
 Added the full 3.0.1 name/default inventory to Keys (model, options, meta keys, form fields, meta box ids, query vars/rewrite tags, endpoints, assets/paths, REST, template files, legacy class names, widget id_bases, defaults, exposed filters/action, core filters applied, consumed hooks). Added Clock (interface + SystemClock + FixedClock) in includes/class-clock.php, no `use` lines, PHP 7.4 syntax (no property/return types on interface methods). Wrote docs/HOOKS.md with exposed filters/action, core-applied filters, consumed hooks (+ DAM placeholder for P0-05), and a Removed-in-3.1.0 list (D4, D11).
 Interpretation: Since column uses "≤ 3.0.1" throughout (3.0.1 docblocks only had class/method-level @since, not per-hook); "3.1.0 (template)" for the two template-added hooks. Left DEFAULT_PROXY_TIMEOUT/DEFAULT_PROXY_MAX_BYTES (§5.3) out of Keys since P0-02's constant list does not name them — the proxy-delivery task should add them.
 Verified: foundry_verify all-green (constraints + lint/analyse/test:map/test:unit); composer test (WPPA_DAM=0) 26/26 in wp-env.
+
+### P0-03 — 7bdab97
+Added Flags (get_option only, default true, P2), Hooks (private ctor, filter_enabled, booted, P4), Plugin (composition root: clock/flags/assets services, boot()/instance()/register_hooks()/unregister_hooks()/replace(), delegates activate()/deactivate() to WP_Publication_Archive_Loader transitionally), Assets (register() + separate enqueue_front(), the only flag-gated callback, P20). Bootstrap now calls WPPA\Plugin::boot() and registers Plugin::activate/deactivate. Moved includes/front-end.css to assets/css/base.css verbatim (plus lineage comment + :root --eam-epoch), git-detected as a rename; lib/class.wp-publication-archive.php's enqueue_scripts_and_styles() keeps only the is_admin() Thickbox branch. Filled docs/HOOKS.md's Hooks:: column for filter_enabled and booted.
+Interpretation: tests/unit/test-plugin.php and tests/integration/test-plugin.php both need a class Test_Plugin, so they live in WPPA\Tests\Unit / WPPA\Tests\Integration to avoid a composer classmap collision when the full (both-testsuite) run loads every test file together; kept the flat WPPA\Tests namespace elsewhere since no other name collides.
+Gotcha for later tasks: WordPress's update_option() short-circuits when the new value === the (possibly-absent, i.e. also `false`) old value, so `update_option( Keys::OPT_ENABLED, false )` in a test is a silent no-op if the option doesn't already exist — tests instead write `0`, which (bool) casts the same way but isn't `false`-typed so the equality guard doesn't trip.
+Verified: foundry_verify all-green; composer test:unit 26/26; composer test (WPPA_DAM=0) 45/45 (1 expected skip); wp_style_is( 'wp-publication-archive-frontend', 'registered' ) is true after do_action('wp_enqueue_scripts').
