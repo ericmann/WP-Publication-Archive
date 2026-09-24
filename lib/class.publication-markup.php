@@ -273,8 +273,6 @@ class WP_Publication_Archive_Item {
 	 * @return string
 	 */
 	public function get_the_uri() {
-		$mime = new mimetype();
-
 		$uri = $this->get_the_link();
 		if ( '' == trim( $uri ) )
 			return '';
@@ -282,7 +280,7 @@ class WP_Publication_Archive_Item {
 		$output = '<div class="publication_download">';
 		$output .= '<span class="title">' . $this->filename . ' </span>';
 		$output .= '<span class="description">';
-		$output .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( $mime->getType( $this->uri ) ) . '" /> ';
+		$output .= '<img height="16" width="16" alt="download" src="' . WP_Publication_Archive::get_image( \WPPA\Plugin::instance()->icons()->mime_for( $this->uri ) ) . '" /> ';
 		$output .= '<a ';
 		if ( apply_filters( 'wp_pubarch_open_in_blank', false ) ) {
 			$output .= 'target="_blank" ';

@@ -30,6 +30,12 @@ final class Plugin {
 
 	private Upgrade $upgrade;
 
+	private Icons $icons;
+
+	private Streamer $streamer;
+
+	private Delivery $delivery;
+
 	private bool $hooks_registered = false;
 
 	/** @var list<array{type: string, hook: string, callback: callable, priority: int}> */
@@ -74,6 +80,9 @@ final class Plugin {
 		$this->post_type = new Post_Type();
 		$this->rewrites  = new Rewrites( $this->flags );
 		$this->upgrade   = new Upgrade( $this->flags );
+		$this->icons     = new Icons();
+		$this->streamer  = new Streamer();
+		$this->delivery  = new Delivery( $this->streamer, $this->icons );
 	}
 
 	public function register_hooks(): void {
@@ -92,6 +101,7 @@ final class Plugin {
 		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this, 'load_textdomain' ), 10, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_QUERY_VARS, array( $this->rewrites, 'query_vars' ), 10, 1 );
 		$this->add_hook( 'filter', Keys::HOOK_POST_TYPE_LINK, array( $this->rewrites, 'filter_post_type_link' ), 10, 2 );
+		$this->add_hook( 'action', Keys::HOOK_TEMPLATE_REDIRECT, array( $this->delivery, 'handle' ), 10, 1 );
 
 		// D11, preserved: only shown when PHP cannot fetch remote files.
 		if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {
@@ -192,6 +202,15 @@ final class Plugin {
 			case 'upgrade':
 				$this->assign_service( $service, $with, Upgrade::class, $this->upgrade );
 				break;
+			case 'icons':
+				$this->assign_service( $service, $with, Icons::class, $this->icons );
+				break;
+			case 'streamer':
+				$this->assign_service( $service, $with, Streamer::class, $this->streamer );
+				break;
+			case 'delivery':
+				$this->assign_service( $service, $with, Delivery::class, $this->delivery );
+				break;
 			default:
 				throw new \InvalidArgumentException( 'Unknown service: ' . $service );
 		}
@@ -239,6 +258,18 @@ final class Plugin {
 
 	public function upgrade(): Upgrade {
 		return $this->upgrade;
+	}
+
+	public function icons(): Icons {
+		return $this->icons;
+	}
+
+	public function streamer(): Streamer {
+		return $this->streamer;
+	}
+
+	public function delivery(): Delivery {
+		return $this->delivery;
 	}
 
 	public static function activate(): void {

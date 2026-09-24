@@ -1,10 +1,11 @@
 <?php
 /**
- * Transitional loader for the 3.0.1 runtime. Requires the seven 3.0.1 lib
- * files and wires the hooks WPPA services do not yet own. Post type,
- * taxonomy, rewrites, query vars, the schema upgrade and the allow_url_fopen
- * admin notice moved to WPPA\Post_Type, WPPA\Rewrites, WPPA\Upgrade and
- * WPPA\Plugin in P0-08.
+ * Transitional loader for the 3.0.1 runtime. Requires the six remaining
+ * 3.0.1 lib files and wires the hooks WPPA services do not yet own. Post
+ * type, taxonomy, rewrites, query vars, the schema upgrade and the
+ * allow_url_fopen admin notice moved to WPPA\Post_Type, WPPA\Rewrites,
+ * WPPA\Upgrade and WPPA\Plugin in P0-08; the view/download endpoints and
+ * icon/MIME lookup moved to WPPA\Delivery and WPPA\Icons in P0-09.
  *
  * `lib/` is transitional and is deleted by P0-15.
  */
@@ -25,7 +26,6 @@ class WP_Publication_Archive_Loader {
 		}
 		self::$loaded = true;
 
-		require_once WP_PUB_ARCH_DIR . 'lib/class.mimetype.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-utilities.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.publication-markup.php';
@@ -36,8 +36,6 @@ class WP_Publication_Archive_Loader {
 		// Wireup actions
 		add_action( 'init', array( 'WP_Publication_Archive', 'enqueue_scripts_and_styles' ) );
 		add_action( 'save_post', array( 'WP_Publication_Archive', 'save_meta' ) );
-		add_action( 'template_redirect', array( 'WP_Publication_Archive', 'open_file' ) );
-		add_action( 'template_redirect', array( 'WP_Publication_Archive', 'download_file' ) );
 
 		// Wireup filters
 		add_filter( 'excerpt_length', array( 'WP_Publication_Archive', 'custom_excerpt_length' ) );

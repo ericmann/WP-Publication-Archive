@@ -1,7 +1,8 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: the 3.0.1 schema upgrade, run at
- * load time (D9 preserved until P2-06).
+ * Implements SPEC.md §8 Phase 0 item 4: the 3.0.1 schema upgrade, run
+ * directly from Plugin::boot() rather than a hook (D9 preserved until
+ * P2-06).
  *
  * @author Eric Mann <eric@eamann.com>
  */

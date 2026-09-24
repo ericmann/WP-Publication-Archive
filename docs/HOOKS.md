@@ -10,10 +10,10 @@ that adds the corresponding static method fills it in. `Since` is the
 
 | Hook | `Hooks::` method | Arguments | Since |
 |---|---|---|---|
-| `wppa_open_url` | — | `string $url` | ≤ 3.0.1 |
-| `wppa_download_url` | — | `string $url` | ≤ 3.0.1 |
-| `wppa_mask_url` | — | `bool $mask` | ≤ 3.0.1 |
-| `wppa_publication_icon` | — | `string $image_url, string $doctype` | ≤ 3.0.1 |
+| `wppa_open_url` | `open_url` | `string $url` | ≤ 3.0.1 |
+| `wppa_download_url` | `download_url` | `string $url` | ≤ 3.0.1 |
+| `wppa_mask_url` | `mask_url` | `bool $mask` | ≤ 3.0.1 |
+| `wppa_publication_icon` | `publication_icon` | `string $image_url, string $doctype` | ≤ 3.0.1 |
 | `wppa_list_limit` | — | `int $limit` | ≤ 3.0.1 |
 | `wpa-pubs_per_page` | — | `int $limit` (deprecated, still applied first) | ≤ 3.0.1 |
 | `wppa_list_template` | — | `string $template_name` | ≤ 3.0.1 |
