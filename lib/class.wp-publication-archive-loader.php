@@ -9,7 +9,9 @@
  * boxes, save_meta and the admin (Thickbox) enqueue moved to
  * WPPA\Meta_Boxes and WPPA\Assets in P0-10; WP_Publication_Archive_Item
  * (class.publication-markup.php, deleted) moved to WPPA\Publication_Item,
- * aliased back by WPPA\Legacy\Aliases in P0-11.
+ * aliased back by WPPA\Legacy\Aliases in P0-11; the shortcode, template
+ * location and excerpt_length moved to WPPA\Shortcode and WPPA\Templates
+ * in P0-12.
  *
  * `lib/` is transitional and is deleted by P0-15.
  */
@@ -35,11 +37,5 @@ class WP_Publication_Archive_Loader {
 		require_once WP_PUB_ARCH_DIR . 'lib/class.publication-widget.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-cat-count-widget.php';
 		require_once WP_PUB_ARCH_DIR . 'lib/class.wp-publication-archive-category-widget.php';
-
-		// Wireup filters
-		add_filter( 'excerpt_length', array( 'WP_Publication_Archive', 'custom_excerpt_length' ) );
-
-		// Wireup shortcodes
-		add_shortcode( 'wp-publication-archive', array( 'WP_Publication_Archive', 'shortcode_handler' ) );
 	}
 }

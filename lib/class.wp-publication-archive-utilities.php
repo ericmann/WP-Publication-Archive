@@ -22,10 +22,6 @@ class WP_Publication_Archive_Utilities {
 	protected function __construct() {
 		// Wireup actions
 		add_action( 'widgets_init',   array( $this, 'register_widgets' ) );
-
-		// Wireup filters
-		add_filter( 'template_include', array( $this, 'single_publication' ) );
-		add_filter( 'template_include', array( $this, 'publication_archives' ) );
 	}
 
 	/**
@@ -349,16 +345,7 @@ class WP_Publication_Archive_Utilities {
 	 * @return string
 	 */
 	public function single_publication( $template ) {
-		if ( is_singular( 'publication' ) ) {
-			$template_name = apply_filters( 'wppa_single_template', 'single-publication.php' );
-
-			$path = $this->find_template( $template_name );
-			if ( false !== $path ) {
-				$template = $path;
-			}
-		}
-
-		return $template;
+		return \WPPA\Plugin::instance()->templates()->single_template( $template );
 	}
 
 	/**
@@ -369,18 +356,7 @@ class WP_Publication_Archive_Utilities {
 	 * @return string
 	 */
 	public function publication_archives( $template ) {
-		global $wp_query;
-
-		if ( is_archive() && 'publication' === $wp_query->query_vars['post_type'] ) {
-			$template_name = apply_filters( 'wppa_archive_template', 'archive-publication.php' );
-
-			$path = $this->find_template( $template_name );
-			if ( false !== $path ) {
-				$template = $path;
-			}
-		}
-
-		return $template;
+		return \WPPA\Plugin::instance()->templates()->archive_template( $template );
 	}
 
 	/**
@@ -391,19 +367,7 @@ class WP_Publication_Archive_Utilities {
 	 * @return string|bool Returns false if no template is found
 	 */
 	protected function find_template( $template_name ) {
-		$paths = array(
-			get_stylesheet_directory() . '/' . $template_name,
-			get_template_directory() . '/' . $template_name,
-			WP_PUB_ARCH_DIR . 'lib/templates/' . $template_name
-		);
-
-		foreach ( $paths as $path ) {
-			if ( file_exists( $path ) ) {
-				return $path;
-			}
-		}
-
-		return false;
+		return \WPPA\Plugin::instance()->templates()->find( $template_name );
 	}
 }
 

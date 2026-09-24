@@ -7,6 +7,7 @@ parameters:
 		- phpstan/bootstrap.php
 	paths:
 		- includes
+		- templates
 		- wp-publication-archive.php
 		- bin/test-map.php
 	scanFiles:

@@ -217,7 +217,8 @@ class Publication_Item {
 	/**
 	 * Get a list of authors for the publication. Also gets the date bound
 	 * to the publication object. D7 (interim): uses get_the_date() rather
-	 * than date()/strtotime(), which ignores the site timezone/locale.
+	 * than the wall-clock formatting 3.0.1 used, which ignored the site
+	 * timezone/locale.
 	 *
 	 * @param string $before
 	 * @param string $after

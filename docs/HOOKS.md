@@ -14,22 +14,22 @@ that adds the corresponding static method fills it in. `Since` is the
 | `wppa_download_url` | `download_url` | `string $url` | ≤ 3.0.1 |
 | `wppa_mask_url` | `mask_url` | `bool $mask` | ≤ 3.0.1 |
 | `wppa_publication_icon` | `publication_icon` | `string $image_url, string $doctype` | ≤ 3.0.1 |
-| `wppa_list_limit` | — | `int $limit` | ≤ 3.0.1 |
-| `wpa-pubs_per_page` | — | `int $limit` (deprecated, still applied first) | ≤ 3.0.1 |
-| `wppa_list_template` | — | `string $template_name` | ≤ 3.0.1 |
-| `wppa_dropdown_template` | — | `string $template_name` | ≤ 3.0.1 |
-| `wppa_widget_template` | — | `string $template_name` | ≤ 3.0.1 |
-| `wppa_single_template` | — | `string $template_name` | ≤ 3.0.1 |
-| `wppa_archive_template` | — | `string $template_name` | ≤ 3.0.1 |
-| `wppa_publication_list_container` | — | `array $wppa_container` | ≤ 3.0.1 |
+| `wppa_list_limit` | `list_limit` | `int $limit` | ≤ 3.0.1 |
+| `wpa-pubs_per_page` | `pubs_per_page` | `int $limit` (deprecated, still applied first) | ≤ 3.0.1 |
+| `wppa_list_template` | `list_template` | `string $template_name` | ≤ 3.0.1 |
+| `wppa_dropdown_template` | `dropdown_template` | `string $template_name` | ≤ 3.0.1 |
+| `wppa_widget_template` | `widget_template` | `string $template_name` | ≤ 3.0.1 |
+| `wppa_single_template` | `single_template` | `string $template_name` | ≤ 3.0.1 |
+| `wppa_archive_template` | `archive_template` | `string $template_name` | ≤ 3.0.1 |
+| `wppa_publication_list_container` | `list_container` | `array $wppa_container` | ≤ 3.0.1 |
 | `wpa-title` | `item_title` | `string $title, int $post_id` | ≤ 3.0.1 |
 | `wpa-upload_image` | `item_upload_image` | `string $thumb, int $post_id` | ≤ 3.0.1 |
 | `wpa-authors` | `item_authors` | `string $authors, int $post_id` | ≤ 3.0.1 |
 | `wpa-summary` | `item_summary` | `string $summary, int $post_id` | ≤ 3.0.1 |
 | `wpa-keywords` | `item_keywords` | `string $keywords, int $post_id` | ≤ 3.0.1 |
 | `wpa-categories` | `item_categories` | `string $categories, int $post_id` | ≤ 3.0.1 |
-| `wpa-summary-length` | — | `int $length` | ≤ 3.0.1 |
-| `wpa-widget-summary-length` | — | `int $length` | ≤ 3.0.1 |
+| `wpa-summary-length` | `summary_length` | `int $length` | ≤ 3.0.1 |
+| `wpa-widget-summary-length` | `widget_summary_length` | `int $length` | ≤ 3.0.1 |
 | `wp_pubarch_open_in_blank` | `open_in_blank` | `bool $open_in_blank` | ≤ 3.0.1 |
 | `wp-publication-archive-enabled` | `filter_enabled` | `bool $enabled` (added in 3.1.0, template) | 3.1.0 |
 

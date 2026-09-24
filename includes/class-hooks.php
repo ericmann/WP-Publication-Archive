@@ -106,4 +106,59 @@ final class Hooks {
 	public static function open_in_blank( bool $default ): bool {
 		return (bool) apply_filters( Keys::FILTER_OPEN_IN_BLANK, $default );
 	}
+
+	/**
+	 * @param int|string $limit
+	 *
+	 * @return int|string
+	 */
+	public static function pubs_per_page( $limit ) {
+		return apply_filters( Keys::FILTER_PUBS_PER_PAGE, $limit );
+	}
+
+	/**
+	 * @param int|string $limit
+	 *
+	 * @return int|string
+	 */
+	public static function list_limit( $limit ) {
+		return apply_filters( Keys::FILTER_LIST_LIMIT, $limit );
+	}
+
+	public static function list_template( string $template_name ): string {
+		return (string) apply_filters( Keys::FILTER_LIST_TEMPLATE, $template_name );
+	}
+
+	public static function dropdown_template( string $template_name ): string {
+		return (string) apply_filters( Keys::FILTER_DROPDOWN_TEMPLATE, $template_name );
+	}
+
+	public static function widget_template( string $template_name ): string {
+		return (string) apply_filters( Keys::FILTER_WIDGET_TEMPLATE, $template_name );
+	}
+
+	public static function single_template( string $template_name ): string {
+		return (string) apply_filters( Keys::FILTER_SINGLE_TEMPLATE, $template_name );
+	}
+
+	public static function archive_template( string $template_name ): string {
+		return (string) apply_filters( Keys::FILTER_ARCHIVE_TEMPLATE, $template_name );
+	}
+
+	/**
+	 * @param array<string, mixed> $container
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function list_container( array $container ): array {
+		return (array) apply_filters( Keys::FILTER_LIST_CONTAINER, $container );
+	}
+
+	public static function summary_length( int $length ): int {
+		return (int) apply_filters( Keys::FILTER_SUMMARY_LENGTH, $length );
+	}
+
+	public static function widget_summary_length( int $length ): int {
+		return (int) apply_filters( Keys::FILTER_WIDGET_SUMMARY_LENGTH, $length );
+	}
 }

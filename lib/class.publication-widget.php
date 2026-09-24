@@ -125,10 +125,7 @@ class WP_Publication_Archive_Widget extends WP_Widget {
 
 		// Include widget template. Can be overridden by a theme.
 		$template_name = apply_filters( 'wppa_widget_template', 'template.wppa_widget.php' );
-		$path = locate_template( $template_name );
-		if ( empty( $path ) ) {
-			$path = WP_PUB_ARCH_DIR . 'lib/templates/' . $template_name;
-		}
+		$path = \WPPA\Plugin::instance()->templates()->locate( $template_name );
 
 		include( $path );
 

@@ -16,7 +16,7 @@ get_header(); ?>
 			<?php if ( have_posts() ) : ?>
 				<header class="archive-header">
 					<h1 class="archive-title">
-						<?php _e( 'Publication Archives', 'wp_pubarch_translate' ); ?>
+						<?php _e( 'Publication Archives', 'wp-publication-archive' ); ?>
 					</h1>
 				</header><!-- .archive-header -->
 
@@ -26,7 +26,8 @@ get_header(); ?>
 					<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 					<header class="entry-header">
 						<h1 class="entry-title">
-							<a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf( __( 'Permalink to %s', 'wp_pubarch_translate' ), the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark"><?php the_title(); ?></a>
+							<?php /* translators: %s: publication title */ ?>
+							<a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf( __( 'Permalink to %s', 'wp-publication-archive' ), the_title_attribute( array( 'echo' => false ) ) ) ); ?>" rel="bookmark"><?php the_title(); ?></a>
 						</h1>
 					</header><!-- .entry-header -->
 
@@ -36,7 +37,7 @@ get_header(); ?>
 					</div><!-- .entry-content -->
 
 					<footer class="entry-meta">
-						<?php edit_post_link( __( 'Edit Publication', 'wp_pubarch_translate' ), '<span class="edit-link">', '</span>' ); ?>
+						<?php edit_post_link( __( 'Edit Publication', 'wp-publication-archive' ), '<span class="edit-link">', '</span>' ); ?>
 					</footer><!-- .entry-meta -->
 				</article><!-- #post -->
 

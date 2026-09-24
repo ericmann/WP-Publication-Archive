@@ -28,11 +28,15 @@ class Test_Bootstrap extends \WP_UnitTestCase {
 		$this->assertTrue( shortcode_exists( Keys::SHORTCODE ) );
 	}
 
-	public function test_301_templates_are_found_under_lib_templates() {
-		$this->assertFileExists( WP_PUB_ARCH_DIR . 'lib/templates/template.wppa_widget.php' );
-		$this->assertFileExists( WP_PUB_ARCH_DIR . 'lib/templates/template.wppa_publication_list.php' );
-		$this->assertFileExists( WP_PUB_ARCH_DIR . 'lib/templates/template.wppa_publication_dropdown.php' );
-		$this->assertFileExists( WP_PUB_ARCH_DIR . 'lib/templates/single-publication.php' );
-		$this->assertFileExists( WP_PUB_ARCH_DIR . 'lib/templates/archive-publication.php' );
+	/**
+	 * Templates moved from the transitional lib/templates/ to the frozen
+	 * templates/classic/ in P0-12 (SPEC §6.5).
+	 */
+	public function test_301_templates_are_found_under_templates_classic() {
+		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'template.wppa_widget.php' );
+		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'template.wppa_publication_list.php' );
+		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'template.wppa_publication_dropdown.php' );
+		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'single-publication.php' );
+		$this->assertFileExists( WP_PUB_ARCH_DIR . Keys::TEMPLATE_DIR . 'archive-publication.php' );
 	}
 }

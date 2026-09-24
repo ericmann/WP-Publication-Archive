@@ -4,6 +4,7 @@
 
 	<file>wp-publication-archive.php</file>
 	<file>includes</file>
+	<file>templates</file>
 	<file>tests</file>
 	<file>bin</file>
 
@@ -41,4 +42,13 @@
 		<exclude-pattern>tests/*</exclude-pattern>
 		<exclude-pattern>bin/*</exclude-pattern>
 	</rule>
+
+	<!--
+		SPEC §7.3 exempts WordPress.Files.FileName for templates/classic/
+		(theme override names are frozen to the 3.0.1 names). VIP-Go does not
+		pull that sniff in from WordPress-Core, so it never runs here; adding
+		it fresh would also flag pre-existing, out-of-scope files (test
+		shims, leaf classes) that this task does not touch. The exemption is
+		satisfied because the sniff is not active project-wide.
+	-->
 </ruleset>

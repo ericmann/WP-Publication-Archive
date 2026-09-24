@@ -38,6 +38,10 @@ final class Plugin {
 
 	private Meta_Boxes $meta_boxes;
 
+	private Templates $templates;
+
+	private Shortcode $shortcode;
+
 	private bool $hooks_registered = false;
 
 	/** @var list<array{type: string, hook: string, callback: callable, priority: int}> */
@@ -88,6 +92,8 @@ final class Plugin {
 		$this->streamer  = new Streamer();
 		$this->delivery   = new Delivery( $this->streamer, $this->icons );
 		$this->meta_boxes = new Meta_Boxes();
+		$this->templates  = new Templates();
+		$this->shortcode  = new Shortcode( $this->templates );
 	}
 
 	public function register_hooks(): void {
@@ -110,6 +116,10 @@ final class Plugin {
 		$this->add_hook( 'action', Keys::HOOK_TEMPLATE_REDIRECT, array( $this->delivery, 'handle' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_ADD_META_BOXES_PUBLICATION, array( $this->meta_boxes, 'add' ), 10, 1 );
 		$this->add_hook( 'action', Keys::HOOK_SAVE_POST, array( $this->meta_boxes, 'save' ), 10, 1 );
+		$this->add_hook( 'shortcode', Keys::SHORTCODE, array( $this->shortcode, 'render' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_TEMPLATE_INCLUDE, array( $this->templates, 'single_template' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_TEMPLATE_INCLUDE, array( $this->templates, 'archive_template' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_EXCERPT_LENGTH, array( $this->templates, 'excerpt_length' ), 10, 1 );
 
 		// D11, preserved: only shown when PHP cannot fetch remote files.
 		if ( ! (bool) ini_get( 'allow_url_fopen' ) ) {
@@ -123,8 +133,10 @@ final class Plugin {
 		foreach ( $this->registered_hooks as $registered ) {
 			if ( 'action' === $registered['type'] ) {
 				remove_action( $registered['hook'], $registered['callback'], $registered['priority'] );
-			} else {
+			} elseif ( 'filter' === $registered['type'] ) {
 				remove_filter( $registered['hook'], $registered['callback'], $registered['priority'] );
+			} else {
+				remove_shortcode( $registered['hook'] );
 			}
 		}
 
@@ -138,8 +150,10 @@ final class Plugin {
 	private function add_hook( string $type, string $hook, $callback, int $priority, int $args ): void {
 		if ( 'action' === $type ) {
 			add_action( $hook, $callback, $priority, $args );
-		} else {
+		} elseif ( 'filter' === $type ) {
 			add_filter( $hook, $callback, $priority, $args );
+		} else {
+			add_shortcode( $hook, $callback );
 		}
 
 		$this->registered_hooks[] = array(
@@ -222,6 +236,12 @@ final class Plugin {
 			case 'meta_boxes':
 				$this->assign_service( $service, $with, Meta_Boxes::class, $this->meta_boxes );
 				break;
+			case 'templates':
+				$this->assign_service( $service, $with, Templates::class, $this->templates );
+				break;
+			case 'shortcode':
+				$this->assign_service( $service, $with, Shortcode::class, $this->shortcode );
+				break;
 			default:
 				throw new \InvalidArgumentException( 'Unknown service: ' . $service );
 		}
@@ -285,6 +305,14 @@ final class Plugin {
 
 	public function meta_boxes(): Meta_Boxes {
 		return $this->meta_boxes;
+	}
+
+	public function templates(): Templates {
+		return $this->templates;
+	}
+
+	public function shortcode(): Shortcode {
+		return $this->shortcode;
 	}
 
 	public static function activate(): void {
