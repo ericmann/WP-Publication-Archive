@@ -33,7 +33,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-03 Post type and taxonomy in REST and the block editor (D12)
 - [x] P2-04 Registered publication meta in REST (D12 meta, D1 via REST)
 - [x] P2-05 Rewrite rules — slug collisions (D5)
-- [ ] P2-06 Upgrade on init, once, with no per-request option writes (D9)
+- [x] P2-06 Upgrade on init, once, with no per-request option writes (D9)
 - [ ] P2-07 admin-media.js replaces Thickbox and inline scripts (D13)
 - [ ] P2-08 Site-timezone dates and dead-code delegates (D7, D8 delegates)
 - [ ] P2-09 Widgets in the Legacy Widget block, id_base preservation, shortcode check (D14)
@@ -255,3 +255,10 @@ foundry_verify green (all constraints, lint, analyse, test:map, test:unit). WPPA
 Wrote the four D5 tests first (test_d5_slug_view_publication_resolves_at_publication_view, test_d5_slug_download_publication_resolves_at_publication_download, test_d5_view_endpoint_for_other_slug_opens_other_slug, test_d5_download_endpoint_for_slug_view_opens_view) in tests/integration/test-rewrites.php and ran them against the pre-task Rewrites::register(). All four already passed: the endpoint rules require a non-empty [^/]+ segment after view/download, so a bare /publication/view/ or /publication/download/ falls through to the CPT's own single-post rule and resolves the publication literally slugged view/download instead — matching the P0-06 characterisation log's prediction. No rule changed; kept as regression tests per the task's own instruction for the "already passes" branch. Interpretation: D5: not reproducible on the P0-08 Rewrites class; regression tests added.
 
 foundry_verify green (constraints, lint, analyse, test:map, test:unit); composer test's own 300s process-timeout is too short for the DAM-loaded suite on this (shared, busy) machine — same as several earlier tasks' logs, not a code defect. WPPA_DAM=0 composer test: one run hit 6 errors from an unrelated environment flake (create_upload_object() returning WP_Error under concurrent Docker load in tests/fixtures/class-v3-site.php, untouched by this task); a clean re-run and an isolated run of the affected test class both went green (273/273, 1 expected skip).
+
+### P2-06 — 1454950
+Upgrade::maybe_upgrade() now does nothing (no add_option, no flush) once Flags::schema_version() >= Keys::SCHEMA_VERSION — deleted the else branch that called the now-unused, now-deleted Flags::add_schema_version(). flush_rewrite_rules() switched to soft (false) flush. Flags::set_schema_version() now writes OPT_SCHEMA with autoload false, matching §5.2.
+
+Tests added to tests/integration/test-upgrade.php: test_d9_upgrade_flush_includes_the_publication_rules (registers Post_Type/Rewrites under pretty permalinks, deletes the schema option, calls maybe_upgrade(), asserts Flags::rewrite_rules() has a key starting '^publication/view/' — note the leading '^': WP_Rewrite's compiled rewrite_rules option keeps add_rewrite_rule()'s own regex anchor, same convention test-rewrites.php already uses), test_d9_second_run_writes_no_option_and_does_not_flush (counts add_option/update_option/generate_rewrite_rules firings, asserts 0 when schema is already current), test_schema_option_autoload_is_off (raw $wpdb query on the options table's autoload column, since the Options API doesn't expose it). Renamed test_absent_schema_is_set_to_3 to test_absent_schema_upgrades_to_3 to match the task's acceptance-test list.
+
+foundry_verify green (constraints, lint, analyse, test:map, test:unit; composer test's 300s timeout too short for the DAM suite on this machine, as in prior tasks). WPPA_DAM=0 composer test: 276/276 green (1 expected skip) on a clean re-run after an unrelated create_upload_object()/WP_Error environment flake (same one seen in P2-05, unrelated to this task's files) on a busier run.
