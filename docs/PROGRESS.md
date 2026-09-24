@@ -29,7 +29,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-08 Escaped Publication_Item and list/dropdown templates; thumbnail through the bridge (D2 output, D3 front, D18)
 - [x] P1-09 Gate 1 — security verified, constraints locked, branch pushed
 - [x] P2-01 Contracts (1/2) — Keys, Flags and Plugin for §6.1, §6.6 and §6.7; close D11 and D8's filter; Capabilities signatures; upgrade on init
-- [ ] P2-02 Contracts (2/2) — Capabilities granted on activation and init
+- [x] P2-02 Contracts (2/2) — Capabilities granted on activation and init
 - [ ] P2-03 Post type and taxonomy in REST and the block editor (D12)
 - [ ] P2-04 Registered publication meta in REST (D12 meta, D1 via REST)
 - [ ] P2-05 Rewrite rules — slug collisions (D5)
@@ -233,3 +233,10 @@ Closed D11: deleted Plugin::fopen_notice() and its conditional admin_notices reg
 Updated the pinned LIST_ALL/LIST_LIMIT_2_PAGE_2 characterisation strings (items 2+ now show the canonical get_permalink() instead of the hijacked open-endpoint form), named D8 in a comment. V3_Site::reset_link_state() needed no change — its method_exists() guard already degrades to a no-op.
 
 foundry_verify, composer test:unit, composer test (with and without DAM, 265/247) all green; P0-06/P0-07 characterisation unchanged apart from the named D8 update.
+
+### P2-02 — 761c496
+Implemented Capabilities::grant() (iterates Keys::CAP_ROLES × Keys::CAP_MAP, grants the publication cap only when the role already has the matching post cap, then Flags::mark_caps_granted(); idempotent since add_cap() on an already-set cap is a no-op) and maybe_grant() (grant() only when ! Flags::caps_granted()). Plugin registers init → capabilities->maybe_grant (priority 10) and activate() also calls grant() directly. Cli's doctor_rows() gained a caps_granted row (before dam): pass iff Flags::caps_granted() and administrator has edit_publications.
+
+Found and diagnosed a real, non-obvious WordPress behaviour while writing the tests (not assumed — reproduced with a minimal two-test repro before fixing): WP_Roles is a process-wide singleton whose add_cap()/remove_cap() only persist to the DB when the global $wp_user_roles is empty at construction time; in this test install it's already populated, so every capability change in these tests is purely in-memory and survives both the per-test DB transaction rollback and wp_cache_flush(). tests/integration/test-capabilities.php and test-cli.php now snapshot and restore wp_roles()'s own public $roles/$role_objects state in set_up()/tear_down(), since no DB- or cache-level mechanism undoes the change.
+
+foundry_verify, composer test (with and without DAM, 273/255), and `wp publication-archive doctor` (caps_granted pass, exit 0) all green; P0-06/P0-07 characterisation unchanged.
