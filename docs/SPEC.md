@@ -157,6 +157,7 @@ Each rule can be checked by a grep, a tool or a test. Every rule tagged `[constr
 - **P11. No raw file reads.** `readfile(`, `fpassthru(`, `fopen(`, `file_get_contents(` and `file(` appear only in `includes/class-streamer.php`. There, `readfile(` appears exactly once, and its argument is a path returned by `wp_tempnam()` in the same method. `[constraint: raw-file-read-confined]`
 - **P12. No `extract(`.** `[constraint: no-extract]`
 - **P13. Superglobals are confined.** `$_POST`, `$_GET` and `$_REQUEST` appear only in `includes/class-meta-boxes.php` (nonce-checked save) and `includes/class-shortcode.php` (`wpa-paged`). `[constraint: superglobals-confined]`
+- **P13a. WP-CLI is confined.** `WP_CLI` appears under `includes/` only in `class-cli.php` and `class-plugin.php`. Every public method on `Cli` is a subcommand. `[constraint: wp-cli-confined]`
 - **P14. DAM symbols are confined.** `VIP\DAM\…` and `VIP_DAM_…` appear only in `includes/class-dam-bridge.php` and in `tests/`. `[constraint: dam-symbols-confined]`
 - **P15. Every class has a test, written in the same task.**
   - Every `includes/**/class-*.php` has `tests/unit/test-<slug>.php` or `tests/integration/test-<slug>.php`, a `WPPA` namespace, a `SPEC.md §` reference and an `@author` tag. `composer test:map` fails otherwise.
