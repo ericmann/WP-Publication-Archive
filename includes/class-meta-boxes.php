@@ -1,8 +1,8 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: the three 3.0.1 publication meta
- * boxes and save_meta(), with the open D1, D2, D3, D10 and D13 defects
- * preserved verbatim (they close in Phase 1/2).
+ * Implements SPEC.md §8 Phase 0 item 4 and §6.2: the three 3.0.1 publication
+ * meta boxes and save_meta(). P1-04 closes D1 (save), D2 (save), D3 (admin)
+ * and D10 here; D13 (inline Thickbox JS) stays open until P2-07.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -42,8 +42,7 @@ final class Meta_Boxes {
 		// file-read call to the raw-file-read-confined constraint scan; the
 		// produced runtime string, and its .po msgid, are unchanged.
 		echo '<p>' . wp_kses_post( __( "Please provide the absolute url of the file \x28including the <code>http://</code>):", 'wp-publication-archive' ) ) . '</p>';
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), meta value echoed into value="" unescaped.
-		echo '<input type="text" id="' . esc_attr( Keys::FIELD_DOC ) . '" name="' . esc_attr( Keys::FIELD_DOC ) . '" value="' . $uri . '" size="25" style="width:85%" />';
+		echo '<input type="text" id="' . esc_attr( Keys::FIELD_DOC ) . '" name="' . esc_attr( Keys::FIELD_DOC ) . '" value="' . esc_attr( $uri ) . '" size="25" style="width:85%" />';
 		echo '<input class="button" id="upload_doc_button" type="button" value="' . esc_attr__( 'Upload Publication', 'wp-publication-archive' ) . '" alt="' . esc_attr__( 'Upload Publication', 'wp-publication-archive' ) . '" />';
 		?>
 		<script type="text/javascript">
@@ -80,8 +79,7 @@ final class Meta_Boxes {
 		$thumb = get_post_meta( $post->ID, Keys::META_IMAGE, true );
 
 		echo '<p>' . wp_kses_post( __( 'Please provide the absolute url for a thumbnail image (including the <code>http://</code>):', 'wp-publication-archive' ) ) . '</p>';
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: D3 (SPEC §1.1), meta value echoed into value="" unescaped.
-		echo '<input type="text" id="' . esc_attr( Keys::FIELD_IMAGE ) . '" name="' . esc_attr( Keys::FIELD_IMAGE ) . '" value=" ' . $thumb . '" size="36" size="25" style="width:85%" />';
+		echo '<input type="text" id="' . esc_attr( Keys::FIELD_IMAGE ) . '" name="' . esc_attr( Keys::FIELD_IMAGE ) . '" value=" ' . esc_attr( $thumb ) . '" size="36" size="25" style="width:85%" />';
 		echo '<input class="button" id="wpa-upload_image_button" type="button" value="' . esc_attr__( 'Upload Thumbnail', 'wp-publication-archive' ) . '" alt="' . esc_attr__( 'Upload Thumbnail', 'wp-publication-archive' ) . '" />';
 		?>
 		<script type="text/javascript">
@@ -225,9 +223,10 @@ final class Meta_Boxes {
 	}
 
 	/**
-	 * 3.0.1 WP_Publication_Archive::save_meta(). D1 (esc_url_raw accepts
-	 * values beginning with '/'), D2 (alternate descriptions unsanitized)
-	 * and D10 (the <= loop reads one index past the end) are preserved.
+	 * 3.0.1 WP_Publication_Archive::save_meta(). D1, D2 and D10 close here:
+	 * doc/image/alternate URLs go through Url_Policy::validate() and store
+	 * '' when invalid; alternate descriptions are sanitized; the alternates
+	 * loop bound is correct.
 	 *
 	 * @param int $post_id
 	 *
@@ -248,10 +247,8 @@ final class Meta_Boxes {
 			return $post_id;
 		}
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- reason: D1 (SPEC §1.1), esc_url_raw() accepts values beginning with '/'.
-		$uri = isset( $_POST[ Keys::FIELD_DOC ] ) && '' !== trim( $_POST[ Keys::FIELD_DOC ] ) ? esc_url_raw( wp_unslash( $_POST[ Keys::FIELD_DOC ] ) ) : '';
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- reason: D1 (SPEC §1.1), esc_url_raw() accepts values beginning with '/'.
-		$thumbnail = isset( $_POST[ Keys::FIELD_IMAGE ] ) && '' !== trim( $_POST[ Keys::FIELD_IMAGE ] ) ? esc_url_raw( wp_unslash( $_POST[ Keys::FIELD_IMAGE ] ) ) : '';
+		$uri       = isset( $_POST[ Keys::FIELD_DOC ] ) ? $this->validated_url( sanitize_text_field( wp_unslash( $_POST[ Keys::FIELD_DOC ] ) ) ) : '';
+		$thumbnail = isset( $_POST[ Keys::FIELD_IMAGE ] ) ? $this->validated_url( sanitize_text_field( wp_unslash( $_POST[ Keys::FIELD_IMAGE ] ) ) ) : '';
 
 		update_post_meta( $post_id, Keys::META_DOC, $uri );
 		update_post_meta( $post_id, Keys::META_IMAGE, $thumbnail );
@@ -260,16 +257,13 @@ final class Meta_Boxes {
 		delete_post_meta( $post_id, Keys::META_ALTERNATES );
 
 		if ( isset( $_POST[ Keys::FIELD_ALTERNATES ] ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- reason: D2 (SPEC §1.1), alternate descriptions are stored unsanitized; nonce already verified above.
-			$posted = wp_unslash( $_POST[ Keys::FIELD_ALTERNATES ] );
+			$posted = map_deep( wp_unslash( $_POST[ Keys::FIELD_ALTERNATES ] ), 'sanitize_text_field' );
 
-			// D10 (SPEC §1.1): the <= loop is 3.0.1 behaviour, reading one index past the end.
-			for ( $i = 0; $i <= count( $posted['url'] ); $i++ ) {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- reason: D2 (SPEC §1.1), alternate descriptions are stored unsanitized.
+			for ( $i = 0; $i < count( $posted['url'] ); $i++ ) {
 				$description = $posted['description'][ $i ];
-				$url         = $posted['url'][ $i ];
+				$url         = $this->validated_url( $posted['url'][ $i ] );
 
-				if ( '' === trim( $url ) ) {
+				if ( '' === $url ) {
 					continue;
 				}
 
@@ -278,5 +272,17 @@ final class Meta_Boxes {
 		}
 
 		return $post_id;
+	}
+
+	private function validated_url( string $raw ): string {
+		$raw = trim( $raw );
+
+		if ( '' === $raw ) {
+			return '';
+		}
+
+		$validated = $this->policy->validate( $raw );
+
+		return is_string( $validated ) ? $validated : '';
 	}
 }
