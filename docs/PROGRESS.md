@@ -6,7 +6,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P0-01 Toolchain, minimal Keys, and the 3.0.1 runtime behind a transitional loader
 - [x] P0-02 Keys inventory, Clock, and docs/HOOKS.md
 - [x] P0-03 Flags, Hooks, Plugin and Assets; front-end stylesheet moves to assets/css/base.css
-- [ ] P0-04 Cli doctor, REST lineage route, humans.txt, docs, the v3 fixture and smoke tests
+- [x] P0-04 Cli doctor, REST lineage route, humans.txt, docs, the v3 fixture and smoke tests
 - [ ] P0-05 The DAM in wp-env
 - [ ] P0-06 Characterisation — URLs, link generators and template location
 - [ ] P0-07 Characterisation — shortcode and widget output
@@ -62,3 +62,8 @@ Added Flags (get_option only, default true, P2), Hooks (private ctor, filter_ena
 Interpretation: tests/unit/test-plugin.php and tests/integration/test-plugin.php both need a class Test_Plugin, so they live in WPPA\Tests\Unit / WPPA\Tests\Integration to avoid a composer classmap collision when the full (both-testsuite) run loads every test file together; kept the flat WPPA\Tests namespace elsewhere since no other name collides.
 Gotcha for later tasks: WordPress's update_option() short-circuits when the new value === the (possibly-absent, i.e. also `false`) old value, so `update_option( Keys::OPT_ENABLED, false )` in a test is a silent no-op if the option doesn't already exist — tests instead write `0`, which (bool) casts the same way but isn't `false`-typed so the equality guard doesn't trip.
 Verified: foundry_verify all-green; composer test:unit 26/26; composer test (WPPA_DAM=0) 45/45 (1 expected skip); wp_style_is( 'wp-publication-archive-frontend', 'registered' ) is true after do_action('wp_enqueue_scripts').
+
+### P0-04 — 280cf94
+Added Cli (doctor: lineage/version/php/wp/post_type_registered/rewrite_rules_present rows, halts(1) on any fail, P13a: doctor is the only public subcommand), Rest (GET /wp-publication-archive/v1/eam, public), Flags::rewrite_rules() (get_option('rewrite_rules') or array()). Plugin now constructs Cli/Rest, hooks cli_init->register_cli and rest_api_init->rest->register_routes, and has accessors/replace() cases for both. Added humans.txt, docs/CONTRIBUTING.md, docs/adr/0001-composition-root.md (renamed from template). Added tests/fixtures/class-v3-site.php (V3_Site::raw_meta via direct $wpdb->insert + maybe_serialize, ::create() building the 7-publication fixture table from the PLAN, ::reset_link_state() defensive no-op via method_exists since Rewrites/disarm() don't exist yet).
+Interpretation: tests/unit/test-cli.php and tests/integration/test-cli.php both declare Test_Cli, so (as in P0-03) they live in WPPA\Tests\Unit / WPPA\Tests\Integration. wp-phpunit's test install runs with "plain" permalinks by default, so $wp_rewrite generates no rules regardless of registered extra_rules_top; tests/integration/test-cli.php's set_up() calls $this->set_permalink_structure('/%postname%/') (not just flush_rules()) so rewrite_rules_present has real rules to check against. This is a real environment fact worth knowing for any later rewrite-rule test (P2-01 etc).
+Verified: foundry_verify all-green; composer test:unit 29/29; composer test (WPPA_DAM=0) 57/57 (1 expected skip); wp publication-archive doctor exits 0 with the six rows; curl of /wp-json/wp-publication-archive/v1/eam returns the lineage JSON.
