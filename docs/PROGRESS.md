@@ -30,7 +30,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P1-09 Gate 1 — security verified, constraints locked, branch pushed
 - [x] P2-01 Contracts (1/2) — Keys, Flags and Plugin for §6.1, §6.6 and §6.7; close D11 and D8's filter; Capabilities signatures; upgrade on init
 - [x] P2-02 Contracts (2/2) — Capabilities granted on activation and init
-- [ ] P2-03 Post type and taxonomy in REST and the block editor (D12)
+- [x] P2-03 Post type and taxonomy in REST and the block editor (D12)
 - [ ] P2-04 Registered publication meta in REST (D12 meta, D1 via REST)
 - [ ] P2-05 Rewrite rules — slug collisions (D5)
 - [ ] P2-06 Upgrade on init, once, with no per-request option writes (D9)
@@ -240,3 +240,6 @@ Implemented Capabilities::grant() (iterates Keys::CAP_ROLES × Keys::CAP_MAP, gr
 Found and diagnosed a real, non-obvious WordPress behaviour while writing the tests (not assumed — reproduced with a minimal two-test repro before fixing): WP_Roles is a process-wide singleton whose add_cap()/remove_cap() only persist to the DB when the global $wp_user_roles is empty at construction time; in this test install it's already populated, so every capability change in these tests is purely in-memory and survives both the per-test DB transaction rollback and wp_cache_flush(). tests/integration/test-capabilities.php and test-cli.php now snapshot and restore wp_roles()'s own public $roles/$role_objects state in set_up()/tear_down(), since no DB- or cache-level mechanism undoes the change.
 
 foundry_verify, composer test (with and without DAM, 273/255), and `wp publication-archive doctor` (caps_granted pass, exit 0) all green; P0-06/P0-07 characterisation unchanged.
+
+### P2-03 — dc2a288
+Exposed publication CPT and publication-author taxonomy to REST/block editor (D12): show_in_rest+rest_base, capability_type=Keys::CAPABILITY_TYPE+map_meta_cap on the CPT; show_in_rest+public+query_var+rewrite on the taxonomy. Added Cli::rest_enabled_row() and extended rewrite_rules_present() to require a publication/author/ rule. Root-caused a baseline test failure: register_taxonomy() silently drops rewrite when permalink_structure is empty at call time (boot uses plain permalinks), so the taxonomy's rewrite struct never existed until Test_Cli's set_up() explicitly re-registers post type/taxonomy/rewrites and flushes under pretty permalinks. Fixed test_capability_type assertion to compare Keys::CAPABILITY_TYPE[0] since WP normalizes the public capability_type property to the singular string. foundry_verify all green; composer test (DAM=1, 280 tests) and composer test:unit both OK.
