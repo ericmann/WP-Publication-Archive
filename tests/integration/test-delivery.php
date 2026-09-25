@@ -545,15 +545,13 @@ class Test_Delivery extends \WP_UnitTestCase {
 	public function test_proxy_view_of_html_is_attachment_with_nosniff() {
 		$this->assert_proxy_view_headers( 'html', 'text/html' );
 
-		$joined = implode( "\n", $this->headers );
-		$this->assertStringContainsString( 'Content-Disposition: attachment', $joined );
+		$this->assertContains( 'Content-Disposition: attachment; filename="a.html"', $this->headers );
 	}
 
 	public function test_proxy_view_of_svg_is_attachment_with_nosniff() {
 		$this->assert_proxy_view_headers( 'svg', 'image/svg+xml' );
 
-		$joined = implode( "\n", $this->headers );
-		$this->assertStringContainsString( 'Content-Disposition: attachment', $joined );
+		$this->assertContains( 'Content-Disposition: attachment; filename="a.svg"', $this->headers );
 	}
 
 	public function test_proxy_view_of_pdf_is_inline_with_nosniff() {
