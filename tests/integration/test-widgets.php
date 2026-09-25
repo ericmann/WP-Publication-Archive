@@ -23,7 +23,7 @@ class Test_Widgets extends \WP_UnitTestCase {
 		// widgets_init, and other test files (e.g. characterisation
 		// output) rely on that registration surviving for the rest of the
 		// run.
-		unregister_sidebar( 'wppa-test-sidebar' );
+		unregister_sidebar( 'test-widgets-sidebar' );
 		delete_option( 'sidebars_widgets' );
 		delete_option( 'widget_' . Keys::WIDGET_ARCHIVE_ID_BASE );
 
@@ -58,7 +58,7 @@ class Test_Widgets extends \WP_UnitTestCase {
 
 		register_sidebar(
 			array(
-				'id'            => 'wppa-test-sidebar',
+				'id'            => 'test-widgets-sidebar',
 				'before_widget' => '<aside>',
 				'after_widget'  => '</aside>',
 				'before_title'  => '<h2>',
@@ -77,7 +77,7 @@ class Test_Widgets extends \WP_UnitTestCase {
 		update_option(
 			'sidebars_widgets',
 			array(
-				'wppa-test-sidebar' => array( Keys::WIDGET_ARCHIVE_ID_BASE . '-2' ),
+				'test-widgets-sidebar' => array( Keys::WIDGET_ARCHIVE_ID_BASE . '-2' ),
 			)
 		);
 
@@ -92,7 +92,7 @@ class Test_Widgets extends \WP_UnitTestCase {
 		$widget_object->_register();
 
 		ob_start();
-		dynamic_sidebar( 'wppa-test-sidebar' );
+		dynamic_sidebar( 'test-widgets-sidebar' );
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'From 3.0.1', $output );
