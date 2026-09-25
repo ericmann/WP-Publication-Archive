@@ -203,6 +203,7 @@ class Publication_Item {
 			return '';
 		}
 
+		$thumb = Plugin::instance()->url_policy()->normalise( $thumb );
 		$thumb = Plugin::instance()->dam_bridge()->display_url( $thumb );
 
 		// D18: display_url() may return the DAM's data: URI placeholder for
@@ -221,7 +222,12 @@ class Publication_Item {
 	 * @return void
 	 */
 	public function the_thumbnail() {
-		echo wp_kses_post( $this->get_the_thumbnail() );
+		// D18: display_url() may return the DAM's data: URI placeholder for
+		// a withheld image; wp_kses_post()'s protocol allowlist doesn't
+		// include 'data', so it is added explicitly here.
+		$protocols = array_merge( wp_allowed_protocols(), array( 'data' ) );
+
+		echo wp_kses( $this->get_the_thumbnail(), 'post', $protocols );
 	}
 
 	/**

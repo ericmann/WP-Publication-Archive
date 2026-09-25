@@ -140,6 +140,17 @@ class Test_Publication_Item extends \WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'onerror="alert(1)', $output );
 	}
 
+	public function test_thumbnail_normalises_pipe_form() {
+		$id = self::factory()->post->create( array( 'post_type' => Keys::POST_TYPE ) );
+		V3_Site::raw_meta( $id, Keys::META_IMAGE, 'https|example.com/t.png' );
+
+		$item = new Publication_Item( $id );
+
+		$output = $item->get_the_thumbnail();
+
+		$this->assertStringContainsString( 'src="https://example.com/t.png"', $output );
+	}
+
 	public function test_d3_filtered_title_is_escaped() {
 		add_filter(
 			Keys::FILTER_TITLE,
