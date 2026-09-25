@@ -1,8 +1,10 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: 3.0.1's WP_Publication_Archive_Widget,
- * aliased back by that name. Not final; keeps the 3.0.1 method names,
- * parameters, defaults and public properties, with phpdoc types only.
+ * Implements SPEC.md §8 Phase 0 item 4 and §6.6: 3.0.1's
+ * WP_Publication_Archive_Widget, aliased back by that name. Not final; keeps
+ * the 3.0.1 method names, parameters, defaults and public properties, with
+ * phpdoc types only. D14 (P2-09): show_instance_in_rest exposes this widget
+ * to the Legacy Widget block.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -22,8 +24,9 @@ class Archive_Widget extends \WP_Widget {
 			Keys::WIDGET_ARCHIVE_ID_BASE,
 			__( 'Publication Archive Widget', 'wp-publication-archive' ),
 			array(
-				'classname'   => 'publication_archive',
-				'description' => __( 'Display a list of publications.', 'wp-publication-archive' ),
+				'classname'             => 'publication_archive',
+				'description'           => __( 'Display a list of publications.', 'wp-publication-archive' ),
+				'show_instance_in_rest' => true,
 			)
 		);
 	}

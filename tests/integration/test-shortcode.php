@@ -9,6 +9,7 @@
 namespace WPPA\Tests;
 
 use WPPA\Keys;
+use WPPA\Tests\Fixtures\V3_Expected_Output;
 use WPPA\Tests\Fixtures\V3_Site;
 
 class Test_Shortcode extends \WP_UnitTestCase {
@@ -109,6 +110,25 @@ class Test_Shortcode extends \WP_UnitTestCase {
 		do_shortcode( '[' . Keys::SHORTCODE . ' limit="2"]' );
 
 		$this->assertSame( 2, $seen['paged'] );
+	}
+
+	/**
+	 * D14 (P2-09): confirms this class's own render() — the live shortcode
+	 * handler since P0-12 — still matches the pinned 3.0.1 output, the same
+	 * way test-characterisation-output.php pins do_shortcode() itself.
+	 */
+	public function test_shortcode_output_matches_characterisation_strings() {
+		$list = do_shortcode( '[' . Keys::SHORTCODE . ' showas="list"]' );
+		$this->assertSame(
+			V3_Expected_Output::normalise( V3_Expected_Output::expand( V3_Expected_Output::LIST_ALL, $this->data ) ),
+			V3_Expected_Output::normalise( $list )
+		);
+
+		$dropdown = do_shortcode( '[' . Keys::SHORTCODE . ' showas="dropdown"]' );
+		$this->assertSame(
+			V3_Expected_Output::normalise( V3_Expected_Output::expand( V3_Expected_Output::DROPDOWN_ALL, $this->data ) ),
+			V3_Expected_Output::normalise( $dropdown )
+		);
 	}
 
 	/**

@@ -1,9 +1,10 @@
 <?php
 /**
- * Implements SPEC.md §8 Phase 0 item 4: 3.0.1's
+ * Implements SPEC.md §8 Phase 0 item 4 and §6.6: 3.0.1's
  * WP_Publication_Archive_Category_Widget, aliased back by that name. Not
  * final; keeps the 3.0.1 method names, parameters, defaults and public
- * properties, with phpdoc types only.
+ * properties, with phpdoc types only. D14 (P2-09): show_instance_in_rest
+ * exposes this widget to the Legacy Widget block.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -26,8 +27,9 @@ class Related_Widget extends \WP_Widget {
 	 */
 	public function __construct() {
 		$widget_ops = array(
-			'classname'   => 'widget_pub_related',
-			'description' => __( 'A list of related publications (based on category).', 'wp-publication-archive' ),
+			'classname'             => 'widget_pub_related',
+			'description'           => __( 'A list of related publications (based on category).', 'wp-publication-archive' ),
+			'show_instance_in_rest' => true,
 		);
 		parent::__construct( Keys::WIDGET_RELATED_ID_BASE, __( 'Related Publications', 'wp-publication-archive' ), $widget_ops );
 
