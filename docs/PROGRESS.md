@@ -42,7 +42,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
 - [x] P3-03 Final gate — verify, build, push
 - [x] R1-01 Disable Composer's process timeout so composer test/verify can finish
-- [ ] R1-02 Cli caps_granted row reads capability and role names from Keys; lock the shape with a constraint
+- [x] R1-02 Cli caps_granted row reads capability and role names from Keys; lock the shape with a constraint
 - [ ] R1-03 the_thumbnail() keeps the DAM data: placeholder; thumbnail read path normalises the pipe form
 - [ ] R1-04 Meta box save preserves percent-encoded URLs
 - [ ] R1-05 Delivery acts only on publications and reads meta directly, not through Publication_Item
@@ -343,3 +343,6 @@ Manual check: NOT VERIFIED (human) — SPEC §8 Phase 3's checks (install dist/w
 
 ### R1-01 — f74e535
 Added tests/unit/test-composer-config.php (test_process_timeout_is_disabled) decoding composer.json and asserting config.process-timeout === 0. Added "process-timeout": 0 to composer.json's config block; no other keys changed. Verified: composer lint/analyse/test:map/test:unit/test all green via foundry_verify. composer test ran 654s in the tests-cli container with no COMPOSER_PROCESS_TIMEOUT override and exited 0; confirmed no leftover phpunit process afterward via `npx wp-env run tests-cli ps aux`.
+
+### R1-02 — 8c9e258
+Added Keys::ROLE_ADMINISTRATOR = 'administrator'; class-cli.php's caps_granted_row() now uses Keys::ROLE_ADMINISTRATOR and Keys::CAP_MAP['edit_posts'] instead of literals. Added constraint capability-names-in-keys to docs/foundry.json (pattern for unprefixed *_publications capability literals, excludes class-keys.php); self-tests pass, 0 hits repo-wide. Tests: tests/unit/test-keys.php asserts Keys::ROLE_ADMINISTRATOR; tests/integration/test-cli.php adds test_caps_granted_row_follows_keys_cap_map (grants caps, removes Keys::CAP_MAP['edit_posts'] from administrator, expects doctor to fail/exit, restored by existing set_up/tear_down roles snapshot). Verified: foundry_verify all green (lint/analyse/test:map/test:unit/test/constraints incl. new one); grep for 'edit_publications'/'administrator' in class-cli.php returns nothing; `npx wp-env run cli wp publication-archive doctor` exits 0 with all rows passing.
