@@ -76,7 +76,6 @@ class Test_Delivery_Dam extends \WP_UnitTestCase {
 			Plugin::instance()->url_policy(),
 			$streamer,
 			Plugin::instance()->dam_bridge(),
-			Plugin::instance()->icons(),
 			$exit,
 			static function () {}
 		);

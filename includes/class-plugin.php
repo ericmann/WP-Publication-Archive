@@ -100,7 +100,7 @@ final class Plugin {
 		$this->dam_bridge  = new Dam_Bridge( $this->url_policy );
 		$this->cli         = new Cli( $this->flags, $this->dam_bridge );
 		$this->streamer    = new Streamer( get_temp_dir() );
-		$this->delivery    = new Delivery( $this->url_policy, $this->streamer, $this->dam_bridge, $this->icons );
+		$this->delivery    = new Delivery( $this->url_policy, $this->streamer, $this->dam_bridge );
 		$this->meta_boxes  = new Meta_Boxes( $this->url_policy );
 		$this->templates   = new Templates();
 		$this->shortcode  = new Shortcode( $this->templates );

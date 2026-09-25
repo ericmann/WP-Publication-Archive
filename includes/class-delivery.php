@@ -19,8 +19,6 @@ final class Delivery {
 
 	private Dam_Bridge $dam;
 
-	private Icons $icons;
-
 	/** @var callable */
 	private $exit;
 
@@ -36,13 +34,12 @@ final class Delivery {
 	 * itself: wp_safe_redirect() sets its own, and the proxy path's headers
 	 * go through Streamer::send() instead. It may be left unused.
 	 */
-	public function __construct( Url_Policy $policy, Streamer $streamer, Dam_Bridge $dam, Icons $icons, ?callable $exit = null, ?callable $header = null ) {
+	public function __construct( Url_Policy $policy, Streamer $streamer, Dam_Bridge $dam, ?callable $exit = null, ?callable $header = null ) {
 		unset( $header );
 
 		$this->policy   = $policy;
 		$this->streamer = $streamer;
 		$this->dam      = $dam;
-		$this->icons    = $icons;
 		$this->exit     = $exit ?? static function () {
 			exit;
 		};
@@ -58,10 +55,6 @@ final class Delivery {
 
 	public function dam(): Dam_Bridge {
 		return $this->dam;
-	}
-
-	public function icons(): Icons {
-		return $this->icons;
 	}
 
 	/**
@@ -243,7 +236,12 @@ final class Delivery {
 			return;
 		}
 
-		$content_type = $this->icons->mime_for( $url );
+		// SPEC §6.2 step 1: resolve content type with wp_check_filetype()
+		// directly (Delivery does not depend on Icons, per §4.2's module
+		// map), falling back to the response's content-type header, then
+		// Keys::CONTENT_TYPE_FALLBACK.
+		$type         = wp_check_filetype( basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) )['type'];
+		$content_type = false === $type ? Keys::CONTENT_TYPE_FALLBACK : $type;
 
 		if ( Keys::CONTENT_TYPE_FALLBACK === $content_type ) {
 			$response_type = wp_remote_retrieve_header( $response, 'content-type' );

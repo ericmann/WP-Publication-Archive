@@ -11,6 +11,7 @@
 namespace WPPA\Tests;
 
 use WPPA\Delivery;
+use WPPA\Icons;
 use WPPA\Keys;
 use WPPA\Plugin;
 use WPPA\Streamer;
@@ -81,8 +82,8 @@ class Test_Delivery extends \WP_UnitTestCase {
 
 	/**
 	 * Swaps Plugin's 'delivery' for one with injectable exit/header
-	 * callables, using the real Url_Policy/Dam_Bridge/Icons so is_same_site()
-	 * and the DAM checks behave exactly as they do in production. Re-binds
+	 * callables, using the real Url_Policy/Dam_Bridge so is_same_site() and
+	 * the DAM checks behave exactly as they do in production. Re-binds
 	 * the allowed_redirect_hosts hook to the new instance (Plugin wires it
 	 * to the object that existed at boot; replace() alone doesn't move it).
 	 */
@@ -103,7 +104,6 @@ class Test_Delivery extends \WP_UnitTestCase {
 			Plugin::instance()->url_policy(),
 			$streamer,
 			Plugin::instance()->dam_bridge(),
-			Plugin::instance()->icons(),
 			$exit,
 			$header
 		);
@@ -128,6 +128,21 @@ class Test_Delivery extends \WP_UnitTestCase {
 		flush_rewrite_rules( false ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: test-only, needs this site's own rewrite rules.
 
 		$this->go_to( add_query_arg( $extra_query, get_permalink( $id ) ) );
+	}
+
+	public function test_delivery_constructor_takes_no_icons() {
+		$constructor = new \ReflectionMethod( Delivery::class, '__construct' );
+
+		foreach ( $constructor->getParameters() as $parameter ) {
+			$type = $parameter->getType();
+
+			$this->assertFalse(
+				null !== $type && Icons::class === ltrim( $type->getName(), '\\' ),
+				'Delivery::__construct() must not take an Icons parameter.'
+			);
+		}
+
+		$this->assertFalse( method_exists( Delivery::class, 'icons' ) );
 	}
 
 	public function test_no_endpoint_query_var_does_nothing() {
