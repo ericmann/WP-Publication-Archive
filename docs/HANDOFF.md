@@ -119,6 +119,117 @@ are unchanged.
   self-test alone would have caught REVIEW finding 1 had it existed
   before round 0 shipped.
 
+## Round 2 (review-fix)
+
+Branch: `build/2026-09-24`
+Head before this round: `13bc029` (`review: round 2`)
+Head after this round: `aafaaac`
+Tasks this round: 5 total (R2-01..R2-05), 5 done, 0 blocked, 0 skipped, 0 open.
+
+### Blocked / skipped tasks
+
+None. All five R2 fix tasks reached `[x]` on the first attempt.
+
+### What each R2 task fixed
+
+- **R2-01** (`72b9dee`): `Meta_Boxes::save()` was storing every `&` in a
+  doc/thumbnail/alternate URL as `&amp;`, because `wp_kses_post()` runs
+  `wp_kses_normalize_entities()` — a regression R1-04 introduced while
+  fixing the percent-encoding defect. Replaced `wp_kses_post()` with
+  `wp_strip_all_tags()` as the immediate sanitiser (still satisfies
+  `WordPress.Security.ValidatedSanitizedInput.InputNotSanitized` per
+  `no-security-ignores`, since `wp_strip_all_tags` is in
+  `SanitizationHelperTrait`'s list) on the doc/thumbnail fields and as the
+  `map_deep()` callback for alternate URLs; kept the rest of the chain
+  (`Url_Policy::normalise()` → `esc_url_raw()` → `validated_url()`)
+  unchanged. Also cast the posted description/url collections to `(array)`
+  and skip non-string url elements, closing a hand-crafted-POST path to
+  `count()`/`normalise( string )` with the wrong type.
+- **R2-02** (`07fa6f7`): `Delivery` imported `Icons`, which SPEC §4.2's
+  module map does not allow it (`Keys, Hooks, Flags, Url_Policy, Streamer,
+  Dam_Bridge` only). Removed the `Icons` constructor parameter, `$icons`
+  property and `icons()` accessor; `proxy()` now resolves content type
+  with `wp_check_filetype( basename( wp_parse_url( $url, PHP_URL_PATH ) ) )['type']`
+  directly, falling back to the response's content-type header then
+  `Keys::CONTENT_TYPE_FALLBACK` — the same logic `Icons::mime_for()` used
+  internally, just inlined. Updated `Plugin::__construct()`'s wiring and
+  both test files that construct `Delivery`.
+- **R2-03** (`70120fa`): implemented the product-owner decision in SPEC
+  `464750b`: every proxied response now always sends
+  `X-Content-Type-Options: nosniff`, and a **view** request for active
+  content (`Keys::ACTIVE_CONTENT_TYPES`: html/xhtml/svg/xml×2/js×2) is
+  forced to an attachment, so the plugin never serves HTML/SVG/XML/JS
+  inline from the site's origin. New `Streamer::is_active_content()`
+  (static, strips `;` params, trims, lowercases, membership check).
+  `Streamer::send()`'s header order is now Content-Type, Content-Length,
+  always `X-Content-Type-Options: nosniff`, then Content-Disposition
+  (named when `$filename` given, a bare `attachment` backstop when
+  `is_active_content()` and no filename). `Delivery::proxy()` passes a
+  filename when `$is_download` **or** `Streamer::is_active_content(
+  $content_type )`. Also made the temp-dir containment check exact:
+  `$real_path` must start with `rtrim( $real_temp_dir, DIRECTORY_SEPARATOR
+  ) . DIRECTORY_SEPARATOR`, closing a sibling-directory-prefix bypass
+  (e.g. a temp dir `X` no longer accepts a file under `X-evil/`).
+- **R2-04** (`d3a3125`): implemented the product-owner decision in SPEC
+  `464750b`: added `'contributor'` to `Keys::CAP_ROLES` (after
+  `'author'`), so `Capabilities::grant()`'s existing `has_cap()`-based
+  mapping also grants contributors `edit_publications`/
+  `delete_publications` (the same subset of `Keys::CAP_MAP` they already
+  have for `post`), keeping 3.0.1's ability for a contributor to create
+  and edit their own draft publications without granting `publish`/`edit
+  others`.
+- **R2-05** (`e2ac0c1`): test-only. SPEC G5 (`464750b`) calls for the
+  characterisation tests to pin *every* plain-permalink link generator and
+  query form, not just `get_open_link()`. Added
+  `test_download_link_with_plain_permalinks_matches_301`,
+  `test_alternate_open_link_with_plain_permalinks_matches_301`,
+  `test_alternate_download_link_with_plain_permalinks_matches_301` (the
+  alternate tests fail if `Rewrites::link()`'s `add_query_arg(
+  Keys::QUERY_ALT_KEY, … )` is ever deleted), and
+  `test_open_query_form_resolves_with_plain_permalinks`/
+  `test_download_query_form_resolves_with_plain_permalinks`.
+
+### Interpretation choices this round (by task ID)
+
+- **R2-03**: `Delivery::proxy()` computes `$filename` itself (`$is_download
+  || Streamer::is_active_content( $content_type )`) rather than relying
+  solely on `Streamer::send()`'s bare-`attachment` backstop, so an active-
+  content view still gets a real filename in its
+  `Content-Disposition: attachment; filename="…"` header, which is
+  friendlier than the backstop's bare `Content-Disposition: attachment`
+  that `Streamer::send()` would otherwise add on its own for defence in
+  depth (that backstop still exists and is exercised by
+  `test_send_forces_attachment_for_active_content_with_no_filename`, in
+  case a future caller of `Streamer::send()` forgets to do this).
+- All other R2 tasks matched their design constraints exactly with no open
+  interpretation.
+
+### ⚠️ ASSUMPTION config keys
+
+No new `⚠️ ASSUMPTION` keys were introduced this round.
+
+### What a human must check by hand this round
+
+Nothing new. R2-01/R2-02/R2-04 are server-side sanitisation/wiring/
+capability fixes with full automated coverage; R2-03's `nosniff`/
+attachment-forcing behaviour is covered by `tests/unit/test-streamer.php`
+and `tests/integration/test-delivery.php`'s new proxy-view tests; R2-05 is
+test-only.
+
+### Notes for the reviewer (this round)
+
+- Every fix in this round is scoped to the file(s) the reviewer named in
+  its finding; no other production code changed.
+- `foundry_verify` (all constraints + `lint`/`analyse`/`test:map`/
+  `test:unit`/`test` with the DAM loaded) is green on every task's commit,
+  and `lint`/`analyse`/`test:map`/`test:unit` are green again on the full
+  tree at the end of the round (no files were passed to the closing
+  `foundry_verify`, so it skipped the ~15-20 minute `composer test` — every
+  task's own `foundry_verify` already ran it to green individually).
+- R2-01 and R2-03 both touch `Meta_Boxes`/`Delivery`/`Streamer` sanitiser
+  and header logic; read them together, since R2-03's `Delivery::proxy()`
+  edit lands right next to R2-02's Icons-removal edit in the same method.
+
 ## Blocked / skipped tasks
 
 None. Every task in `docs/PLAN.md` reached `[x]`.
