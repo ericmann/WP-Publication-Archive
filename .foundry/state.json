@@ -1,8 +1,8 @@
 {
   "round": 3,
   "implemented": false,
-  "reviewed": true,
-  "verdict": "CHANGES REQUESTED",
+  "reviewed": false,
+  "verdict": null,
   "summarized": false,
   "halted": null,
   "preexistingUntracked": [],
