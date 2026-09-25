@@ -51,7 +51,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R2-01 Meta box save keeps '&' in URLs (R1-04 regression)
 - [x] R2-02 Delivery drops its Icons dependency (SPEC §4.2 module map)
 - [x] R2-03 Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
-- [ ] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
+- [x] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
 - [ ] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
 
 ## Log
@@ -375,3 +375,6 @@ Removed Icons constructor param, $icons property, icons() accessor from Delivery
 
 ### R2-03 — 70120fa
 Added Keys::ACTIVE_CONTENT_TYPES (html/xhtml/svg/xml x2/js x2). Added static Streamer::is_active_content() (strips ';' params, trims, lowercases, checks membership). Streamer::send() now always sends X-Content-Type-Options: nosniff after Content-Length, then Content-Disposition (named attachment when $filename given, bare "attachment" backstop when is_active_content() and no filename). Containment check now requires $real_path to start with rtrim(real_temp_dir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR, closing the sibling-dir-prefix bypass. Delivery::proxy() now passes a sanitized filename when $is_download OR Streamer::is_active_content($content_type). New tests: test_active_content_types (keys), test_send_always_sends_nosniff, test_send_forces_attachment_for_active_content_with_no_filename (data provider), test_send_sends_no_disposition_for_pdf_view, test_send_refuses_a_sibling_dir_sharing_the_temp_dir_prefix (streamer); test_proxy_view_of_{html,svg,pdf}_* (delivery integration, html/svg fail on pre-fix code). Existing disposition-header-index assertions moved from [2] to [3]. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
+
+### R2-04 — d3a3125
+Added 'contributor' to Keys::CAP_ROLES (after 'author'); grant()'s has_cap()-based mapping unchanged so contributor gets edit_publications and delete_publications only (default contributor role has edit_posts/delete_posts but not publish_posts/edit_others_posts/edit_published_posts). Updated "three §6.1 roles" docblocks in class-capabilities.php and test-capabilities.php to "four". New tests: test_grant_gives_contributor_the_same_subset_as_for_post (integration), test_contributor_can_edit_own_draft_but_not_publish_or_edit_others (creates two contributor users, asserts current_user_can edit_post on own draft, not publish_post, not edit_post on another's draft, and has generic edit_publications cap). test-keys.php CAP_ROLES assertion updated. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
