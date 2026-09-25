@@ -109,4 +109,21 @@ class Test_Admin_Media extends \WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'tb_show', $contents );
 		$this->assertStringNotContainsString( 'TB_iframe', $contents );
 	}
+
+	public function test_admin_media_js_uses_jquery_only_for_document_delegation() {
+		$path = WP_PUB_ARCH_DIR . Keys::ADMIN_SCRIPT_PATH;
+		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown -- reason: local source file, not remote data.
+		$contents = file_get_contents( $path );
+
+		$this->assertNotFalse( $contents );
+
+		$matches = array();
+		preg_match_all( '/(?:\$|jQuery)\(\s*([^)]*?)\s*\)/', (string) $contents, $matches );
+
+		$this->assertNotEmpty( $matches[1] );
+
+		foreach ( $matches[1] as $argument ) {
+			$this->assertSame( 'document', $argument );
+		}
+	}
 }

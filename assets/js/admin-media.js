@@ -67,10 +67,10 @@
 	$( document ).on( 'click', '.wpa-upload-row', function ( event ) {
 		event.preventDefault();
 
-		var $row = $( this ).closest( 'tr' );
+		var row = this.closest( 'tr' );
 
 		openMediaFrame( strings.alternateTitle, function ( url ) {
-			$row.find( 'input[name$="[url][]"]' ).val( url );
+			row.querySelector( 'input[name$="[url][]"]' ).value = url;
 		} );
 	} );
 
@@ -90,6 +90,6 @@
 	$( document ).on( 'click', '.wpa-delete-row', function ( event ) {
 		event.preventDefault();
 
-		$( this ).closest( 'tr' ).remove();
+		this.closest( 'tr' ).remove();
 	} );
 } )( window, window.wp, window.jQuery );
