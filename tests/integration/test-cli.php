@@ -197,6 +197,32 @@ class Test_Cli extends \WP_UnitTestCase {
 		}
 	}
 
+	public function test_caps_granted_row_follows_keys_cap_map() {
+		Plugin::instance()->capabilities()->grant();
+
+		$administrator = get_role( Keys::ROLE_ADMINISTRATOR );
+		$administrator->remove_cap( Keys::CAP_MAP['edit_posts'] );
+
+		try {
+			$this->expectException( \WP_CLI\ExitException::class );
+			Plugin::instance()->cli()->doctor( array(), array( 'format' => 'json' ) );
+		} finally {
+			$rows = json_decode( (string) end( \WP_CLI::$lines ), true );
+
+			$caps_rows = array_values(
+				array_filter(
+					$rows,
+					static function ( array $row ): bool {
+						return 'caps_granted' === $row['check'];
+					}
+				)
+			);
+
+			$this->assertCount( 1, $caps_rows );
+			$this->assertSame( 'fail', $caps_rows[0]['status'] );
+		}
+	}
+
 	/**
 	 * @group nodam
 	 */

@@ -96,9 +96,10 @@ final class Keys {
 	const TAX_AUTHOR_REWRITE_SLUG  = 'publication/author';
 
 	// Capabilities (§6.1, P2-02).
-	const CAPABILITY_TYPE = array( 'publication', 'publications' );
-	const CAP_ROLES       = array( 'administrator', 'editor', 'author' );
-	const CAP_MAP         = array(
+	const CAPABILITY_TYPE    = array( 'publication', 'publications' );
+	const CAP_ROLES          = array( 'administrator', 'editor', 'author' );
+	const ROLE_ADMINISTRATOR = 'administrator';
+	const CAP_MAP            = array(
 		'edit_posts'             => 'edit_publications',
 		'edit_others_posts'      => 'edit_others_publications',
 		'edit_private_posts'     => 'edit_private_publications',

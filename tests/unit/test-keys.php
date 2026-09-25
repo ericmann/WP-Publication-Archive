@@ -268,6 +268,7 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 
 		$this->assertSame( array( 'publication', 'publications' ), Keys::CAPABILITY_TYPE );
 		$this->assertSame( array( 'administrator', 'editor', 'author' ), Keys::CAP_ROLES );
+		$this->assertSame( 'administrator', Keys::ROLE_ADMINISTRATOR );
 		$this->assertSame(
 			array(
 				'edit_posts'             => 'edit_publications',

@@ -139,8 +139,8 @@ final class Cli {
 	 * @return array{check: string, status: string, message: string}
 	 */
 	private function caps_granted_row(): array {
-		$administrator = get_role( 'administrator' );
-		$admin_has_cap = null !== $administrator && $administrator->has_cap( 'edit_publications' );
+		$administrator = get_role( Keys::ROLE_ADMINISTRATOR );
+		$admin_has_cap = null !== $administrator && $administrator->has_cap( Keys::CAP_MAP['edit_posts'] );
 		$caps_granted  = $this->flags->caps_granted();
 
 		return $this->row(
