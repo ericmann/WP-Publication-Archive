@@ -50,7 +50,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R1-07 3.1.0 release notes describe D5 accurately
 - [x] R2-01 Meta box save keeps '&' in URLs (R1-04 regression)
 - [x] R2-02 Delivery drops its Icons dependency (SPEC §4.2 module map)
-- [ ] R2-03 Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
+- [x] R2-03 Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
 - [ ] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
 - [ ] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
 
@@ -372,3 +372,6 @@ Replaced wp_kses_post() with wp_strip_all_tags() as immediate sanitiser for FIEL
 
 ### R2-02 — 07fa6f7
 Removed Icons constructor param, $icons property, icons() accessor from Delivery. New signature: __construct( Url_Policy, Streamer, Dam_Bridge, ?callable $exit, ?callable $header ). proxy() now computes content type via wp_check_filetype(basename(wp_parse_url($url, PHP_URL_PATH)))['type'], falling back to response content-type header then Keys::CONTENT_TYPE_FALLBACK - same logic Icons::mime_for used internally. Updated Plugin::__construct() wiring and both test files' Delivery constructions. Added test_delivery_constructor_takes_no_icons using ReflectionMethod, asserting no Icons-typed param and no icons() method. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
+
+### R2-03 — 70120fa
+Added Keys::ACTIVE_CONTENT_TYPES (html/xhtml/svg/xml x2/js x2). Added static Streamer::is_active_content() (strips ';' params, trims, lowercases, checks membership). Streamer::send() now always sends X-Content-Type-Options: nosniff after Content-Length, then Content-Disposition (named attachment when $filename given, bare "attachment" backstop when is_active_content() and no filename). Containment check now requires $real_path to start with rtrim(real_temp_dir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR, closing the sibling-dir-prefix bypass. Delivery::proxy() now passes a sanitized filename when $is_download OR Streamer::is_active_content($content_type). New tests: test_active_content_types (keys), test_send_always_sends_nosniff, test_send_forces_attachment_for_active_content_with_no_filename (data provider), test_send_sends_no_disposition_for_pdf_view, test_send_refuses_a_sibling_dir_sharing_the_temp_dir_prefix (streamer); test_proxy_view_of_{html,svg,pdf}_* (delivery integration, html/svg fail on pre-fix code). Existing disposition-header-index assertions moved from [2] to [3]. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
