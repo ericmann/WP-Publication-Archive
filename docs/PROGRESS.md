@@ -44,7 +44,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R1-01 Disable Composer's process timeout so composer test/verify can finish
 - [x] R1-02 Cli caps_granted row reads capability and role names from Keys; lock the shape with a constraint
 - [x] R1-03 the_thumbnail() keeps the DAM data: placeholder; thumbnail read path normalises the pipe form
-- [ ] R1-04 Meta box save preserves percent-encoded URLs
+- [x] R1-04 Meta box save preserves percent-encoded URLs
 - [ ] R1-05 Delivery acts only on publications and reads meta directly, not through Publication_Item
 - [ ] R1-06 admin-media.js uses jQuery only for document delegation
 - [ ] R1-07 3.1.0 release notes describe D5 accurately
@@ -349,3 +349,6 @@ Added Keys::ROLE_ADMINISTRATOR = 'administrator'; class-cli.php's caps_granted_r
 
 ### R1-03 — e695fc9
 the_thumbnail() now echoes through wp_kses( $html, 'post', array_merge( wp_allowed_protocols(), array( 'data' ) ) ) instead of wp_kses_post(), so the DAM's data: placeholder URI survives. get_the_thumbnail() now normalises the raw stored value via Plugin::instance()->url_policy()->normalise() before Dam_Bridge::display_url()/escaping; $upload_image and the wpa-upload_image filter input stay the raw stored value. Tests: tests/integration/dam/test-publication-item-dam.php adds test_d18_the_thumbnail_echoes_placeholder_for_anonymous (ob_start around the_thumbnail(), asserts Embargo_Guard::placeholder_url() verbatim in output); tests/integration/test-publication-item.php adds test_thumbnail_normalises_pipe_form (writes META_IMAGE 'https|example.com/t.png' via V3_Site::raw_meta(), asserts src="https://example.com/t.png"). Verified: foundry_verify green (lint/analyse/test:map/test:unit/test, all constraints incl. no-security-ignores); composer test (DAM loaded) exit 0, WPPA_DAM=0 composer test exit 0 (301 tests, no dam group).
+
+### R1-04 — c4d1c39
+save() now sanitises doc/image/each alternate url with wp_kses_post() (immediate wrap of wp_unslash($_POST[...]), satisfies WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, preserves %-octets unlike sanitize_text_field()), then Url_Policy::normalise() converts the legacy http|/https| pipe form, then esc_url_raw() (which would otherwise prepend http:// to a colon-less pipe-form string, corrupting it, if run before normalise), then validated_url(). Descriptions still use sanitize_text_field(); alternates loop bound (`< count($raw_urls)`) unchanged (D10); only the three META_DOC/META_IMAGE/META_ALTERNATES keys are written. Test: tests/integration/test-meta-boxes.php adds test_save_preserves_percent_encoded_urls (doc with %20, image with %C3%A9 x2, one alternate with %2F, asserts byte-for-byte storage). Verified: foundry_verify all green (lint/analyse/test:map/test:unit/test, no-security-ignores constraint holds — no phpcs ignore added); existing test_d1_*, test_d2_*, test_d10_* and pipe-form tests stay green.
