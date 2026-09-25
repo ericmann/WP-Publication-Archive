@@ -40,7 +40,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-10 Gate 2 — compatibility verified, constraints locked, branch pushed
 - [x] P3-01 uninstall.php, .distignore and composer build
 - [x] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
-- [ ] P3-03 Final gate — verify, build, push
+- [x] P3-03 Final gate — verify, build, push
 
 ## Log
 (one entry per task, appended by implement)
@@ -324,3 +324,12 @@ Real gotcha found by running the pre-existing test suite, not assumed: tests/uni
 Tests: tests/unit/test-keys.php's test_versions/test_plugin_header_matches_keys updated to 3.1.0. New tests/unit/test-readme.php: test_readme_headers_match_keys, test_readme_has_310_changelog_and_upgrade_notice (checks all D1-D19 via word-boundary regex, and that the upgrade notice mentions Keys::FILTER_MASK_URL), test_changelog_md_has_310_section.
 
 foundry_verify green (constraints, lint, analyse, test:map incl. the pre-existing HOOKS.md cross-check tests, test:unit — 64 unit tests). WPPA_DAM=0 composer test: 298/298 green (1 expected skip) on a clean re-run, after one run hit the recurring create_upload_object()/WP_Error environment flake (already logged via foundry_feedback_log across several prior tasks).
+
+### P3-03 — 4ff4b7e
+No code fix was needed at this gate. Verified: composer verify (DAM loaded) green — lint, analyse, test:map, 316/316 tests (1 expected skip). WPPA_DAM=0 composer test 298/298 green (1 expected skip). composer build succeeds; unzip -l dist/wp-publication-archive.zip shows no tests/, bin/, .cache/, and no dev vendor/ packages beyond vendor/autoload.php and vendor/composer/. foundry_verify (no files arg) returned ok: true — every constraint, lint, analyse, test:map, test:unit green.
+
+Deactivated then reactivated wp-publication-archive with the DAM active, and again with the DAM deactivated: wp-content/debug.log was never created either time (no notices in either mode). wp publication-archive doctor shows all nine rows passing and exits 0.
+
+Push/CI: git push fails with "ERROR: This repository was archived so it is read-only" — same known limitation P0-16, P1-09 and P2-10 already logged at their own pushes. Not task-blocking. CI: NOT VERIFIED (repository archived/read-only, push rejected).
+
+Manual check: NOT VERIFIED (human) — SPEC §8 Phase 3's checks (install dist/wp-publication-archive.zip on a fresh WP 7.1 site restored from a 3.0.1 database: no activation errors, every G5 URL resolves, German translation loads with WPLANG=de_DE; repeat with the DAM active; mark the PR ready if the summarizer could not) need a human.
