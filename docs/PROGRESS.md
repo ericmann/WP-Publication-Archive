@@ -48,7 +48,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R1-05 Delivery acts only on publications and reads meta directly, not through Publication_Item
 - [x] R1-06 admin-media.js uses jQuery only for document delegation
 - [x] R1-07 3.1.0 release notes describe D5 accurately
-- [ ] R2-01 Meta box save keeps '&' in URLs (R1-04 regression)
+- [x] R2-01 Meta box save keeps '&' in URLs (R1-04 regression)
 - [ ] R2-02 Delivery drops its Icons dependency (SPEC §4.2 module map)
 - [ ] R2-03 Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
 - [ ] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
@@ -366,3 +366,6 @@ assets/js/admin-media.js: replaced $(this).closest('tr')/.remove() and $row.find
 
 ### R1-07 — 5ab486c
 Reworded the D5 bullet in readme.txt and CHANGELOG.md from "Fix a rewrite-rule collision that made a publication slugged 'view' or 'download' unreachable at its own permalink (D5)" to "Confirmed that publications slugged 'view' or 'download' stay reachable at their own permalinks; regression tests added (D5)." No other changelog/upgrade-notice lines touched; D1-D19 all still named in both files. Test: tests/unit/test-readme.php adds test_d5_entry_does_not_claim_a_rule_fix (extracts the D5 line + its preceding line from readme.txt and CHANGELOG.md, asserts each contains "regression test" and not "Fix a rewrite-rule collision"). Verified: foundry_verify green (lint/analyse/test:map/test:unit/test incl. new test, all constraints, composer test with DAM).
+
+### R2-01 — 72b9dee
+Replaced wp_kses_post() with wp_strip_all_tags() as immediate sanitiser for FIELD_DOC/FIELD_IMAGE and as map_deep() callback for alternate URLs, keeping Url_Policy::normalise -> esc_url_raw -> validated_url chain. Cast posted description/url collections to (array) and skip non-string url elements before count()/normalise(). Added test_save_preserves_ampersands_in_urls (fails on old wp_kses_post code, passes now). All existing percent-encoded/pipe-form/D1/D2/D10 tests still pass. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
