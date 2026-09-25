@@ -48,6 +48,11 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R1-05 Delivery acts only on publications and reads meta directly, not through Publication_Item
 - [x] R1-06 admin-media.js uses jQuery only for document delegation
 - [x] R1-07 3.1.0 release notes describe D5 accurately
+- [ ] R2-01 Meta box save keeps '&' in URLs (R1-04 regression)
+- [ ] R2-02 Delivery drops its Icons dependency (SPEC §4.2 module map)
+- [ ] R2-03 Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
+- [ ] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
+- [ ] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
 
 ## Log
 (one entry per task, appended by implement)
