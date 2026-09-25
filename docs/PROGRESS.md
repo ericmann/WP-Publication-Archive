@@ -46,7 +46,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R1-03 the_thumbnail() keeps the DAM data: placeholder; thumbnail read path normalises the pipe form
 - [x] R1-04 Meta box save preserves percent-encoded URLs
 - [x] R1-05 Delivery acts only on publications and reads meta directly, not through Publication_Item
-- [ ] R1-06 admin-media.js uses jQuery only for document delegation
+- [x] R1-06 admin-media.js uses jQuery only for document delegation
 - [ ] R1-07 3.1.0 release notes describe D5 accurately
 
 ## Log
@@ -355,3 +355,6 @@ save() now sanitises doc/image/each alternate url with wp_kses_post() (immediate
 
 ### R1-05 — f42cd92
 deliver() now returns without output unless get_post() is non-null and Keys::POST_TYPE === $post->post_type (restores 3.0.1's no-op for view/download query vars on non-publication requests). resolve_uri() reads Keys::META_DOC (single) and Keys::META_ALTERNATES (all rows) with get_post_meta() directly, keeping the 3.0.1 alternate-key rule (urldecode(QV_ALT) === description); no more `new Publication_Item()`, so setup_postdata()/get_the_excerpt() no longer run on delivery. Tests: tests/integration/test-delivery.php adds test_open_query_var_on_non_publication_is_ignored (regular post + QV_OPEN=yes, asserts no exception/output) and test_delivery_does_not_build_the_excerpt (counts get_the_excerpt filter calls during a same-site redirect, asserts 0). Verified: foundry_verify green (lint/analyse/test:map/test:unit/test); WPPA_DAM=0 composer test exit 0 (304 tests); `grep -n Publication_Item includes/class-delivery.php` prints nothing; existing D1/D17 delivery tests (20 Test_Delivery tests) stay green.
+
+### R1-06 — 6b6d834
+assets/js/admin-media.js: replaced $(this).closest('tr')/.remove() and $row.find(...).val(url) with DOM equivalents (this.closest('tr'), row.querySelector('input[name$="[url][]"]').value = url, Element.remove()). Every jQuery use is now jQuery(document).on() delegation; behaviour, selectors and field names unchanged; file still never touches window.send_to_editor. Test: tests/integration/test-admin-media.php adds test_admin_media_js_uses_jquery_only_for_document_delegation, regex-matching every $(...)/jQuery(...) call and asserting each argument is literally 'document'. Verified: foundry_verify green (lint/analyse/test:map/test:unit/test); WPPA_DAM=0 composer test exit 0 (305 tests). Manual check NOT VERIFIED (human): confirm in wp-admin that Upload fills the doc/thumbnail/alternate-row inputs and Add Row/Delete still work.
