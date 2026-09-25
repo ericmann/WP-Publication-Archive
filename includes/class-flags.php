@@ -65,4 +65,14 @@ final class Flags {
 	public function mark_caps_granted(): void {
 		update_option( Keys::OPT_CAPS, 1, false );
 	}
+
+	/**
+	 * Uninstall (§4.1): deletes the three §5.2 options this plugin ever
+	 * writes. Never touches post data, meta, terms or roles.
+	 */
+	public function delete_all(): void {
+		delete_option( Keys::OPT_SCHEMA );
+		delete_option( Keys::OPT_CAPS );
+		delete_option( Keys::OPT_ENABLED );
+	}
 }

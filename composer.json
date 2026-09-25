@@ -44,6 +44,7 @@
 		"test:unit": "vendor/bin/phpunit --testsuite unit",
 		"test": "bash bin/test.sh",
 		"test:map": "php bin/test-map.php",
+		"build": "bash bin/build-zip.sh",
 		"verify": [
 			"@lint",
 			"@analyse",

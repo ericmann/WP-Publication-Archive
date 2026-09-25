@@ -3,6 +3,7 @@
 	<description>WordPress VIP Go coding standard for wp-publication-archive.</description>
 
 	<file>wp-publication-archive.php</file>
+	<file>uninstall.php</file>
 	<file>includes</file>
 	<file>templates</file>
 	<file>tests</file>

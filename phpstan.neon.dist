@@ -9,6 +9,7 @@ parameters:
 		- includes
 		- templates
 		- wp-publication-archive.php
+		- uninstall.php
 		- bin/test-map.php
 	scanFiles:
 		- vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php

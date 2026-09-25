@@ -1,0 +1,34 @@
+# Repo and dev metadata.
+/.git
+/.github
+/.cache
+/.claude
+/.foundry
+.distignore
+.gitignore
+.editorconfig
+CLAUDE.md
+
+# Dev directories.
+/bin
+/docs
+/tests
+/phpstan
+/node_modules
+/vendor
+/dist
+
+# Dev config.
+.wp-env.json
+.wp-env.override.json
+package.json
+package-lock.json
+phpcs.xml.dist
+phpstan.neon.dist
+phpunit.xml.dist
+.phpunit.result.cache
+
+# Planning docs.
+V4_SPEC.md
+V4_FOUNDRY.json
+V4-ASSESSMENT.md
