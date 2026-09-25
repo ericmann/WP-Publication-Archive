@@ -45,7 +45,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R1-02 Cli caps_granted row reads capability and role names from Keys; lock the shape with a constraint
 - [x] R1-03 the_thumbnail() keeps the DAM data: placeholder; thumbnail read path normalises the pipe form
 - [x] R1-04 Meta box save preserves percent-encoded URLs
-- [ ] R1-05 Delivery acts only on publications and reads meta directly, not through Publication_Item
+- [x] R1-05 Delivery acts only on publications and reads meta directly, not through Publication_Item
 - [ ] R1-06 admin-media.js uses jQuery only for document delegation
 - [ ] R1-07 3.1.0 release notes describe D5 accurately
 
@@ -352,3 +352,6 @@ the_thumbnail() now echoes through wp_kses( $html, 'post', array_merge( wp_allow
 
 ### R1-04 — c4d1c39
 save() now sanitises doc/image/each alternate url with wp_kses_post() (immediate wrap of wp_unslash($_POST[...]), satisfies WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, preserves %-octets unlike sanitize_text_field()), then Url_Policy::normalise() converts the legacy http|/https| pipe form, then esc_url_raw() (which would otherwise prepend http:// to a colon-less pipe-form string, corrupting it, if run before normalise), then validated_url(). Descriptions still use sanitize_text_field(); alternates loop bound (`< count($raw_urls)`) unchanged (D10); only the three META_DOC/META_IMAGE/META_ALTERNATES keys are written. Test: tests/integration/test-meta-boxes.php adds test_save_preserves_percent_encoded_urls (doc with %20, image with %C3%A9 x2, one alternate with %2F, asserts byte-for-byte storage). Verified: foundry_verify all green (lint/analyse/test:map/test:unit/test, no-security-ignores constraint holds — no phpcs ignore added); existing test_d1_*, test_d2_*, test_d10_* and pipe-form tests stay green.
+
+### R1-05 — f42cd92
+deliver() now returns without output unless get_post() is non-null and Keys::POST_TYPE === $post->post_type (restores 3.0.1's no-op for view/download query vars on non-publication requests). resolve_uri() reads Keys::META_DOC (single) and Keys::META_ALTERNATES (all rows) with get_post_meta() directly, keeping the 3.0.1 alternate-key rule (urldecode(QV_ALT) === description); no more `new Publication_Item()`, so setup_postdata()/get_the_excerpt() no longer run on delivery. Tests: tests/integration/test-delivery.php adds test_open_query_var_on_non_publication_is_ignored (regular post + QV_OPEN=yes, asserts no exception/output) and test_delivery_does_not_build_the_excerpt (counts get_the_excerpt filter calls during a same-site redirect, asserts 0). Verified: foundry_verify green (lint/analyse/test:map/test:unit/test); WPPA_DAM=0 composer test exit 0 (304 tests); `grep -n Publication_Item includes/class-delivery.php` prints nothing; existing D1/D17 delivery tests (20 Test_Delivery tests) stay green.
