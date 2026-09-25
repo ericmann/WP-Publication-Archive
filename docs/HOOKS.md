@@ -86,6 +86,21 @@ See §6.9. `Keys::HOOK_DAM_INDEXED_IDS`.
 |---|---|---|
 | `vip_dam_indexed_attachment_ids` | `array $ids, \WP_Post\|null $post` | DAM |
 
+## Tunables
+
+Every tunable literal lives in `Keys` (P1); nothing outside `Keys` hardcodes
+one. The filters that let a site override them are also listed above.
+
+| `Keys` constant | Default | Overridden by |
+|---|---|---|
+| `DEFAULT_LIST_LIMIT` | 10 | `wppa_list_limit` / `wpa-pubs_per_page` |
+| `DEFAULT_WIDGET_SUMMARY_LENGTH` | 20 | `wpa-widget-summary-length` |
+| `DEFAULT_ARCHIVE_WIDGET_NUMBER` | 5 | Archive widget instance `number` |
+| `DEFAULT_RELATED_COUNT` | 5 | Related widget instance `count` |
+| `DEFAULT_MASK_URL` | false | `wppa_mask_url` |
+| `DEFAULT_PROXY_TIMEOUT` | 30 | `wppa_proxy_timeout` (§5.3 ⚠️ ASSUMPTION) |
+| `DEFAULT_PROXY_MAX_BYTES` | 52428800 | `wppa_proxy_max_bytes` (§5.3 ⚠️ ASSUMPTION) |
+
 ## Removed in 3.1.0
 
 - The `posts_where_request` callback (D4).

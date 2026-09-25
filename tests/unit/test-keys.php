@@ -24,7 +24,7 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 	public function test_versions() {
 		$this->assertSame( '7.4', Keys::MIN_PHP );
 		$this->assertSame( '6.7', Keys::MIN_WP );
-		$this->assertSame( '3.1.0-dev', Keys::VERSION );
+		$this->assertSame( '3.1.0', Keys::VERSION );
 	}
 
 	public function test_lineage_epoch_is_the_ninth_of_november_1983() {
@@ -40,7 +40,7 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 		$contents = file_get_contents( $path );
 
 		$this->assertNotFalse( $contents );
-		$this->assertMatchesRegularExpression( '/^ \* Version: 3\.1\.0-dev$/m', $contents );
+		$this->assertMatchesRegularExpression( '/^ \* Version: 3\.1\.0$/m', $contents );
 		$this->assertMatchesRegularExpression( '/^ \* Requires PHP: 7\.4$/m', $contents );
 		$this->assertMatchesRegularExpression( '/^ \* Requires at least: 6\.7$/m', $contents );
 		$this->assertMatchesRegularExpression( '/^ \* Text Domain: wp-publication-archive$/m', $contents );

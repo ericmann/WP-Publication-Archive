@@ -3,7 +3,7 @@
  * Plugin Name: WP Publication Archive
  * Plugin URI: https://github.com/ericmann/WP-Publication-Archive
  * Description: Manage, list, search and deliver publications (PDF, Office documents and other files) as a custom post type.
- * Version: 3.1.0-dev
+ * Version: 3.1.0
  * Requires at least: 6.7
  * Requires PHP: 7.4
  * Author: Eric Mann

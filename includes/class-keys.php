@@ -12,7 +12,7 @@ namespace WPPA;
 final class Keys {
 
 	// Versions.
-	const VERSION     = '3.1.0-dev';
+	const VERSION     = '3.1.0';
 	const MIN_PHP     = '7.4';
 	const MIN_WP      = '6.7';
 	const TEXT_DOMAIN = 'wp-publication-archive';
