@@ -150,15 +150,18 @@ final class Meta_Boxes {
 			return $post_id;
 		}
 
-		// D1: wp_kses_post() is the immediate sanitiser on the raw $_POST
-		// value (WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		// looks for a direct wrap) and, unlike sanitize_text_field(), leaves
-		// percent-encoded octets alone. Url_Policy::normalise() then
-		// converts the legacy http|/https| pipe form so esc_url_raw() (which
-		// would otherwise treat the pipe form as scheme-less and prepend
-		// http://) sees a real scheme, and validated_url() checks the result.
-		$uri       = isset( $_POST[ Keys::FIELD_DOC ] ) ? $this->validated_url( esc_url_raw( $this->policy->normalise( wp_kses_post( wp_unslash( $_POST[ Keys::FIELD_DOC ] ) ) ) ) ) : '';
-		$thumbnail = isset( $_POST[ Keys::FIELD_IMAGE ] ) ? $this->validated_url( esc_url_raw( $this->policy->normalise( wp_kses_post( wp_unslash( $_POST[ Keys::FIELD_IMAGE ] ) ) ) ) ) : '';
+		// D1: wp_strip_all_tags() is the immediate sanitiser on the raw
+		// $_POST value (WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		// looks for a direct wrap; wp_strip_all_tags is in
+		// SanitizationHelperTrait's sanitising list) and, unlike
+		// sanitize_text_field() or wp_kses_post(), leaves percent-encoded
+		// octets, '&' and the legacy pipe form's '|' alone.
+		// Url_Policy::normalise() then converts the legacy http|/https| pipe
+		// form so esc_url_raw() (which would otherwise treat the pipe form as
+		// scheme-less and prepend http://) sees a real scheme, and
+		// validated_url() checks the result.
+		$uri       = isset( $_POST[ Keys::FIELD_DOC ] ) ? $this->validated_url( esc_url_raw( $this->policy->normalise( wp_strip_all_tags( wp_unslash( $_POST[ Keys::FIELD_DOC ] ) ) ) ) ) : '';
+		$thumbnail = isset( $_POST[ Keys::FIELD_IMAGE ] ) ? $this->validated_url( esc_url_raw( $this->policy->normalise( wp_strip_all_tags( wp_unslash( $_POST[ Keys::FIELD_IMAGE ] ) ) ) ) ) : '';
 
 		update_post_meta( $post_id, Keys::META_DOC, $uri );
 		update_post_meta( $post_id, Keys::META_IMAGE, $thumbnail );
@@ -167,11 +170,19 @@ final class Meta_Boxes {
 		delete_post_meta( $post_id, Keys::META_ALTERNATES );
 
 		if ( isset( $_POST[ Keys::FIELD_ALTERNATES ] ) ) {
-			$descriptions = map_deep( isset( $_POST[ Keys::FIELD_ALTERNATES ]['description'] ) ? wp_unslash( $_POST[ Keys::FIELD_ALTERNATES ]['description'] ) : array(), 'sanitize_text_field' );
-			$raw_urls     = map_deep( isset( $_POST[ Keys::FIELD_ALTERNATES ]['url'] ) ? wp_unslash( $_POST[ Keys::FIELD_ALTERNATES ]['url'] ) : array(), 'wp_kses_post' );
+			$descriptions = map_deep( (array) ( isset( $_POST[ Keys::FIELD_ALTERNATES ]['description'] ) ? wp_unslash( $_POST[ Keys::FIELD_ALTERNATES ]['description'] ) : array() ), 'sanitize_text_field' );
+			// wp_strip_all_tags is the map_deep() callback here too, for the
+			// same reason as the doc/thumbnail lines above: it keeps '%xx',
+			// '&' and '|' intact while still satisfying
+			// WordPress.Security.ValidatedSanitizedInput.InputNotSanitized.
+			$raw_urls     = map_deep( (array) ( isset( $_POST[ Keys::FIELD_ALTERNATES ]['url'] ) ? wp_unslash( $_POST[ Keys::FIELD_ALTERNATES ]['url'] ) : array() ), 'wp_strip_all_tags' );
 
 			for ( $i = 0; $i < count( $raw_urls ); $i++ ) {
-				$description = isset( $descriptions[ $i ] ) ? $descriptions[ $i ] : '';
+				if ( ! isset( $raw_urls[ $i ] ) || ! is_string( $raw_urls[ $i ] ) ) {
+					continue;
+				}
+
+				$description = isset( $descriptions[ $i ] ) && is_string( $descriptions[ $i ] ) ? $descriptions[ $i ] : '';
 				$url         = $this->validated_url( esc_url_raw( $this->policy->normalise( $raw_urls[ $i ] ) ) );
 
 				if ( '' === $url ) {
