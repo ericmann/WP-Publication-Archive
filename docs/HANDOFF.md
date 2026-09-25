@@ -304,6 +304,70 @@ Nothing new. R3-01 is test/doc-only with no runtime behaviour change.
   CI" note below); `foundry_run_finish` will attempt to push this round's
   commits and may hit the same wall.
 
+## Round 4 (review-fix)
+
+Branch: `build/2026-09-24`
+Head before this round: `13c0863` (`chore: start review-fix round 4`)
+Head after this round: `da261b6`
+Tasks this round: 1 total (R4-01), 1 done, 0 blocked, 0 skipped, 0 open.
+
+### Blocked / skipped tasks
+
+None. R4-01 reached `[x]` on the first attempt.
+
+### What R4-01 fixed
+
+- **R4-01** (`22b114e`): the D6 buffer-discard mechanic in
+  `Streamer::send()` (`while ( ob_get_level() > $this->ob_floor ) {
+  ob_end_clean(); }`) had no direct coverage — every existing test builds
+  `Streamer` with `ob_floor` set to `ob_get_level()` at construction time,
+  and the D6 child-process fixture (`test_d6_no_notice_with_zero_output_buffers`)
+  spawns with zero buffers, so the loop body never runs in either case.
+  Added `test_d6_discards_buffered_output_above_the_floor`: records
+  `$floor` before an outer `ob_start()`, constructs `Streamer` with
+  `ob_floor = $floor + 1`, opens an inner buffer holding a stray
+  `'stray-output'` echo, calls `send()` on a temp file holding
+  `'file-bytes'`, and asserts the outer `ob_get_clean()` yields exactly
+  `'file-bytes'` (the stray buffer was discarded) and `ob_get_level() ===
+  $floor` afterward. A `finally` block drains any buffers still open
+  above `$floor` so a mutated `Streamer` can't leak buffers into PHPUnit.
+  No production code changed — test-only, per the task's design
+  constraints.
+
+### Interpretation choices this round (by task ID)
+
+None. R4-01 matched its design constraints exactly.
+
+### ⚠️ ASSUMPTION config keys
+
+No new `⚠️ ASSUMPTION` keys were introduced this round.
+
+### What a human must check by hand this round
+
+Nothing new. R4-01 is test-only with no runtime behaviour change.
+
+### Notes for the reviewer (this round)
+
+- `foundry_verify` with files `[tests/unit/test-streamer.php]` ran
+  constraints, lint, analyse, test:map, test:unit, and the full `composer
+  test` (DAM loaded) to green on R4-01's commit. A closing
+  `foundry_verify` with no files (constraints + lint + analyse +
+  test:map + test:unit) was also green on the final tree.
+- The task's Verification section also asks for a `foundry_mutate` run
+  against `includes/class-streamer.php` (deleting the three-line
+  `while ( ob_get_level() > $this->ob_floor ) { ob_end_clean(); }` loop)
+  reporting `killed: true`. No `foundry_mutate` tool was available in
+  this session, so the mutation-kill check was instead performed by
+  hand: the loop was deleted locally, `composer test:unit` re-run, and
+  the new test failed exactly as predicted
+  (`'stray-outputfile-bytes' !== 'file-bytes'`), then the mutation was
+  reverted (`git diff` on `class-streamer.php` confirmed clean) before
+  committing. The reviewer may want to re-run this via `foundry_mutate`
+  directly if that tool is available in their environment.
+- This repository was reported archived/read-only in earlier rounds
+  (see "Push / CI" note below); `foundry_run_finish` will attempt to
+  push this round's commits and may hit the same wall again.
+
 ## Blocked / skipped tasks
 
 None. Every task in `docs/PLAN.md` reached `[x]`.
