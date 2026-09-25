@@ -36,7 +36,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-06 Upgrade on init, once, with no per-request option writes (D9)
 - [x] P2-07 admin-media.js replaces Thickbox and inline scripts (D13)
 - [x] P2-08 Site-timezone dates and dead-code delegates (D7, D8 delegates)
-- [ ] P2-09 Widgets in the Legacy Widget block, id_base preservation, shortcode check (D14)
+- [x] P2-09 Widgets in the Legacy Widget block, id_base preservation, shortcode check (D14)
 - [ ] P2-10 Gate 2 — compatibility verified, constraints locked, branch pushed
 - [ ] P3-01 uninstall.php, .distignore and composer build
 - [ ] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
@@ -284,3 +284,12 @@ Tests: test_d7_date_follows_site_timezone (post_date=post_date_gmt='2020-01-01 2
 No characterisation string changed: every V3_Site fixture publication has post_date === post_date_gmt and the test site stays UTC, so wp_date() and the old get_the_date() produce identical output — confirmed by an isolated --exclude-group dam run of Test_Publication_Item/Test_Publication_Archive/Test_Characterisation_Output (28 tests, green first try).
 
 foundry_verify green (constraints, lint, analyse, test:map, test:unit; composer test's 300s timeout too short for the DAM suite on this machine, as in prior tasks). WPPA_DAM=0 composer test: 286/286 green (1 expected skip) after two runs hit the recurring create_upload_object()/WP_Error environment flake (already logged via foundry_feedback_log in P2-07's task; unrelated fixture code).
+
+### P2-09 — 411aa2b
+Added 'show_instance_in_rest' => true to all three widget constructors' options array (Archive_Widget, Category_Count_Widget, Related_Widget) — no other behaviour changed; id_base, markup and D15's non-extract() templates untouched.
+
+New tests/integration/test-widgets.php: test_d14_every_widget_shows_instance_in_rest, test_id_bases_are_the_301_values, test_widget_renders_from_301_shaped_option (a 3.0.1-shaped widget_<id_base> option with a numeric key + '_multiwidget' renders via dynamic_sidebar()), test_d14_widget_types_encode_returns_raw_instance (POST /wp/v2/widget-types/<id_base>/encode as an admin). tests/integration/test-shortcode.php adds test_shortcode_output_matches_characterisation_strings (list + dropdown against V3_Expected_Output).
+
+Two real findings from reading WP core, not guessed: (1) the widget-types encode REST endpoint's form_data param must be a urlencoded string shaped widget-<id_base>[<number>][<field>]=<value> (wp_parse_str() + array_first() recovers one instance), not a JSON instance.raw object. (2) WP_Widget_Factory::_register_widgets() silently drops any queued widget whose id_base is already registered, so re-proving a 3.0.1-shaped option renders means calling ->_register() directly on the already-booted widget object ($wp_widget_factory->get_widget_object($id_base)), not register_widget() again. test_widget_renders_from_301_shaped_option's tear_down() deliberately leaves $wp_widget_factory/$wp_registered_widgets alone — an earlier draft nulled them and broke every later test file that depends on Plugin's one-time widgets_init registration (e.g. characterisation output's the_widget() calls).
+
+foundry_verify green (constraints, lint, analyse, test:map, test:unit; composer test's 300s timeout too short for the DAM suite on this machine, as in prior tasks). WPPA_DAM=0 composer test: 291/291 green (1 expected skip) on a clean run; one run hit the recurring create_upload_object()/WP_Error environment flake already logged via foundry_feedback_log.
