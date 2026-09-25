@@ -1678,3 +1678,68 @@ Serial; small, and every file is a hotspot. SPEC §8 Phase 3.
 20. **3.0.1 calls `widget_title` with one argument in the archive widget and three in the others.** `Hooks::widget_title()` uses a variadic tail so that callbacks see exactly the 3.0.1 arity.
 21. **`the_widget( 'WP_Publication_Archive_Widget' )` in themes needs the factory key to be the 3.0.1 class name.**
     - Resolution: widgets are registered under the legacy names through the aliases.
+
+## Review fixes (round 1)
+
+### R1-01: Disable Composer's process timeout so composer test/verify can finish
+**Goal:** `composer test` and `composer verify` run to completion without a caller-side COMPOSER_PROCESS_TIMEOUT override, so no host-side timeout orphans phpunit inside the wp-env tests-cli container (REVIEW finding 2).
+**Files touched:** composer.json, tests/unit/test-composer-config.php
+**Design constraints:** Add `"process-timeout": 0` to composer.json's `config` block. Change nothing else in composer.json (scripts, require, autoload stay byte-identical). CLAUDE.md § Constraints apply.
+**Acceptance tests:** New tests/unit/test-composer-config.php (namespace WPPA\Tests\Unit, extends \Yoast\PHPUnitPolyfills\TestCases\TestCase): `test_process_timeout_is_disabled` decodes composer.json and asserts `config['process-timeout'] === 0`. This fails on the current composer.json, which has no key.
+**Out of scope:** Changing bin/test.sh, the phpunit invocation, CI workflow, or making the suite faster.
+**Verification:** 1. foundry_verify with the files touched. 2. Run `composer test` with NO COMPOSER_PROCESS_TIMEOUT in the environment and confirm exit 0 even though the run takes longer than 300 s. 3. Afterwards, `npx wp-env run tests-cli ps aux | grep phpunit` shows no leftover phpunit process.
+**Depends on:** none
+
+### R1-02: Cli caps_granted row reads capability and role names from Keys; lock the shape with a constraint
+**Goal:** Remove the hard-coded 'edit_publications' capability and 'administrator' role literals from Cli (P1), and add a constraint so an unprefixed publication capability literal cannot reappear outside Keys (REVIEW finding 1).
+**Files touched:** includes/class-cli.php, includes/class-keys.php, tests/unit/test-keys.php, tests/integration/test-cli.php, docs/foundry.json
+**Design constraints:** Cli::caps_granted_row() uses Keys::CAP_MAP['edit_posts'] and a new Keys::ROLE_ADMINISTRATOR = 'administrator' constant; no capability or role string literal remains in class-cli.php. Append ONE constraint to docs/foundry.json, changing nothing else in the file: id `capability-names-in-keys`, description citing SPEC §3 P1 (capability names live in Keys), paths ["includes/", "wp-publication-archive.php", "uninstall.php"], exclude ["includes/class-keys.php"], pattern `['\"][a-z]+(_[a-z]+)*_publications['\"]`, shouldMatch including this diff's own line `$admin_has_cap = null !== $administrator && $administrator->has_cap( 'edit_publications' );` and `current_user_can( 'edit_others_publications' )`, shouldNotMatch including `$administrator->has_cap( Keys::CAP_MAP['edit_posts'] );` and `'publications' => $publications,`. foundry_verify must show the new rule's fixture self-test passing and 0 hits.
+**Acceptance tests:** tests/unit/test-keys.php: assert Keys::ROLE_ADMINISTRATOR === 'administrator'. tests/integration/test-cli.php: `test_caps_granted_row_follows_keys_cap_map` removes Keys::CAP_MAP['edit_posts'] from the administrator role (restoring it in tear_down via the existing roles snapshot pattern) and asserts the caps_granted row fails. The new constraint's shouldMatch fixture is the original line, so the constraint self-test itself would have caught the finding.
+**Out of scope:** Changing which roles or caps Capabilities::grant() gives out; other doctor rows.
+**Verification:** 1. foundry_verify with the files touched: capability-names-in-keys self-tests and reports 0 hits. 2. `grep -n "'edit_publications'\|'administrator'" includes/class-cli.php` prints nothing. 3. `npx wp-env run cli wp publication-archive doctor` exits 0.
+**Depends on:** R1-01
+
+### R1-03: the_thumbnail() keeps the DAM data: placeholder; thumbnail read path normalises the pipe form
+**Goal:** Make the echoed thumbnail (the path every bundled template uses) render the DAM placeholder for withheld images, and normalise legacy http|/https| thumbnail values on read per SPEC §5.1 (REVIEW finding 3).
+**Files touched:** includes/class-publication-item.php, tests/integration/test-publication-item.php, tests/integration/dam/test-publication-item-dam.php
+**Design constraints:** Publication_Item stays non-final, with 3.0.1 method names, parameters, defaults and phpdoc-only types. the_thumbnail() echoes through `wp_kses( $html, 'post', array_merge( wp_allowed_protocols(), array( 'data' ) ) )` (or an equivalent that allows only the extra `data` protocol) instead of wp_kses_post(). get_the_thumbnail() applies Plugin::instance()->url_policy()->normalise() to the value returned by Hooks::item_upload_image() before Dam_Bridge::display_url() and escaping. The public $upload_image property and the filter's input stay the raw stored value, as in 3.0.1. No WordPress.Security phpcs ignore.
+**Acceptance tests:** tests/integration/dam/test-publication-item-dam.php: `test_d18_the_thumbnail_echoes_placeholder_for_anonymous` embargoes the attachment as the existing D18 test does, captures `$item->the_thumbnail()` with ob_start(), and asserts the output contains Embargo_Guard::placeholder_url() verbatim (including `data:`). This fails today because wp_kses_post strips `data:`. tests/integration/test-publication-item.php: `test_thumbnail_normalises_pipe_form` writes META_IMAGE `https|example.com/t.png` via V3_Site::raw_meta() and asserts get_the_thumbnail() contains `src="https://example.com/t.png"`.
+**Out of scope:** Changing the wpa-upload_image filter arguments, other item fields, or template markup.
+**Verification:** 1. foundry_verify with the files touched. 2. `composer test` (DAM loaded) and `WPPA_DAM=0 composer test` are green, and no characterisation string changes.
+**Depends on:** R1-01
+
+### R1-04: Meta box save preserves percent-encoded URLs
+**Goal:** Stop Meta_Boxes::save() from deleting %xx octets out of document, thumbnail and alternate URLs, while keeping D1, D2 and D10 closed (REVIEW finding 4).
+**Files touched:** includes/class-meta-boxes.php, tests/integration/test-meta-boxes.php
+**Design constraints:** Doc, image and each alternate url are sanitised with a URL-preserving sanitiser, for example `esc_url_raw()` applied to `Url_Policy::normalise( wp_unslash( … ) )` so the pipe form still normalises, then passed through validated_url(). Descriptions keep sanitize_text_field(); the nonce handling is unchanged. The alternates loop keeps the `<` bound (D10). No WordPress.Security phpcs ignore (no-security-ignores). Only the three §5.1 meta keys are written.
+**Acceptance tests:** tests/integration/test-meta-boxes.php: `test_save_preserves_percent_encoded_urls` posts doc `https://example.com/My%20Report.pdf`, image `https://example.com/r%C3%A9sum%C3%A9.png` and one alternate url `https://example.com/a.pdf?x=a%2Fb`, and asserts all three are stored byte-for-byte. This fails today (sanitize_text_field yields `MyReport.pdf`). The existing test_d1_*, test_d2_*, test_d10_* and pipe-form save tests stay green.
+**Out of scope:** The REST sanitize callbacks in Post_Type (unaffected), meta box markup, and admin-media.js.
+**Verification:** 1. foundry_verify with the files touched. 2. `composer test` (DAM loaded) is green.
+**Depends on:** R1-01
+
+### R1-05: Delivery acts only on publications and reads meta directly, not through Publication_Item
+**Goal:** Keep Delivery inside its module-map imports and restore 3.0.1's no-op for view/download query vars on non-publication requests (REVIEW finding 5).
+**Files touched:** includes/class-delivery.php, tests/integration/test-delivery.php
+**Design constraints:** Delivery::deliver() returns without output unless get_post() is non-null and its post_type is Keys::POST_TYPE. resolve_uri() reads Keys::META_DOC (single) and Keys::META_ALTERNATES (all rows) with get_post_meta() and keeps the 3.0.1 alternate-key rule (urldecode(QV_ALT) === description). Delivery no longer references Publication_Item, calls setup_postdata(), or builds the excerpt. SPEC §6.2 steps 2-6 are otherwise unchanged (filters, validate→404, withhold→404, redirect/proxy).
+**Acceptance tests:** tests/integration/test-delivery.php: `test_open_query_var_on_non_publication_is_ignored` creates a regular post, go_to()s it with Keys::QV_OPEN=yes, and asserts handle() throws no WPDieException and prints nothing. This fails today with a 404 wp_die. `test_delivery_does_not_build_the_excerpt` counts `get_the_excerpt` filter calls during a same-site redirect handle() and asserts 0. The existing D1/D17 delivery tests stay green.
+**Out of scope:** Changing Url_Policy, Streamer, the proxy-mode Content-Type rule, or the 404 behaviour for publications whose stored URL is empty or invalid.
+**Verification:** 1. foundry_verify with the files touched. 2. `composer test` (DAM loaded) and `WPPA_DAM=0 composer test` are green. 3. `grep -n Publication_Item includes/class-delivery.php` prints nothing.
+**Depends on:** R1-01
+
+### R1-06: admin-media.js uses jQuery only for document delegation
+**Goal:** Bring assets/js/admin-media.js in line with SPEC §6.7 and the PLAN P2-07 design constraint: the only jQuery use is jQuery( document ).on() delegation (REVIEW finding 6).
+**Files touched:** assets/js/admin-media.js, tests/integration/test-admin-media.php
+**Design constraints:** Replace `$( this ).closest( 'tr' )`, `$row.find( … ).val( url )` and `$( this ).closest( 'tr' ).remove()` with DOM equivalents (`this.closest( 'tr' )`, `querySelector( 'input[name$="[url][]"]' ).value = url`, `Element.remove()`). Behaviour, selectors and field names are unchanged, and the file never touches window.send_to_editor.
+**Acceptance tests:** tests/integration/test-admin-media.php: `test_admin_media_js_uses_jquery_only_for_document_delegation` reads the file and asserts every `$(` / `jQuery(` call's argument is `document`, matching `/(?:\$|jQuery)\(\s*([^)]*?)\s*\)/`. This fails today on `$( this )` and `$row`.
+**Out of scope:** Meta box markup, Assets::enqueue_admin(), and any block-editor UI.
+**Verification:** 1. foundry_verify with the files touched. 2. `WPPA_DAM=0 composer test` is green. 3. Manual (NOT VERIFIED (human)): in wp-admin, Upload fills the doc, thumbnail and alternate-row inputs, and Add Row and Delete work.
+**Depends on:** R1-01
+
+### R1-07: 3.1.0 release notes describe D5 accurately
+**Goal:** Stop readme.txt and CHANGELOG.md claiming a D5 rewrite-rule fix that P2-05 found unnecessary (REVIEW finding 7).
+**Files touched:** readme.txt, CHANGELOG.md, tests/unit/test-readme.php
+**Design constraints:** Reword only the D5 bullet in both files, e.g. "Confirmed that publications slugged view or download stay reachable at their own permalinks; regression tests added (D5)." Every other changelog and upgrade-notice line is unchanged, and D1–D19 are all still named.
+**Acceptance tests:** tests/unit/test-readme.php: `test_d5_entry_does_not_claim_a_rule_fix` extracts the line naming D5 from readme.txt's 3.1.0 changelog and from CHANGELOG.md, and asserts each contains `regression test` and does not contain `Fix a rewrite-rule collision`. This fails on today's wording.
+**Out of scope:** Rewrite rules, and any other readme or changelog content.
+**Verification:** 1. foundry_verify with the files touched (unit suite green, including the existing readme tests).
+**Depends on:** R1-01

@@ -41,6 +41,13 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P3-01 uninstall.php, .distignore and composer build
 - [x] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
 - [x] P3-03 Final gate — verify, build, push
+- [ ] R1-01 Disable Composer's process timeout so composer test/verify can finish
+- [ ] R1-02 Cli caps_granted row reads capability and role names from Keys; lock the shape with a constraint
+- [ ] R1-03 the_thumbnail() keeps the DAM data: placeholder; thumbnail read path normalises the pipe form
+- [ ] R1-04 Meta box save preserves percent-encoded URLs
+- [ ] R1-05 Delivery acts only on publications and reads meta directly, not through Publication_Item
+- [ ] R1-06 admin-media.js uses jQuery only for document delegation
+- [ ] R1-07 3.1.0 release notes describe D5 accurately
 
 ## Log
 (one entry per task, appended by implement)
