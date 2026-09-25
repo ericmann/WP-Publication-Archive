@@ -147,6 +147,51 @@ class Test_Delivery extends \WP_UnitTestCase {
 		$this->assertFalse( Keys::DEFAULT_MASK_URL );
 	}
 
+	public function test_open_query_var_on_non_publication_is_ignored() {
+		$this->install_delivery();
+
+		$id = self::factory()->post->create( array( 'post_type' => 'post' ) );
+
+		$this->go_to_publication( $id, array( Keys::QV_OPEN => 'yes' ) );
+
+		ob_start();
+		Plugin::instance()->delivery()->handle();
+		$output = ob_get_clean();
+
+		$this->assertSame( '', $output );
+		$this->assertFalse( $this->exited );
+		$this->assertNull( $this->redirect_location );
+	}
+
+	public function test_delivery_does_not_build_the_excerpt() {
+		$this->install_delivery();
+
+		$data = V3_Site::create( self::factory() );
+
+		$this->go_to_publication( $data['attached'], array( Keys::QV_OPEN => 'yes' ) );
+
+		$calls = 0;
+
+		$count_excerpt_filter = static function ( $excerpt ) use ( &$calls ) {
+			++$calls;
+
+			return $excerpt;
+		};
+
+		add_filter( 'get_the_excerpt', $count_excerpt_filter );
+
+		try {
+			Plugin::instance()->delivery()->handle();
+			$this->fail( 'Expected a redirect.' );
+		} catch ( Test_Delivery_Redirect_Interrupt $e ) {
+			unset( $e );
+		} finally {
+			remove_filter( 'get_the_excerpt', $count_excerpt_filter );
+		}
+
+		$this->assertSame( 0, $calls );
+	}
+
 	public function test_d1_same_site_file_redirects_302() {
 		$this->install_delivery();
 

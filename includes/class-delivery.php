@@ -138,7 +138,7 @@ final class Delivery {
 
 		$post = get_post();
 
-		if ( null === $post ) {
+		if ( null === $post || Keys::POST_TYPE !== $post->post_type ) {
 			return;
 		}
 
@@ -169,15 +169,15 @@ final class Delivery {
 	 * description equals urldecode( QV_ALT ).
 	 */
 	private function resolve_uri( \WP_Post $post ): string {
-		$publication = new Publication_Item( $post );
-
 		$alt = get_query_var( Keys::QV_ALT );
 
 		if ( '' === (string) $alt ) {
-			return (string) $publication->uri;
+			return (string) get_post_meta( $post->ID, Keys::META_DOC, true );
 		}
 
-		foreach ( $publication->alternates as $candidate ) {
+		$alternates = get_post_meta( $post->ID, Keys::META_ALTERNATES );
+
+		foreach ( $alternates as $candidate ) {
 			if ( urldecode( (string) $alt ) === $candidate['description'] ) {
 				return (string) $candidate['url'];
 			}
