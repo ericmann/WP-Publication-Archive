@@ -39,7 +39,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-09 Widgets in the Legacy Widget block, id_base preservation, shortcode check (D14)
 - [x] P2-10 Gate 2 — compatibility verified, constraints locked, branch pushed
 - [x] P3-01 uninstall.php, .distignore and composer build
-- [ ] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
+- [x] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
 - [ ] P3-03 Final gate — verify, build, push
 
 ## Log
@@ -315,3 +315,12 @@ Real fix found while running the build, not assumed: the dev-leftover check's gr
 Tests: test_delete_all_removes_the_three_options, test_delete_all_leaves_publications_and_meta, test_uninstall_file_guards_and_calls_delete_all (tests/integration/test-flags.php); test_distignore_excludes_dev_paths (new tests/unit/test-distignore.php).
 
 Verified: foundry_verify green (all constraints incl. the Gate 2 pair, lint, analyse, test:map, test:unit). composer validate clean. composer build succeeds; unzip -l dist/wp-publication-archive.zip | grep -E "tests/|bin/|\.cache/|phpunit|squizlabs" prints nothing; the same piped to grep vendor/autoload.php prints exactly one line. Full composer test (DAM loaded) 313/313 and WPPA_DAM=0 composer test 295/295 both green (1 expected skip each) on clean re-runs, after each hit the recurring create_upload_object()/WP_Error environment flake already logged via foundry_feedback_log.
+
+### P3-02 — 9c2bb49
+Keys::VERSION -> '3.1.0'; header docblock Version: 3.1.0. readme.txt headers updated (Requires at least 6.7, Tested up to 7.1, Requires PHP 7.4, Stable tag 3.1.0), a 3.1.0 changelog section listing D1-D19 in plain language, and a 3.1.0 Upgrade Notice covering both required points (redirect-by-default + wppa_mask_url opt-in + the Content-Disposition filename limit a redirect can't set; 3.0.1 global-class hook callables no longer removable). New CHANGELOG.md mirrors the readme entry. docs/HOOKS.md gained a Tunables section (Keys constant, default, overriding filter) before the Removed-in-3.1.0 list. Regenerated languages/wp-publication-archive.pot via wp i18n make-pot (available in this environment).
+
+Real gotcha found by running the pre-existing test suite, not assumed: tests/unit/test-hooks-doc.php's table-row parser treats any Markdown row shaped "| `x` | `lowercase_word` |" as a Hooks:: method-name assertion; my first Tunables table backtick-wrapped the default value column (`false`, `10`, etc.), which the parser read as a nonexistent Hooks::false() method. Fixed by leaving that column's values un-backticked.
+
+Tests: tests/unit/test-keys.php's test_versions/test_plugin_header_matches_keys updated to 3.1.0. New tests/unit/test-readme.php: test_readme_headers_match_keys, test_readme_has_310_changelog_and_upgrade_notice (checks all D1-D19 via word-boundary regex, and that the upgrade notice mentions Keys::FILTER_MASK_URL), test_changelog_md_has_310_section.
+
+foundry_verify green (constraints, lint, analyse, test:map incl. the pre-existing HOOKS.md cross-check tests, test:unit — 64 unit tests). WPPA_DAM=0 composer test: 298/298 green (1 expected skip) on a clean re-run, after one run hit the recurring create_upload_object()/WP_Error environment flake (already logged via foundry_feedback_log across several prior tasks).
