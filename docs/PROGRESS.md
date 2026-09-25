@@ -38,7 +38,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-08 Site-timezone dates and dead-code delegates (D7, D8 delegates)
 - [x] P2-09 Widgets in the Legacy Widget block, id_base preservation, shortcode check (D14)
 - [x] P2-10 Gate 2 — compatibility verified, constraints locked, branch pushed
-- [ ] P3-01 uninstall.php, .distignore and composer build
+- [x] P3-01 uninstall.php, .distignore and composer build
 - [ ] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
 - [ ] P3-03 Final gate — verify, build, push
 
@@ -304,3 +304,14 @@ One composer verify run hit 11 errors + 2 failures — the recurring create_uplo
 Push/CI: git push fails with "ERROR: This repository was archived so it is read-only" — the same known limitation P0-16 and P1-09 already logged at their own pushes. Not task-blocking (operator-level GitHub repo state, not a code defect). CI: NOT VERIFIED (repository archived/read-only, push rejected).
 
 Manual check: NOT VERIFIED (human) — SPEC §8 Phase 2's three checks (block editor meta boxes + media modal upload; Legacy Widget block previews all three widgets; list/dropdown shortcodes and single/archive pages render with no debug.log notices, DAM active and inactive) need a human.
+
+### P3-01 — ebf3f17
+Added uninstall.php (WP_UNINSTALL_PLUGIN guard, requires vendor/autoload.php, calls (new Flags(new SystemClock()))->delete_all()) and Flags::delete_all() (deletes OPT_SCHEMA, OPT_CAPS, OPT_ENABLED only — never post data/meta/terms/roles). Added phpcs.xml.dist/phpstan.neon.dist entries for uninstall.php.
+
+Added .distignore per the task's exact list, bin/build-zip.sh (rsync --exclude-from=.distignore into dist/build/wp-publication-archive/, explicit composer.json/composer.lock copy, composer install --no-dev -o in the staging dir then delete its composer.json/composer.lock, zip, then a dev-leftover check), and composer.json's "build" script.
+
+Real fix found while running the build, not assumed: the dev-leftover check's grep for stray vendor/ entries initially matched the zip's own bare "vendor/" directory entry (0 bytes, nothing after the trailing slash); tightened to require a non-empty path segment after "/vendor/" before excluding autoload.php/composer/.
+
+Tests: test_delete_all_removes_the_three_options, test_delete_all_leaves_publications_and_meta, test_uninstall_file_guards_and_calls_delete_all (tests/integration/test-flags.php); test_distignore_excludes_dev_paths (new tests/unit/test-distignore.php).
+
+Verified: foundry_verify green (all constraints incl. the Gate 2 pair, lint, analyse, test:map, test:unit). composer validate clean. composer build succeeds; unzip -l dist/wp-publication-archive.zip | grep -E "tests/|bin/|\.cache/|phpunit|squizlabs" prints nothing; the same piped to grep vendor/autoload.php prints exactly one line. Full composer test (DAM loaded) 313/313 and WPPA_DAM=0 composer test 295/295 both green (1 expected skip each) on clean re-runs, after each hit the recurring create_upload_object()/WP_Error environment flake already logged via foundry_feedback_log.
