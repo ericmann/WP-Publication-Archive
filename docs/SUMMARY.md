@@ -2,7 +2,7 @@
 
 **Merge line:** `build/2026-09-24`, `e52acc84a75e` → `981ad65`, 134 commits (plus this summary commit). 5 review rounds, 4 of them fix rounds. 52 of 52 tasks done, 0 blocked, 0 skipped. **Final verdict: APPROVED** (round 5).
 
-> **Read first:** the GitHub remote (`ericmann/WP-Publication-Archive`) is **archived and read-only**. Every push in this flight failed, including the pushes at P0-16, P1-09, P2-10 and P3-03. No draft PR can open until someone un-archives the repository or changes the remote.
+> **Read first:** the GitHub remote (`ericmann/WP-Publication-Archive`) was archived and read-only for the initial build (P0-01 to P3-03), so those pushes failed. It was un-archived during review round 1. The controller then pushed `master` and the branch and opened draft PR #41 (https://github.com/ericmann/WP-Publication-Archive/pull/41), which is now marked ready for review. Every push from review round 1 onward succeeded. CI (`.github/workflows/verify.yml`) runs on the PR.
 
 ## What was built
 
@@ -148,7 +148,7 @@ Resolved by SPEC `464750b` during review (no edit needed; listed for the record)
 - **Phase 3:**
   1. Install `dist/wp-publication-archive.zip` on a fresh WP 7.1 site restored from a 3.0.1 database. Expect no activation errors, every G5 URL resolving, and German loading with `WPLANG=de_DE`.
   2. Repeat with the DAM active.
-  3. Un-archive the repo or change the remote, push, and mark the PR ready (§7.2).
+  3. ~~Un-archive the repo, push, and mark the PR ready (§7.2).~~ Done by the flight controller: PR #41 is ready for review.
 
 ## Review history
 
