@@ -160,6 +160,30 @@ class Test_Meta_Boxes extends \WP_UnitTestCase {
 		unset( $_POST[ Keys::FIELD_NONCE ], $_POST[ Keys::FIELD_DOC ] );
 	}
 
+	public function test_save_preserves_percent_encoded_urls() {
+		$id = self::factory()->post->create( array( 'post_type' => Keys::POST_TYPE ) );
+
+		$_POST[ Keys::FIELD_NONCE ]      = wp_create_nonce( Keys::NONCE_ACTION );
+		$_POST[ Keys::FIELD_DOC ]        = 'https://example.com/My%20Report.pdf';
+		$_POST[ Keys::FIELD_IMAGE ]      = 'https://example.com/r%C3%A9sum%C3%A9.png';
+		$_POST[ Keys::FIELD_ALTERNATES ] = array(
+			'description' => array( 'English' ),
+			'url'         => array( 'https://example.com/a.pdf?x=a%2Fb' ),
+		);
+
+		Plugin::instance()->meta_boxes()->save( $id );
+
+		$this->assertSame( 'https://example.com/My%20Report.pdf', get_post_meta( $id, Keys::META_DOC, true ) );
+		$this->assertSame( 'https://example.com/r%C3%A9sum%C3%A9.png', get_post_meta( $id, Keys::META_IMAGE, true ) );
+
+		$alternates = get_post_meta( $id, Keys::META_ALTERNATES );
+
+		$this->assertCount( 1, $alternates );
+		$this->assertSame( 'https://example.com/a.pdf?x=a%2Fb', $alternates[0]['url'] );
+
+		unset( $_POST[ Keys::FIELD_NONCE ], $_POST[ Keys::FIELD_DOC ], $_POST[ Keys::FIELD_IMAGE ], $_POST[ Keys::FIELD_ALTERNATES ] );
+	}
+
 	public function test_d2_save_strips_markup_from_alternate_description() {
 		$id = self::factory()->post->create( array( 'post_type' => Keys::POST_TYPE ) );
 
