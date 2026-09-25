@@ -1,0 +1,62 @@
+{
+	"name": "ericmann/wp-publication-archive",
+	"description": "Manage, list, search and deliver publications (PDF, Office documents and other files) as a custom post type.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=7.4"
+	},
+	"require-dev": {
+		"automattic/vipwpcs": "^3.0",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"php-stubs/wp-cli-stubs": "^2.0",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"phpstan/phpstan": "^2.0",
+		"phpunit/phpunit": "^9.6",
+		"szepeviktor/phpstan-wordpress": "^2.0",
+		"wp-phpunit/wp-phpunit": "^6.7",
+		"yoast/phpunit-polyfills": "^3.0"
+	},
+	"autoload": {
+		"classmap": [
+			"includes/"
+		]
+	},
+	"autoload-dev": {
+		"classmap": [
+			"tests/"
+		]
+	},
+	"config": {
+		"platform": {
+			"php": "7.4.0"
+		},
+		"process-timeout": 0,
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"optimize-autoloader": true,
+		"sort-packages": true
+	},
+	"scripts": {
+		"lint": "vendor/bin/phpcs --standard=phpcs.xml.dist",
+		"lint:fix": "vendor/bin/phpcbf --standard=phpcs.xml.dist",
+		"analyse": "vendor/bin/phpstan analyse --no-progress --error-format=raw --memory-limit=1G",
+		"test:unit": "vendor/bin/phpunit --testsuite unit",
+		"test": "bash bin/test.sh",
+		"test:map": "php bin/test-map.php",
+		"build": "bash bin/build-zip.sh",
+		"verify": [
+			"@lint",
+			"@analyse",
+			"@test:map",
+			"@test"
+		],
+		"verify:static": [
+			"@lint",
+			"@analyse",
+			"@test:map",
+			"@test:unit"
+		]
+	}
+}

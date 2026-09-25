@@ -1,0 +1,37 @@
+name: verify
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - run: composer install --no-interaction
+      - run: composer verify:static
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: composer install --no-interaction
+      - run: npm ci
+      - run: npx wp-env start
+      - run: WPPA_DAM=0 composer test

@@ -1,0 +1,373 @@
+<?php
+/**
+ * Implements SPEC.md §4: the composition root. Builds every service once,
+ * wires every hook in register_hooks() (the only add_action/add_filter/
+ * add_shortcode site, P3), and exposes accessors so tests can read and swap
+ * services.
+ *
+ * @author Eric Mann <eric@eamann.com>
+ */
+
+namespace WPPA;
+
+final class Plugin {
+
+	private static ?Plugin $instance = null;
+
+	private Clock $clock;
+
+	private Flags $flags;
+
+	private Assets $assets;
+
+	private Cli $cli;
+
+	private Rest $rest;
+
+	private Post_Type $post_type;
+
+	private Rewrites $rewrites;
+
+	private Upgrade $upgrade;
+
+	private Icons $icons;
+
+	private Url_Policy $url_policy;
+
+	private Dam_Bridge $dam_bridge;
+
+	private Streamer $streamer;
+
+	private Delivery $delivery;
+
+	private Meta_Boxes $meta_boxes;
+
+	private Templates $templates;
+
+	private Shortcode $shortcode;
+
+	private Categories $categories;
+
+	private Capabilities $capabilities;
+
+	private bool $hooks_registered = false;
+
+	/** @var list<array{type: string, hook: string, callback: callable, priority: int}> */
+	private array $registered_hooks = array();
+
+	public static function boot(): void {
+		if ( null !== self::$instance ) {
+			return;
+		}
+
+		$instance = new self();
+
+		self::$instance = $instance;
+
+		wp_cache_add_global_groups( Keys::CACHE_GROUP );
+
+		$instance->register_hooks();
+
+		Legacy\Aliases::register();
+		Legacy\Utilities::create_instance();
+
+		Hooks::booted( $instance );
+	}
+
+	public static function instance(): self {
+		if ( null === self::$instance ) {
+			throw new \LogicException( 'Plugin has not been booted.' );
+		}
+
+		return self::$instance;
+	}
+
+	private function __construct() {
+		$this->clock     = new SystemClock();
+		$this->flags     = new Flags( $this->clock );
+		$this->assets    = new Assets( $this->flags );
+		$this->rest      = new Rest( $this->flags );
+		$this->rewrites  = new Rewrites( $this->flags );
+		$this->upgrade   = new Upgrade( $this->flags );
+		$this->icons      = new Icons();
+		$this->url_policy = new Url_Policy(
+			(string) wp_parse_url( home_url(), PHP_URL_HOST ),
+			static function ( string $url ): bool {
+				return false !== wp_http_validate_url( $url );
+			}
+		);
+		$this->post_type   = new Post_Type( $this->url_policy );
+		$this->dam_bridge  = new Dam_Bridge( $this->url_policy );
+		$this->cli         = new Cli( $this->flags, $this->dam_bridge );
+		$this->streamer    = new Streamer( get_temp_dir() );
+		$this->delivery    = new Delivery( $this->url_policy, $this->streamer, $this->dam_bridge );
+		$this->meta_boxes  = new Meta_Boxes( $this->url_policy );
+		$this->templates   = new Templates();
+		$this->shortcode  = new Shortcode( $this->templates );
+		$this->categories = new Categories( $this->flags );
+		$this->capabilities = new Capabilities( $this->flags );
+	}
+
+	public function register_hooks(): void {
+		if ( $this->hooks_registered ) {
+			return;
+		}
+
+		$this->add_hook( 'action', Keys::HOOK_WP_ENQUEUE_SCRIPTS, array( $this->assets, 'register' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_WP_ENQUEUE_SCRIPTS, array( $this->assets, 'enqueue_front' ), 11, 1 );
+		$this->add_hook( 'action', Keys::HOOK_ADMIN_ENQUEUE_SCRIPTS, array( $this->assets, 'register' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_ADMIN_ENQUEUE_SCRIPTS, array( $this->assets, 'enqueue_admin' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_CLI_INIT, array( $this, 'register_cli' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_REST_API_INIT, array( $this->rest, 'register_routes' ), 10, 1 );
+
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->post_type, 'register' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->rewrites, 'register' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this, 'load_textdomain' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->upgrade, 'maybe_upgrade' ), Keys::UPGRADE_PRIORITY, 1 );
+		$this->add_hook( 'action', Keys::HOOK_INIT, array( $this->capabilities, 'maybe_grant' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_QUERY_VARS, array( $this->rewrites, 'query_vars' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_TEMPLATE_REDIRECT, array( $this->delivery, 'handle' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_ADD_META_BOXES_PUBLICATION, array( $this->meta_boxes, 'add' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_SAVE_POST, array( $this->meta_boxes, 'save' ), 10, 1 );
+		$this->add_hook( 'shortcode', Keys::SHORTCODE, array( $this->shortcode, 'render' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_TEMPLATE_INCLUDE, array( $this->templates, 'single_template' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_TEMPLATE_INCLUDE, array( $this->templates, 'archive_template' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_EXCERPT_LENGTH, array( $this->templates, 'excerpt_length' ), 10, 1 );
+		$this->add_hook( 'action', Keys::HOOK_WIDGETS_INIT, array( $this, 'register_widgets' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_TERM_LINK, array( $this->categories, 'filter_category_link' ), 10, 3 );
+		$this->add_hook( 'filter', Keys::HOOK_TERMS_CLAUSES, array( $this->categories, 'filter_terms_by_cpt' ), 10, 3 );
+		$this->add_hook( 'filter', Keys::HOOK_ALLOWED_REDIRECT_HOSTS, array( $this->delivery, 'allowed_redirect_hosts' ), 10, 1 );
+		$this->add_hook( 'filter', Keys::HOOK_DAM_INDEXED_IDS, array( $this->dam_bridge, 'indexed_attachment_ids' ), 10, 2 );
+
+		$this->hooks_registered = true;
+	}
+
+	public function unregister_hooks(): void {
+		foreach ( $this->registered_hooks as $registered ) {
+			if ( 'action' === $registered['type'] ) {
+				remove_action( $registered['hook'], $registered['callback'], $registered['priority'] );
+			} elseif ( 'filter' === $registered['type'] ) {
+				remove_filter( $registered['hook'], $registered['callback'], $registered['priority'] );
+			} else {
+				remove_shortcode( $registered['hook'] );
+			}
+		}
+
+		$this->registered_hooks = array();
+		$this->hooks_registered = false;
+	}
+
+	/**
+	 * @param callable $callback
+	 */
+	private function add_hook( string $type, string $hook, $callback, int $priority, int $args ): void {
+		if ( 'action' === $type ) {
+			add_action( $hook, $callback, $priority, $args );
+		} elseif ( 'filter' === $type ) {
+			add_filter( $hook, $callback, $priority, $args );
+		} else {
+			add_shortcode( $hook, $callback );
+		}
+
+		$this->registered_hooks[] = array(
+			'type'     => $type,
+			'hook'     => $hook,
+			'callback' => $callback,
+			'priority' => $priority,
+		);
+	}
+
+	public function register_cli(): void {
+		if ( class_exists( 'WP_CLI' ) ) {
+			\WP_CLI::add_command( Keys::CLI_COMMAND, $this->cli );
+		}
+	}
+
+	/**
+	 * Hooked to widgets_init. Registers the bundled widgets under their
+	 * 3.0.1 class names (Decisions), so the legacy names stay the factory
+	 * keys widget.php / the Legacy Widget block store in options.
+	 */
+	public function register_widgets(): void {
+		register_widget( Keys::LEGACY_CLASS_ARCHIVE_WIDGET );
+		register_widget( Keys::LEGACY_CLASS_CAT_COUNT_WIDGET );
+		register_widget( Keys::LEGACY_CLASS_RELATED_WIDGET );
+	}
+
+	/**
+	 * Hooked to init. No translation function may run before init
+	 * (WordPress 6.7 just-in-time notice).
+	 */
+	public function load_textdomain(): void {
+		load_plugin_textdomain(
+			Keys::TEXT_DOMAIN,
+			false,
+			dirname( plugin_basename( WP_PUB_ARCH_DIR . Keys::SLUG . '.php' ) ) . '/' . Keys::LANGUAGES_DIR
+		);
+	}
+
+	/**
+	 * Swap a service. Tests only.
+	 */
+	public function replace( string $service, object $with ): void {
+		if ( ! defined( 'WP_TESTS_MULTISITE' ) && ! class_exists( \PHPUnit\Framework\TestCase::class, false ) ) {
+			throw new \LogicException( 'Plugin::replace() is only available in tests.' );
+		}
+
+		switch ( $service ) {
+			case 'clock':
+				$this->assign_service( $service, $with, Clock::class, $this->clock );
+				break;
+			case 'flags':
+				$this->assign_service( $service, $with, Flags::class, $this->flags );
+				break;
+			case 'assets':
+				$this->assign_service( $service, $with, Assets::class, $this->assets );
+				break;
+			case 'cli':
+				$this->assign_service( $service, $with, Cli::class, $this->cli );
+				break;
+			case 'rest':
+				$this->assign_service( $service, $with, Rest::class, $this->rest );
+				break;
+			case 'post_type':
+				$this->assign_service( $service, $with, Post_Type::class, $this->post_type );
+				break;
+			case 'rewrites':
+				$this->assign_service( $service, $with, Rewrites::class, $this->rewrites );
+				break;
+			case 'upgrade':
+				$this->assign_service( $service, $with, Upgrade::class, $this->upgrade );
+				break;
+			case 'icons':
+				$this->assign_service( $service, $with, Icons::class, $this->icons );
+				break;
+			case 'url_policy':
+				$this->assign_service( $service, $with, Url_Policy::class, $this->url_policy );
+				break;
+			case 'dam_bridge':
+				$this->assign_service( $service, $with, Dam_Bridge::class, $this->dam_bridge );
+				break;
+			case 'streamer':
+				$this->assign_service( $service, $with, Streamer::class, $this->streamer );
+				break;
+			case 'delivery':
+				$this->assign_service( $service, $with, Delivery::class, $this->delivery );
+				break;
+			case 'meta_boxes':
+				$this->assign_service( $service, $with, Meta_Boxes::class, $this->meta_boxes );
+				break;
+			case 'templates':
+				$this->assign_service( $service, $with, Templates::class, $this->templates );
+				break;
+			case 'shortcode':
+				$this->assign_service( $service, $with, Shortcode::class, $this->shortcode );
+				break;
+			case 'categories':
+				$this->assign_service( $service, $with, Categories::class, $this->categories );
+				break;
+			case 'capabilities':
+				$this->assign_service( $service, $with, Capabilities::class, $this->capabilities );
+				break;
+			default:
+				throw new \InvalidArgumentException( 'Unknown service: ' . $service );
+		}
+	}
+
+	/**
+	 * @param mixed $with
+	 * @param mixed $current
+	 */
+	private function assign_service( string $service, $with, string $expected, &$current ): void {
+		if ( ! $with instanceof $expected ) {
+			throw new \TypeError( 'Service "' . $service . '" must be an instance of ' . $expected . '.' );
+		}
+
+		$current = $with;
+	}
+
+	public function clock(): Clock {
+		return $this->clock;
+	}
+
+	public function flags(): Flags {
+		return $this->flags;
+	}
+
+	public function assets(): Assets {
+		return $this->assets;
+	}
+
+	public function cli(): Cli {
+		return $this->cli;
+	}
+
+	public function rest(): Rest {
+		return $this->rest;
+	}
+
+	public function post_type(): Post_Type {
+		return $this->post_type;
+	}
+
+	public function rewrites(): Rewrites {
+		return $this->rewrites;
+	}
+
+	public function upgrade(): Upgrade {
+		return $this->upgrade;
+	}
+
+	public function icons(): Icons {
+		return $this->icons;
+	}
+
+	public function url_policy(): Url_Policy {
+		return $this->url_policy;
+	}
+
+	public function dam_bridge(): Dam_Bridge {
+		return $this->dam_bridge;
+	}
+
+	public function streamer(): Streamer {
+		return $this->streamer;
+	}
+
+	public function delivery(): Delivery {
+		return $this->delivery;
+	}
+
+	public function meta_boxes(): Meta_Boxes {
+		return $this->meta_boxes;
+	}
+
+	public function templates(): Templates {
+		return $this->templates;
+	}
+
+	public function shortcode(): Shortcode {
+		return $this->shortcode;
+	}
+
+	public function categories(): Categories {
+		return $this->categories;
+	}
+
+	public function capabilities(): Capabilities {
+		return $this->capabilities;
+	}
+
+	public static function activate(): void {
+		$instance = self::instance();
+		$instance->post_type->register();
+		$instance->rewrites->register();
+		$instance->capabilities->grant();
+
+		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: 3.0.1 behaviour, activation-only (SPEC §4.1).
+	}
+
+	public static function deactivate(): void {
+		flush_rewrite_rules(); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.flush_rewrite_rules_flush_rewrite_rules -- reason: 3.0.1 behaviour, deactivation-only (SPEC §4.1).
+	}
+}

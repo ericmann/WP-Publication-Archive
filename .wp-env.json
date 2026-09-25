@@ -1,0 +1,16 @@
+{
+	"core": null,
+	"phpVersion": "8.3",
+	"plugins": [],
+	"mappings": {
+		"wp-content/plugins/wp-publication-archive": "."
+	},
+	"config": {
+		"WP_DEBUG": true,
+		"WP_DEBUG_LOG": true,
+		"SCRIPT_DEBUG": true
+	},
+	"lifecycleScripts": {
+		"afterStart": "bash bin/setup-wp-env.sh"
+	}
+}

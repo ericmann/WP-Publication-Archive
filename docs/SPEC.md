@@ -63,6 +63,7 @@ The methods named below are in the 3.0.1 source. Classes are under `lib/`, templ
 - **D8. Dead code and no-op filter juggling.**
   - `the_content()`, `the_title()` and `publication_link()` are defined but never hooked.
   - `get_link()` removes and re-adds a `post_type_link` filter that nothing adds.
+  - The fix may change the list shortcode's title links for items 2 onward to the normal permalink. That change is accepted. The shortcode's output is not a compatibility target beyond the characterisation strings, and 4.0 removes the shortcode. Do the minimum there. Decided by the product owner on 2026-09-24.
 - **D9. Side effects at bootstrap.** On the upgrade branch, `flush_rewrite_rules()` runs at plugin load. On the new-install branch, `add_option()` runs on every request.
 - **D11. Misleading `allow_url_fopen` admin notice.** Nothing in 3.1.0 needs `allow_url_fopen`.
 
@@ -105,6 +106,8 @@ The methods named below are in the 3.0.1 source. Classes are under `lib/`, templ
   - `/publication/altview/{slug}/{key}` and `/publication/altdown/{slug}/{key}`;
   - `/publication/category/{slug}`;
   - the `?wppa_open=yes` and `?wppa_download=yes` query forms.
+
+  **Plain permalinks keep their exact 3.0.1 behaviour in 3.x.** On a site with an empty `permalink_structure`, the link generators return what 3.0.1 returned, including the `?view=yes`-style links, and the query forms resolve as before. Nothing about plain permalinks is fixed or changed in 3.1.0; 4.0 retires them (see `V4_SPEC.md` §6.7). The characterisation tests pin this behaviour. Decided by the product owner on 2026-09-24.
 - **G6. Back-compat surface.** Everything in §6.3 and §6.4 still exists and behaves the same:
   - every 3.0.1 global class name, through `class_alias`;
   - every public method on them, with the same signature;
@@ -356,9 +359,10 @@ The legacy constants are kept for themes that read them:
 
 - `administrator`;
 - `editor`;
-- `author`, which gets the same subset it has for `post`.
+- `author`, which gets the same subset it has for `post`;
+- `contributor`, which gets the same subset it has for `post` (`edit_publications`, `delete_publications` and `read`), so contributors keep managing their own draft publications as they could in 3.0.1. Decided by the product owner on 2026-09-24, after review round 1 found contributors locked out.
 
-It records `OPT_CAPS = 1`. Running it twice changes nothing. On 3.0.1 sites, publications may have been authored by any role that could edit posts. This mapping leaves that access unchanged.
+It records `OPT_CAPS = 1`. Running it twice changes nothing. Test: after `grant()`, a Contributor can create and edit their own draft publication but cannot publish it or edit another user's. On 3.0.1 sites, publications may have been authored by any role that could edit posts. This mapping leaves that access unchanged.
 
 ### 6.2 URL policy and delivery (D1, D6, D17)
 
@@ -409,10 +413,11 @@ Its unit tests run on the host with no WordPress and use a stub callable. They a
 
 1. Sends `Content-Type`: from `wp_check_filetype()` on the URL basename, else the response header, else `application/octet-stream`.
 2. Sends `Content-Length`: the temp file's size.
-3. For downloads only, sends `Content-Disposition: attachment; filename="…"`, with the filename passed through `sanitize_file_name()`.
-4. **D6.** Calls `ob_end_clean()` only while `ob_get_level() > 0`.
-5. `readfile()`s the temp file, then unlinks it.
-6. Exits. The exit goes through an injectable `exit` callable so tests can observe the call.
+3. Always sends `X-Content-Type-Options: nosniff`.
+4. Sends `Content-Disposition: attachment; filename="…"`, with the filename passed through `sanitize_file_name()`, for every download. It also sends it for a **view** request whenever the resolved content type is active content: `text/html`, `application/xhtml+xml`, `image/svg+xml`, `text/xml`, `application/xml`, `text/javascript` or `application/javascript` (the list is `Keys::ACTIVE_CONTENT_TYPES`). The plugin never serves HTML inline from the site's origin. Decided by the product owner on 2026-09-24. Tests: a proxied `.html` and `.svg` view each arrive with `nosniff` and `attachment`; a proxied PDF view arrives with `nosniff` and no disposition.
+5. **D6.** Calls `ob_end_clean()` only while `ob_get_level() > 0`.
+6. `readfile()`s the temp file, then unlinks it.
+7. Exits. The exit goes through an injectable `exit` callable so tests can observe the call.
 
 ### 6.3 Back-compat classes (G6)
 

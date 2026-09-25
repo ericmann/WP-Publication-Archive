@@ -43,7 +43,7 @@ Digital Asset Manager (the DAM). `docs/SPEC.md` is the source of truth;
 | `class-hooks.php` | Every `do_action`/`apply_filters` | `Keys` |
 | `class-streamer.php` | The one `readfile` of a temp file | `Keys` |
 | `class-dam-bridge.php` | The only file that knows the DAM | `Keys`, `Hooks`, `Url_Policy` |
-| `class-delivery.php` | view/download/altview/altdown: redirect or proxy | `Keys`, `Hooks`, `Flags`, `Url_Policy`, `Streamer`, `Dam_Bridge`, `Icons` |
+| `class-delivery.php` | view/download/altview/altdown: redirect or proxy | `Keys`, `Hooks`, `Flags`, `Url_Policy`, `Streamer`, `Dam_Bridge` |
 | `class-post-type.php`, `class-capabilities.php`, `class-rewrites.php` (rules, query vars, link generation), `class-upgrade.php` | Model and routing | `Keys`, `Hooks`, `Flags`, `Url_Policy` |
 | `class-publication-item.php`, `class-icons.php`, `class-categories.php` | Presentation helpers | `Keys`, `Hooks`, `Clock`, `Url_Policy`, `Dam_Bridge`, `Icons`; `Categories` also `Flags`; `Publication_Item` reaches services only via `Plugin::instance()` |
 | `class-meta-boxes.php`, `class-shortcode.php`, `class-templates.php`, `widgets/*` | Surfaces | anything above except `Plugin`; widgets (constructed by WordPress) may call `Plugin::instance()` |

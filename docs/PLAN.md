@@ -1678,3 +1678,137 @@ Serial; small, and every file is a hotspot. SPEC §8 Phase 3.
 20. **3.0.1 calls `widget_title` with one argument in the archive widget and three in the others.** `Hooks::widget_title()` uses a variadic tail so that callbacks see exactly the 3.0.1 arity.
 21. **`the_widget( 'WP_Publication_Archive_Widget' )` in themes needs the factory key to be the 3.0.1 class name.**
     - Resolution: widgets are registered under the legacy names through the aliases.
+
+## Review fixes (round 1)
+
+### R1-01: Disable Composer's process timeout so composer test/verify can finish
+**Goal:** `composer test` and `composer verify` run to completion without a caller-side COMPOSER_PROCESS_TIMEOUT override, so no host-side timeout orphans phpunit inside the wp-env tests-cli container (REVIEW finding 2).
+**Files touched:** composer.json, tests/unit/test-composer-config.php
+**Design constraints:** Add `"process-timeout": 0` to composer.json's `config` block. Change nothing else in composer.json (scripts, require, autoload stay byte-identical). CLAUDE.md § Constraints apply.
+**Acceptance tests:** New tests/unit/test-composer-config.php (namespace WPPA\Tests\Unit, extends \Yoast\PHPUnitPolyfills\TestCases\TestCase): `test_process_timeout_is_disabled` decodes composer.json and asserts `config['process-timeout'] === 0`. This fails on the current composer.json, which has no key.
+**Out of scope:** Changing bin/test.sh, the phpunit invocation, CI workflow, or making the suite faster.
+**Verification:** 1. foundry_verify with the files touched. 2. Run `composer test` with NO COMPOSER_PROCESS_TIMEOUT in the environment and confirm exit 0 even though the run takes longer than 300 s. 3. Afterwards, `npx wp-env run tests-cli ps aux | grep phpunit` shows no leftover phpunit process.
+**Depends on:** none
+
+### R1-02: Cli caps_granted row reads capability and role names from Keys; lock the shape with a constraint
+**Goal:** Remove the hard-coded 'edit_publications' capability and 'administrator' role literals from Cli (P1), and add a constraint so an unprefixed publication capability literal cannot reappear outside Keys (REVIEW finding 1).
+**Files touched:** includes/class-cli.php, includes/class-keys.php, tests/unit/test-keys.php, tests/integration/test-cli.php, docs/foundry.json
+**Design constraints:** Cli::caps_granted_row() uses Keys::CAP_MAP['edit_posts'] and a new Keys::ROLE_ADMINISTRATOR = 'administrator' constant; no capability or role string literal remains in class-cli.php. Append ONE constraint to docs/foundry.json, changing nothing else in the file: id `capability-names-in-keys`, description citing SPEC §3 P1 (capability names live in Keys), paths ["includes/", "wp-publication-archive.php", "uninstall.php"], exclude ["includes/class-keys.php"], pattern `['\"][a-z]+(_[a-z]+)*_publications['\"]`, shouldMatch including this diff's own line `$admin_has_cap = null !== $administrator && $administrator->has_cap( 'edit_publications' );` and `current_user_can( 'edit_others_publications' )`, shouldNotMatch including `$administrator->has_cap( Keys::CAP_MAP['edit_posts'] );` and `'publications' => $publications,`. foundry_verify must show the new rule's fixture self-test passing and 0 hits.
+**Acceptance tests:** tests/unit/test-keys.php: assert Keys::ROLE_ADMINISTRATOR === 'administrator'. tests/integration/test-cli.php: `test_caps_granted_row_follows_keys_cap_map` removes Keys::CAP_MAP['edit_posts'] from the administrator role (restoring it in tear_down via the existing roles snapshot pattern) and asserts the caps_granted row fails. The new constraint's shouldMatch fixture is the original line, so the constraint self-test itself would have caught the finding.
+**Out of scope:** Changing which roles or caps Capabilities::grant() gives out; other doctor rows.
+**Verification:** 1. foundry_verify with the files touched: capability-names-in-keys self-tests and reports 0 hits. 2. `grep -n "'edit_publications'\|'administrator'" includes/class-cli.php` prints nothing. 3. `npx wp-env run cli wp publication-archive doctor` exits 0.
+**Depends on:** R1-01
+
+### R1-03: the_thumbnail() keeps the DAM data: placeholder; thumbnail read path normalises the pipe form
+**Goal:** Make the echoed thumbnail (the path every bundled template uses) render the DAM placeholder for withheld images, and normalise legacy http|/https| thumbnail values on read per SPEC §5.1 (REVIEW finding 3).
+**Files touched:** includes/class-publication-item.php, tests/integration/test-publication-item.php, tests/integration/dam/test-publication-item-dam.php
+**Design constraints:** Publication_Item stays non-final, with 3.0.1 method names, parameters, defaults and phpdoc-only types. the_thumbnail() echoes through `wp_kses( $html, 'post', array_merge( wp_allowed_protocols(), array( 'data' ) ) )` (or an equivalent that allows only the extra `data` protocol) instead of wp_kses_post(). get_the_thumbnail() applies Plugin::instance()->url_policy()->normalise() to the value returned by Hooks::item_upload_image() before Dam_Bridge::display_url() and escaping. The public $upload_image property and the filter's input stay the raw stored value, as in 3.0.1. No WordPress.Security phpcs ignore.
+**Acceptance tests:** tests/integration/dam/test-publication-item-dam.php: `test_d18_the_thumbnail_echoes_placeholder_for_anonymous` embargoes the attachment as the existing D18 test does, captures `$item->the_thumbnail()` with ob_start(), and asserts the output contains Embargo_Guard::placeholder_url() verbatim (including `data:`). This fails today because wp_kses_post strips `data:`. tests/integration/test-publication-item.php: `test_thumbnail_normalises_pipe_form` writes META_IMAGE `https|example.com/t.png` via V3_Site::raw_meta() and asserts get_the_thumbnail() contains `src="https://example.com/t.png"`.
+**Out of scope:** Changing the wpa-upload_image filter arguments, other item fields, or template markup.
+**Verification:** 1. foundry_verify with the files touched. 2. `composer test` (DAM loaded) and `WPPA_DAM=0 composer test` are green, and no characterisation string changes.
+**Depends on:** R1-01
+
+### R1-04: Meta box save preserves percent-encoded URLs
+**Goal:** Stop Meta_Boxes::save() from deleting %xx octets out of document, thumbnail and alternate URLs, while keeping D1, D2 and D10 closed (REVIEW finding 4).
+**Files touched:** includes/class-meta-boxes.php, tests/integration/test-meta-boxes.php
+**Design constraints:** Doc, image and each alternate url are sanitised with a URL-preserving sanitiser, for example `esc_url_raw()` applied to `Url_Policy::normalise( wp_unslash( … ) )` so the pipe form still normalises, then passed through validated_url(). Descriptions keep sanitize_text_field(); the nonce handling is unchanged. The alternates loop keeps the `<` bound (D10). No WordPress.Security phpcs ignore (no-security-ignores). Only the three §5.1 meta keys are written.
+**Acceptance tests:** tests/integration/test-meta-boxes.php: `test_save_preserves_percent_encoded_urls` posts doc `https://example.com/My%20Report.pdf`, image `https://example.com/r%C3%A9sum%C3%A9.png` and one alternate url `https://example.com/a.pdf?x=a%2Fb`, and asserts all three are stored byte-for-byte. This fails today (sanitize_text_field yields `MyReport.pdf`). The existing test_d1_*, test_d2_*, test_d10_* and pipe-form save tests stay green.
+**Out of scope:** The REST sanitize callbacks in Post_Type (unaffected), meta box markup, and admin-media.js.
+**Verification:** 1. foundry_verify with the files touched. 2. `composer test` (DAM loaded) is green.
+**Depends on:** R1-01
+
+### R1-05: Delivery acts only on publications and reads meta directly, not through Publication_Item
+**Goal:** Keep Delivery inside its module-map imports and restore 3.0.1's no-op for view/download query vars on non-publication requests (REVIEW finding 5).
+**Files touched:** includes/class-delivery.php, tests/integration/test-delivery.php
+**Design constraints:** Delivery::deliver() returns without output unless get_post() is non-null and its post_type is Keys::POST_TYPE. resolve_uri() reads Keys::META_DOC (single) and Keys::META_ALTERNATES (all rows) with get_post_meta() and keeps the 3.0.1 alternate-key rule (urldecode(QV_ALT) === description). Delivery no longer references Publication_Item, calls setup_postdata(), or builds the excerpt. SPEC §6.2 steps 2-6 are otherwise unchanged (filters, validate→404, withhold→404, redirect/proxy).
+**Acceptance tests:** tests/integration/test-delivery.php: `test_open_query_var_on_non_publication_is_ignored` creates a regular post, go_to()s it with Keys::QV_OPEN=yes, and asserts handle() throws no WPDieException and prints nothing. This fails today with a 404 wp_die. `test_delivery_does_not_build_the_excerpt` counts `get_the_excerpt` filter calls during a same-site redirect handle() and asserts 0. The existing D1/D17 delivery tests stay green.
+**Out of scope:** Changing Url_Policy, Streamer, the proxy-mode Content-Type rule, or the 404 behaviour for publications whose stored URL is empty or invalid.
+**Verification:** 1. foundry_verify with the files touched. 2. `composer test` (DAM loaded) and `WPPA_DAM=0 composer test` are green. 3. `grep -n Publication_Item includes/class-delivery.php` prints nothing.
+**Depends on:** R1-01
+
+### R1-06: admin-media.js uses jQuery only for document delegation
+**Goal:** Bring assets/js/admin-media.js in line with SPEC §6.7 and the PLAN P2-07 design constraint: the only jQuery use is jQuery( document ).on() delegation (REVIEW finding 6).
+**Files touched:** assets/js/admin-media.js, tests/integration/test-admin-media.php
+**Design constraints:** Replace `$( this ).closest( 'tr' )`, `$row.find( … ).val( url )` and `$( this ).closest( 'tr' ).remove()` with DOM equivalents (`this.closest( 'tr' )`, `querySelector( 'input[name$="[url][]"]' ).value = url`, `Element.remove()`). Behaviour, selectors and field names are unchanged, and the file never touches window.send_to_editor.
+**Acceptance tests:** tests/integration/test-admin-media.php: `test_admin_media_js_uses_jquery_only_for_document_delegation` reads the file and asserts every `$(` / `jQuery(` call's argument is `document`, matching `/(?:\$|jQuery)\(\s*([^)]*?)\s*\)/`. This fails today on `$( this )` and `$row`.
+**Out of scope:** Meta box markup, Assets::enqueue_admin(), and any block-editor UI.
+**Verification:** 1. foundry_verify with the files touched. 2. `WPPA_DAM=0 composer test` is green. 3. Manual (NOT VERIFIED (human)): in wp-admin, Upload fills the doc, thumbnail and alternate-row inputs, and Add Row and Delete work.
+**Depends on:** R1-01
+
+### R1-07: 3.1.0 release notes describe D5 accurately
+**Goal:** Stop readme.txt and CHANGELOG.md claiming a D5 rewrite-rule fix that P2-05 found unnecessary (REVIEW finding 7).
+**Files touched:** readme.txt, CHANGELOG.md, tests/unit/test-readme.php
+**Design constraints:** Reword only the D5 bullet in both files, e.g. "Confirmed that publications slugged view or download stay reachable at their own permalinks; regression tests added (D5)." Every other changelog and upgrade-notice line is unchanged, and D1–D19 are all still named.
+**Acceptance tests:** tests/unit/test-readme.php: `test_d5_entry_does_not_claim_a_rule_fix` extracts the line naming D5 from readme.txt's 3.1.0 changelog and from CHANGELOG.md, and asserts each contains `regression test` and does not contain `Fix a rewrite-rule collision`. This fails on today's wording.
+**Out of scope:** Rewrite rules, and any other readme or changelog content.
+**Verification:** 1. foundry_verify with the files touched (unit suite green, including the existing readme tests).
+**Depends on:** R1-01
+
+## Review fixes (round 2)
+
+### R2-01: Meta box save keeps '&' in URLs (R1-04 regression)
+**Goal:** Stop Meta_Boxes::save() storing every '&' in a document, thumbnail or alternate URL as '&amp;' (wp_kses_post() runs wp_kses_normalize_entities()), while keeping percent-encoding, the legacy pipe form, D1, D2 and D10 intact.
+**Files touched:** includes/class-meta-boxes.php, tests/integration/test-meta-boxes.php
+**Design constraints:** Replace wp_kses_post() with wp_strip_all_tags() as the immediate sanitiser wrapping wp_unslash( $_POST[...] ) for Keys::FIELD_DOC and Keys::FIELD_IMAGE, and as the map_deep() callback for the alternates URL array. Keep the rest of the chain: Url_Policy::normalise() -> esc_url_raw() -> validated_url(). wp_strip_all_tags is in WPCS SanitizationHelperTrait's sanitising list, so WordPress.Security.ValidatedSanitizedInput.InputNotSanitized stays satisfied without any phpcs:ignore (P7, no-security-ignores). While on these lines, cast the posted description and url collections to arrays and skip any non-string url element, so a hand-crafted POST cannot reach count() or normalise( string ) with the wrong type. Update the comment above the doc/thumbnail lines to name wp_strip_all_tags and why (keeps %xx, '&' and '|').
+**Acceptance tests:** tests/integration/test-meta-boxes.php: new test_save_preserves_ampersands_in_urls posts doc 'https://example.com/a.pdf?x=1&y=2', thumbnail 'https://example.com/t.png?w=1&h=2', and one alternate 'https://example.com/b.pdf?id=3&export=download', then asserts each stored value is byte-identical (no '&amp;'). This test fails on the current wp_kses_post() code. Existing test_save_preserves_percent_encoded_urls, the pipe-form save test and the D1/D2/D10 tests must still pass unchanged.
+**Out of scope:** Post_Type's REST sanitize callbacks; Url_Policy; any other file.
+**Verification:** foundry_verify with files [includes/class-meta-boxes.php, tests/integration/test-meta-boxes.php]: constraints clean, lint/analyse/test:map/test:unit green, composer test green with the DAM.
+**Depends on:** none
+
+### R2-02: Delivery drops its Icons dependency (SPEC §4.2 module map)
+**Goal:** Delivery imports only what SPEC §4.2 allows (Keys, Hooks, Flags, Url_Policy, Streamer, Dam_Bridge): resolve the §6.2 step-1 content type with wp_check_filetype() directly instead of through Icons.
+**Files touched:** includes/class-delivery.php, includes/class-plugin.php, tests/integration/test-delivery.php, tests/integration/dam/test-delivery-dam.php
+**Design constraints:** Remove the Icons constructor parameter, the $icons property and the icons() accessor from Delivery; new signature __construct( Url_Policy $policy, Streamer $streamer, Dam_Bridge $dam, ?callable $exit = null, ?callable $header = null ). In proxy(), compute the type as wp_check_filetype( basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) )['type'], falling back to the response content-type header, then Keys::CONTENT_TYPE_FALLBACK, exactly as today. Update Plugin::__construct() wiring and the two test files that construct Delivery. Icons itself and Publication_Item's use of Icons are unchanged.
+**Acceptance tests:** tests/integration/test-delivery.php: new test_delivery_constructor_takes_no_icons uses ReflectionMethod on Delivery::__construct and asserts no parameter is typed WPPA\Icons and that method_exists( Delivery::class, 'icons' ) is false. Existing proxy-mode tests (test_proxy_mode_streams_mocked_body_and_headers, test_proxy_mode_download_adds_disposition) must still pass with the same Content-Type.
+**Out of scope:** Streamer changes (next task); Icons class; any header changes.
+**Verification:** foundry_verify with the touched files: constraints clean, all verify commands green, composer test green with the DAM.
+**Depends on:** none
+
+### R2-03: Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
+**Goal:** Implement the product-owner decision in SPEC 464750b: every proxied response carries X-Content-Type-Options: nosniff, and a view request for active content (Keys::ACTIVE_CONTENT_TYPES) is sent as an attachment, so the plugin never serves HTML/SVG/XML/JS inline from the site's origin. Also make the temp-dir containment check exact.
+**Files touched:** includes/class-keys.php, includes/class-streamer.php, includes/class-delivery.php, tests/unit/test-keys.php, tests/unit/test-streamer.php, tests/integration/test-delivery.php
+**Design constraints:** Add Keys::ACTIVE_CONTENT_TYPES = array( 'text/html', 'application/xhtml+xml', 'image/svg+xml', 'text/xml', 'application/xml', 'text/javascript', 'application/javascript' ) and assert it in test-keys.php. Add public static Streamer::is_active_content( string $content_type ): bool that strips any ';' parameters, trims, lowercases, and checks membership in Keys::ACTIVE_CONTENT_TYPES. Streamer::send() keeps its three-parameter signature and header order per §6.2: Content-Type, Content-Length, then always 'X-Content-Type-Options: nosniff', then Content-Disposition: 'attachment; filename="…"' when $filename is non-null, else a bare 'Content-Disposition: attachment' when is_active_content( $content_type ) (backstop). Delivery::proxy() passes sanitize_file_name( basename( URL path ) ) as $filename when $is_download OR Streamer::is_active_content( $content_type ); otherwise null. In send(), change the containment check to require $real_path to start with rtrim( $real_temp_dir, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR. Tunables/literals stay in Keys (tunables-in-keys-only, names-in-keys-only).
+**Acceptance tests:** tests/unit/test-streamer.php: test_send_always_sends_nosniff (third header is 'X-Content-Type-Options: nosniff' with and without a filename); test_send_forces_attachment_for_active_content_with_no_filename (data provider over 'text/html', 'text/html; charset=UTF-8', 'IMAGE/SVG+XML', 'application/javascript' -> a Content-Disposition attachment header is sent); test_send_sends_no_disposition_for_pdf_view ('application/pdf', null filename -> no Content-Disposition); test_send_refuses_a_sibling_dir_sharing_the_temp_dir_prefix (temp dir X, file in X . '-evil/' -> InvalidArgumentException). Update existing header-index assertions (disposition moves from index 2 to 3). tests/integration/test-delivery.php, with wppa_mask_url true and pre_http_request mocked: test_proxy_view_of_html_is_attachment_with_nosniff (.html URL, remote content-type text/html), test_proxy_view_of_svg_is_attachment_with_nosniff (.svg URL, image/svg+xml), test_proxy_view_of_pdf_is_inline_with_nosniff (.pdf -> nosniff, no Content-Disposition). The html/svg tests fail on the current code.
+**Out of scope:** Redirect (default) mode headers; changing Streamer::send()'s required parameters; readme/CHANGELOG wording.
+**Verification:** foundry_verify with the touched files: constraints clean (raw-file-read-confined still one readfile), all verify commands green, composer test green with the DAM.
+**Depends on:** R2-02
+
+### R2-04: Contributors get their post-equivalent publication caps (SPEC §6.1)
+**Goal:** Implement the product-owner decision in SPEC 464750b: Capabilities::grant() also maps the contributor role, so contributors keep creating and editing their own draft publications as in 3.0.1, without being able to publish or edit others'.
+**Files touched:** includes/class-keys.php, includes/class-capabilities.php, tests/unit/test-keys.php, tests/integration/test-capabilities.php
+**Design constraints:** Add 'contributor' to Keys::CAP_ROLES (after 'author'). grant()'s has_cap()-based mapping is unchanged, so contributor gets edit_publications and delete_publications only. Update Capabilities' file and grant() docblocks, which say 'three §6.1 roles'. Capability names stay in Keys (capability-names-in-keys, names-in-keys-only); tests use Keys::CAP_MAP, not literals.
+**Acceptance tests:** tests/unit/test-keys.php: CAP_ROLES assertion includes 'contributor'. tests/integration/test-capabilities.php: test_grant_gives_contributor_the_same_subset_as_for_post (contributor has exactly the CAP_MAP values whose post caps it has, and not publish/edit_others/edit_published); test_contributor_can_edit_own_draft_but_not_publish_or_edit_others (after grant(), as a Contributor: current_user_can( 'edit_post', own draft publication ) true, current_user_can( 'publish_post', same ) false, current_user_can( 'edit_post', another user's draft publication ) false, and current_user_can( Keys::CAP_MAP['edit_posts'] ) true). Restore role state the same way the existing Test_Capabilities snapshot does. Both fail on the current code.
+**Out of scope:** Upgrade handling for sites with OPT_CAPS already set (no 3.1.0 has shipped); the doctor caps_granted row.
+**Verification:** foundry_verify with the touched files: constraints clean, all verify commands green, composer test green with the DAM.
+**Depends on:** none
+
+### R2-05: Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
+**Goal:** SPEC G5 (464750b) says the characterisation tests pin plain-permalink behaviour; today only get_open_link() is pinned, and deleting the plain-permalink 'alt' query arg in Rewrites::link() survives the whole suite.
+**Files touched:** tests/integration/test-characterisation-routing.php
+**Design constraints:** Test-only; no production code changes. Use the 3.0.1 public API (\WP_Publication_Archive::get_*_link()) as the existing characterisation tests do, set_permalink_structure( '' ) inside each test, and fixture slugs from V3_Site. Expected strings are the literal 3.0.1 outputs (add_query_arg of the endpoint name, then 'alt'). No literal plugin-prefixed names (names-in-keys-only): use Keys::QV_OPEN / Keys::QV_DOWNLOAD for the query forms.
+**Acceptance tests:** test_download_link_with_plain_permalinks_matches_301 -> home_url( '/?publication=attached-report&download=yes' ); test_alternate_open_link_with_plain_permalinks_matches_301 -> home_url( '/?publication=alternates-report&altview=yes&alt=English' ); test_alternate_download_link_with_plain_permalinks_matches_301 -> home_url( '/?publication=alternates-report&altdown=yes&alt=English' ); test_open_query_form_resolves_with_plain_permalinks and test_download_query_form_resolves_with_plain_permalinks (go_to the ?publication=…&<QV>=yes form, assert the query var is 'yes' and the queried object is the fixture). The alternate tests fail if Rewrites::link()'s add_query_arg( Keys::QUERY_ALT_KEY, … ) is deleted.
+**Out of scope:** Changing any link output; wppa_open-style link generation (retired in 4.0).
+**Verification:** foundry_verify with files [tests/integration/test-characterisation-routing.php]: all verify commands green, composer test green with the DAM.
+**Depends on:** none
+
+## Review fixes (round 3)
+
+### R3-01: Pin the named attachment filename on active-content proxy views (SPEC §6.2 step 4)
+**Goal:** Make the R2-03 Delivery mechanic that names the file on an active-content view testable: today replacing `( $is_download || Streamer::is_active_content( $content_type ) )` with `$is_download` in Delivery::proxy() survives the full suite, because Streamer's bare `Content-Disposition: attachment` backstop satisfies the existing substring assertions. Also remove the stale `Icons` entry from CLAUDE.md's module-map row for class-delivery.php, which R2-02 made wrong.
+**Files touched:** tests/integration/test-delivery.php, CLAUDE.md
+**Design constraints:** Test and doc only; no production code changes. In tests/integration/test-delivery.php, tighten test_proxy_view_of_html_is_attachment_with_nosniff to assert the headers contain exactly `Content-Disposition: attachment; filename="a.html"` and test_proxy_view_of_svg_is_attachment_with_nosniff to assert exactly `Content-Disposition: attachment; filename="a.svg"` (the fixture URLs are home_url( '/wp-content/uploads/a.html' ) and '.svg'), e.g. assertContains on $this->headers. Keep the nosniff assertion and the PDF test unchanged. No plugin-prefixed string literals (names-in-keys-only). In CLAUDE.md, the `class-delivery.php` module-map row's import list becomes `Keys`, `Hooks`, `Flags`, `Url_Policy`, `Streamer`, `Dam_Bridge` (matching SPEC §4.2); change nothing else in CLAUDE.md.
+**Acceptance tests:** tests/integration/test-delivery.php: test_proxy_view_of_html_is_attachment_with_nosniff and test_proxy_view_of_svg_is_attachment_with_nosniff assert the exact named-attachment header. Both must fail when Delivery::proxy()'s `( $is_download || Streamer::is_active_content( $content_type ) )` is mutated to `$is_download` (the finding's surviving mutation), and pass on the current code.
+**Out of scope:** Streamer::send() and its backstop; Delivery production code; PLAN.md's historical P0-09 text; readme/CHANGELOG.
+**Verification:** foundry_verify with files [tests/integration/test-delivery.php, CLAUDE.md]: constraints clean, lint/analyse/test:map/test:unit green, composer test green with the DAM. Then foundry_mutate on includes/class-delivery.php replacing `( $is_download || Streamer::is_active_content( $content_type ) )` with `$is_download` must report killed: true.
+**Depends on:** none
+
+## Review fixes (round 4)
+
+### R4-01: Test that Streamer::send() discards buffered output above its floor (SPEC §6.2 step 5, D6)
+**Goal:** Cover the D6 buffer-discard mechanic: today deleting Streamer::send()'s `while ( ob_get_level() > $this->ob_floor ) { ob_end_clean(); }` loop survives the full suite (unit + wp-env with the DAM), because every in-process test builds Streamer with ob_floor equal to the level at send() time and the D6 child process has zero buffers, so the loop body never runs.
+**Files touched:** tests/unit/test-streamer.php
+**Design constraints:** Test only; no production code changes (includes/class-streamer.php stays as is). Add test_d6_discards_buffered_output_above_the_floor to tests/unit/test-streamer.php: record $floor = ob_get_level(); ob_start() an outer capture buffer; construct Streamer with the file's temp dir, a throwing exit callable, a no-op/recording header callable, and ob_floor = $floor + 1; ob_start() an inner buffer and echo a stray marker (e.g. 'stray-output'); call send() on a temp file containing 'file-bytes' and catch the exit exception; $output = ob_get_clean() of the outer buffer; assert $output === 'file-bytes' and ob_get_level() === $floor. In a finally block, end any buffers still above $floor so a mutated Streamer cannot leak buffers into PHPUnit. Reuse the file's existing make_file() helper. No plugin-prefixed string literals (names-in-keys-only). Keep test_d6_no_notice_with_zero_output_buffers unchanged.
+**Acceptance tests:** tests/unit/test-streamer.php::test_d6_discards_buffered_output_above_the_floor passes on the current code and fails when the `while ( ob_get_level() > $this->ob_floor ) { ob_end_clean(); }` loop in Streamer::send() is deleted (captured output becomes 'stray-outputfile-bytes').
+**Out of scope:** Streamer production code; Delivery; the ob_floor constructor parameter's default; SPEC/PLAN text.
+**Verification:** foundry_verify with files [tests/unit/test-streamer.php]: constraints clean, lint/analyse/test:map/test:unit green, composer test green with the DAM. Then foundry_mutate on includes/class-streamer.php deleting the three-line `while ( ob_get_level() > $this->ob_floor ) {` / `ob_end_clean();` / `}` loop with commands ["composer test:unit"] must report killed: true.
+**Depends on:** none
