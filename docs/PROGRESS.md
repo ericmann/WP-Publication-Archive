@@ -54,6 +54,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
 - [x] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
 - [x] R3-01 Pin the named attachment filename on active-content proxy views (SPEC §6.2 step 4)
+- [ ] R4-01 Test that Streamer::send() discards buffered output above its floor (SPEC §6.2 step 5, D6)
 
 ## Log
 (one entry per task, appended by implement)

@@ -1801,3 +1801,14 @@ Serial; small, and every file is a hotspot. SPEC §8 Phase 3.
 **Out of scope:** Streamer::send() and its backstop; Delivery production code; PLAN.md's historical P0-09 text; readme/CHANGELOG.
 **Verification:** foundry_verify with files [tests/integration/test-delivery.php, CLAUDE.md]: constraints clean, lint/analyse/test:map/test:unit green, composer test green with the DAM. Then foundry_mutate on includes/class-delivery.php replacing `( $is_download || Streamer::is_active_content( $content_type ) )` with `$is_download` must report killed: true.
 **Depends on:** none
+
+## Review fixes (round 4)
+
+### R4-01: Test that Streamer::send() discards buffered output above its floor (SPEC §6.2 step 5, D6)
+**Goal:** Cover the D6 buffer-discard mechanic: today deleting Streamer::send()'s `while ( ob_get_level() > $this->ob_floor ) { ob_end_clean(); }` loop survives the full suite (unit + wp-env with the DAM), because every in-process test builds Streamer with ob_floor equal to the level at send() time and the D6 child process has zero buffers, so the loop body never runs.
+**Files touched:** tests/unit/test-streamer.php
+**Design constraints:** Test only; no production code changes (includes/class-streamer.php stays as is). Add test_d6_discards_buffered_output_above_the_floor to tests/unit/test-streamer.php: record $floor = ob_get_level(); ob_start() an outer capture buffer; construct Streamer with the file's temp dir, a throwing exit callable, a no-op/recording header callable, and ob_floor = $floor + 1; ob_start() an inner buffer and echo a stray marker (e.g. 'stray-output'); call send() on a temp file containing 'file-bytes' and catch the exit exception; $output = ob_get_clean() of the outer buffer; assert $output === 'file-bytes' and ob_get_level() === $floor. In a finally block, end any buffers still above $floor so a mutated Streamer cannot leak buffers into PHPUnit. Reuse the file's existing make_file() helper. No plugin-prefixed string literals (names-in-keys-only). Keep test_d6_no_notice_with_zero_output_buffers unchanged.
+**Acceptance tests:** tests/unit/test-streamer.php::test_d6_discards_buffered_output_above_the_floor passes on the current code and fails when the `while ( ob_get_level() > $this->ob_floor ) { ob_end_clean(); }` loop in Streamer::send() is deleted (captured output becomes 'stray-outputfile-bytes').
+**Out of scope:** Streamer production code; Delivery; the ob_floor constructor parameter's default; SPEC/PLAN text.
+**Verification:** foundry_verify with files [tests/unit/test-streamer.php]: constraints clean, lint/analyse/test:map/test:unit green, composer test green with the DAM. Then foundry_mutate on includes/class-streamer.php deleting the three-line `while ( ob_get_level() > $this->ob_floor ) {` / `ob_end_clean();` / `}` loop with commands ["composer test:unit"] must report killed: true.
+**Depends on:** none
