@@ -1,7 +1,7 @@
 <?php
 /**
  * Implements SPEC.md §6.1: publication capabilities, granted once to the
- * three §6.1 roles.
+ * four §6.1 roles.
  *
  * @author Eric Mann <eric@eamann.com>
  */

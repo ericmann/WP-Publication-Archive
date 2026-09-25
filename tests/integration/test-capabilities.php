@@ -1,7 +1,7 @@
 <?php
 /**
  * Implements SPEC.md §6.1: publication capabilities, granted once to the
- * three §6.1 roles.
+ * four §6.1 roles.
  *
  * @author Eric Mann <eric@eamann.com>
  */
@@ -103,6 +103,55 @@ class Test_Capabilities extends \WP_UnitTestCase {
 		// above is actually exercising both branches, not vacuously true.
 		$this->assertTrue( $granted );
 		$this->assertFalse( $author->has_cap( Keys::CAP_MAP['edit_others_posts'] ) );
+	}
+
+	public function test_grant_gives_contributor_the_same_subset_as_for_post() {
+		Plugin::instance()->capabilities()->grant();
+
+		$contributor = get_role( 'contributor' );
+		$this->assertNotNull( $contributor );
+
+		foreach ( Keys::CAP_MAP as $post_cap => $publication_cap ) {
+			$this->assertSame( $contributor->has_cap( $post_cap ), $contributor->has_cap( $publication_cap ), $publication_cap );
+		}
+
+		$this->assertTrue( $contributor->has_cap( Keys::CAP_MAP['edit_posts'] ) );
+		$this->assertTrue( $contributor->has_cap( Keys::CAP_MAP['delete_posts'] ) );
+		$this->assertFalse( $contributor->has_cap( Keys::CAP_MAP['publish_posts'] ) );
+		$this->assertFalse( $contributor->has_cap( Keys::CAP_MAP['edit_others_posts'] ) );
+		$this->assertFalse( $contributor->has_cap( Keys::CAP_MAP['edit_published_posts'] ) );
+	}
+
+	public function test_contributor_can_edit_own_draft_but_not_publish_or_edit_others() {
+		Plugin::instance()->capabilities()->grant();
+
+		$contributor_id = self::factory()->user->create( array( 'role' => 'contributor' ) );
+		$other_id       = self::factory()->user->create( array( 'role' => 'contributor' ) );
+
+		$own_draft = self::factory()->post->create(
+			array(
+				'post_type'   => Keys::POST_TYPE,
+				'post_status' => 'draft',
+				'post_author' => $contributor_id,
+			)
+		);
+
+		$others_draft = self::factory()->post->create(
+			array(
+				'post_type'   => Keys::POST_TYPE,
+				'post_status' => 'draft',
+				'post_author' => $other_id,
+			)
+		);
+
+		wp_set_current_user( $contributor_id );
+
+		$this->assertTrue( current_user_can( 'edit_post', $own_draft ) );
+		$this->assertFalse( current_user_can( 'publish_post', $own_draft ) );
+		$this->assertFalse( current_user_can( 'edit_post', $others_draft ) );
+		$this->assertTrue( current_user_can( Keys::CAP_MAP['edit_posts'] ) );
+
+		wp_set_current_user( 0 );
 	}
 
 	public function test_grant_records_the_option() {

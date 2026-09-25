@@ -97,7 +97,7 @@ final class Keys {
 
 	// Capabilities (§6.1, P2-02).
 	const CAPABILITY_TYPE    = array( 'publication', 'publications' );
-	const CAP_ROLES          = array( 'administrator', 'editor', 'author' );
+	const CAP_ROLES          = array( 'administrator', 'editor', 'author', 'contributor' );
 	const ROLE_ADMINISTRATOR = 'administrator';
 	const CAP_MAP            = array(
 		'edit_posts'             => 'edit_publications',

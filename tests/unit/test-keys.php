@@ -267,7 +267,7 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 		$this->assertSame( 'publication/author', Keys::TAX_AUTHOR_REWRITE_SLUG );
 
 		$this->assertSame( array( 'publication', 'publications' ), Keys::CAPABILITY_TYPE );
-		$this->assertSame( array( 'administrator', 'editor', 'author' ), Keys::CAP_ROLES );
+		$this->assertSame( array( 'administrator', 'editor', 'author', 'contributor' ), Keys::CAP_ROLES );
 		$this->assertSame( 'administrator', Keys::ROLE_ADMINISTRATOR );
 		$this->assertSame(
 			array(
