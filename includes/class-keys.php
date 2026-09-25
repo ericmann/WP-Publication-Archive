@@ -220,4 +220,13 @@ final class Keys {
 	const ERR_INVALID_URL              = 'wppa_invalid_url';
 	const HOOK_ALLOWED_REDIRECT_HOSTS  = 'allowed_redirect_hosts';
 	const CONTENT_TYPE_FALLBACK        = 'application/octet-stream';
+	const ACTIVE_CONTENT_TYPES         = array(
+		'text/html',
+		'application/xhtml+xml',
+		'image/svg+xml',
+		'text/xml',
+		'application/xml',
+		'text/javascript',
+		'application/javascript',
+	);
 }

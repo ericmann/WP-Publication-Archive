@@ -292,4 +292,19 @@ class Test_Keys extends \PHPUnit\Framework\TestCase {
 
 		$this->assertSame( 20, Keys::UPGRADE_PRIORITY );
 	}
+
+	public function test_active_content_types() {
+		$this->assertSame(
+			array(
+				'text/html',
+				'application/xhtml+xml',
+				'image/svg+xml',
+				'text/xml',
+				'application/xml',
+				'text/javascript',
+				'application/javascript',
+			),
+			Keys::ACTIVE_CONTENT_TYPES
+		);
+	}
 }

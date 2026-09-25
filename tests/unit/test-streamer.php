@@ -121,7 +121,7 @@ class Test_Streamer extends \PHPUnit\Framework\TestCase {
 
 		ob_get_clean();
 
-		$this->assertSame( 'Content-Disposition: attachment; filename="a.pdf"', $headers2[2] );
+		$this->assertSame( 'Content-Disposition: attachment; filename="a.pdf"', $headers2[3] );
 	}
 
 	public function test_send_strips_quotes_and_newlines_from_the_filename() {
@@ -150,7 +150,7 @@ class Test_Streamer extends \PHPUnit\Framework\TestCase {
 
 		ob_get_clean();
 
-		$this->assertSame( 'Content-Disposition: attachment; filename="a.pdf"', $headers[2] );
+		$this->assertSame( 'Content-Disposition: attachment; filename="a.pdf"', $headers[3] );
 	}
 
 	public function test_send_outputs_the_file_bytes_and_deletes_the_file() {
@@ -207,6 +207,146 @@ class Test_Streamer extends \PHPUnit\Framework\TestCase {
 		ob_get_clean();
 
 		$this->assertSame( array( true ), $exits );
+	}
+
+	public function test_send_always_sends_nosniff() {
+		foreach ( array( null, 'a.pdf' ) as $filename ) {
+			$headers = array();
+
+			ob_start();
+
+			$streamer = new Streamer(
+				$this->temp_dir,
+				static function () {
+					throw new \RuntimeException( 'exit called' );
+				},
+				static function ( $line ) use ( &$headers ) {
+					$headers[] = $line;
+				},
+				ob_get_level()
+			);
+
+			$path = $this->make_file( 'x' );
+
+			try {
+				$streamer->send( $path, 'text/plain', $filename );
+			} catch ( \RuntimeException $e ) {
+				unset( $e );
+			}
+
+			ob_get_clean();
+
+			$this->assertSame( 'X-Content-Type-Options: nosniff', $headers[2] );
+		}
+	}
+
+	/**
+	 * @dataProvider active_content_type_provider
+	 */
+	public function test_send_forces_attachment_for_active_content_with_no_filename( string $content_type ) {
+		$headers = array();
+
+		ob_start();
+
+		$streamer = new Streamer(
+			$this->temp_dir,
+			static function () {
+				throw new \RuntimeException( 'exit called' );
+			},
+			static function ( $line ) use ( &$headers ) {
+				$headers[] = $line;
+			},
+			ob_get_level()
+		);
+
+		$path = $this->make_file( 'x' );
+
+		try {
+			$streamer->send( $path, $content_type, null );
+		} catch ( \RuntimeException $e ) {
+			unset( $e );
+		}
+
+		ob_get_clean();
+
+		$dispositions = array_filter(
+			$headers,
+			static function ( $header ) {
+				return 0 === stripos( $header, 'Content-Disposition' );
+			}
+		);
+
+		$this->assertNotEmpty( $dispositions, 'Expected a Content-Disposition header for ' . $content_type );
+		$this->assertStringContainsStringIgnoringCase( 'attachment', reset( $dispositions ) );
+	}
+
+	/**
+	 * @return array<int, array<int, string>>
+	 */
+	public function active_content_type_provider(): array {
+		return array(
+			array( 'text/html' ),
+			array( 'text/html; charset=UTF-8' ),
+			array( 'IMAGE/SVG+XML' ),
+			array( 'application/javascript' ),
+		);
+	}
+
+	public function test_send_sends_no_disposition_for_pdf_view() {
+		$headers = array();
+
+		ob_start();
+
+		$streamer = new Streamer(
+			$this->temp_dir,
+			static function () {
+				throw new \RuntimeException( 'exit called' );
+			},
+			static function ( $line ) use ( &$headers ) {
+				$headers[] = $line;
+			},
+			ob_get_level()
+		);
+
+		$path = $this->make_file( 'x' );
+
+		try {
+			$streamer->send( $path, 'application/pdf', null );
+		} catch ( \RuntimeException $e ) {
+			unset( $e );
+		}
+
+		ob_get_clean();
+
+		foreach ( $headers as $header ) {
+			$this->assertStringNotContainsStringIgnoringCase( 'Content-Disposition', $header );
+		}
+	}
+
+	public function test_send_refuses_a_sibling_dir_sharing_the_temp_dir_prefix() {
+		$streamer = new Streamer(
+			$this->temp_dir,
+			static function () {
+				throw new \RuntimeException( 'exit called' );
+			},
+			static function () {},
+			ob_get_level()
+		);
+
+		$sibling = $this->temp_dir . '-evil';
+		mkdir( $sibling ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, WordPressVIPMinimum.Functions.RestrictedFunctions.directory_mkdir -- reason: test-only fixture directory on the bare host, no WordPress loaded.
+
+		$outside = $sibling . '/evil.bin';
+		file_put_contents( $outside, 'x' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- reason: test-only fixture file on the bare host, no WordPress loaded.
+
+		try {
+			$this->expectException( \InvalidArgumentException::class );
+
+			$streamer->send( $outside, 'text/plain', null );
+		} finally {
+			unlink( $outside ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink, WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_unlink -- reason: test-only fixture cleanup on the bare host, no WordPress loaded.
+			rmdir( $sibling ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir, WordPressVIPMinimum.Functions.RestrictedFunctions.directory_rmdir -- reason: test-only fixture cleanup on the bare host, no WordPress loaded.
+		}
 	}
 
 	public function test_send_refuses_a_path_outside_the_temp_dir() {

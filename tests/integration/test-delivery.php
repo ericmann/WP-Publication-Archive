@@ -487,4 +487,80 @@ class Test_Delivery extends \WP_UnitTestCase {
 		$joined = implode( "\n", $this->headers );
 		$this->assertStringContainsString( 'Content-Disposition: attachment; filename=', $joined );
 	}
+
+	/**
+	 * @param string $extension
+	 * @param string $mocked_content_type
+	 */
+	private function assert_proxy_view_headers( $extension, $mocked_content_type ) {
+		ob_start();
+
+		$this->install_delivery();
+
+		add_filter( Keys::FILTER_MASK_URL, '__return_true' );
+
+		$id = self::factory()->post->create( array( 'post_type' => Keys::POST_TYPE ) );
+		V3_Site::raw_meta( $id, Keys::META_DOC, home_url( '/wp-content/uploads/a.' . $extension ) );
+
+		add_filter(
+			'pre_http_request',
+			function ( $preempt, $args, $url ) use ( $mocked_content_type ) {
+				unset( $preempt, $url );
+
+				if ( 'HEAD' === ( $args['method'] ?? '' ) ) {
+					return array(
+						'headers'  => array( 'content-length' => '9' ),
+						'body'     => '',
+						'response' => array( 'code' => 200 ),
+					);
+				}
+
+				// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.file_ops_file_put_contents -- reason: test-only mock of WP_Http's own stream-to-file behaviour (pre_http_request intercepts before the real transport runs).
+				file_put_contents( $args['filename'], 'mock-body' );
+
+				return array(
+					'headers'  => array( 'content-type' => $mocked_content_type ),
+					'body'     => '',
+					'response' => array( 'code' => 200 ),
+				);
+			},
+			10,
+			3
+		);
+
+		$this->go_to_publication( $id, array( Keys::QV_OPEN => 'yes' ) );
+
+		try {
+			Plugin::instance()->delivery()->handle();
+			$this->fail( 'Expected the exit callable to run.' );
+		} catch ( \RuntimeException $e ) {
+			unset( $e );
+		}
+
+		ob_get_clean();
+
+		$this->assertStringContainsString( 'X-Content-Type-Options: nosniff', implode( "\n", $this->headers ) );
+	}
+
+	public function test_proxy_view_of_html_is_attachment_with_nosniff() {
+		$this->assert_proxy_view_headers( 'html', 'text/html' );
+
+		$joined = implode( "\n", $this->headers );
+		$this->assertStringContainsString( 'Content-Disposition: attachment', $joined );
+	}
+
+	public function test_proxy_view_of_svg_is_attachment_with_nosniff() {
+		$this->assert_proxy_view_headers( 'svg', 'image/svg+xml' );
+
+		$joined = implode( "\n", $this->headers );
+		$this->assertStringContainsString( 'Content-Disposition: attachment', $joined );
+	}
+
+	public function test_proxy_view_of_pdf_is_inline_with_nosniff() {
+		$this->assert_proxy_view_headers( 'pdf', 'application/pdf' );
+
+		foreach ( $this->headers as $header ) {
+			$this->assertStringNotContainsStringIgnoringCase( 'Content-Disposition', $header );
+		}
+	}
 }

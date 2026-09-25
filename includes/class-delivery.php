@@ -248,7 +248,12 @@ final class Delivery {
 			$content_type  = '' !== $response_type ? (string) $response_type : Keys::CONTENT_TYPE_FALLBACK;
 		}
 
-		$filename = $is_download ? sanitize_file_name( basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) ) : null;
+		// SPEC 464750b: a view of active content is also sent as an
+		// attachment (Streamer::send() would add a bare Content-Disposition
+		// backstop anyway, but naming the file here is friendlier).
+		$filename = ( $is_download || Streamer::is_active_content( $content_type ) )
+			? sanitize_file_name( basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) )
+			: null;
 
 		$this->streamer->send( $tmp, $content_type, $filename );
 	}

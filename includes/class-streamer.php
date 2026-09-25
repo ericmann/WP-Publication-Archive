@@ -40,27 +40,45 @@ final class Streamer {
 	}
 
 	/**
+	 * SPEC §6.2 step 4: true when $content_type (its ';' parameters
+	 * stripped, trimmed, lowercased) is one of Keys::ACTIVE_CONTENT_TYPES.
+	 */
+	public static function is_active_content( string $content_type ): bool {
+		$type = strtolower( trim( strtok( $content_type, ';' ) ) );
+
+		return in_array( $type, Keys::ACTIVE_CONTENT_TYPES, true );
+	}
+
+	/**
 	 * SPEC §6.2 Streamer::send(): sends the temp file staged by proxy mode
 	 * (P1-07 calls this). Refuses a path outside $this->temp_dir, sends
-	 * Content-Type/Content-Length/(optional) Content-Disposition, ends
-	 * every output buffer above $this->ob_floor without a notice (D6),
-	 * streams the file, deletes it, then exits.
+	 * Content-Type/Content-Length/X-Content-Type-Options: nosniff/(optional)
+	 * Content-Disposition, ends every output buffer above $this->ob_floor
+	 * without a notice (D6), streams the file, deletes it, then exits.
+	 * Product-owner decision (SPEC 464750b, 2026-09-24): nosniff always;
+	 * active content (Keys::ACTIVE_CONTENT_TYPES) is forced to an
+	 * attachment even for a view request, so the plugin never serves
+	 * HTML/SVG/XML/JS inline from the site's origin.
 	 */
 	public function send( string $path, string $content_type, ?string $filename ): void {
 		$real_path     = realpath( $path );
 		$real_temp_dir = realpath( $this->temp_dir );
 
-		if ( false === $real_path || false === $real_temp_dir || 0 !== strpos( $real_path, $real_temp_dir ) ) {
+		if ( false === $real_path || false === $real_temp_dir
+			|| 0 !== strpos( $real_path, rtrim( $real_temp_dir, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR ) ) {
 			throw new \InvalidArgumentException( 'Streamer::send() refuses a path outside its temp dir.' );
 		}
 
 		( $this->header )( 'Content-Type: ' . $content_type );
 		( $this->header )( 'Content-Length: ' . filesize( $real_path ) );
+		( $this->header )( 'X-Content-Type-Options: nosniff' );
 
 		if ( null !== $filename ) {
 			$filename = str_replace( array( '"', "\r", "\n" ), '', $filename );
 
 			( $this->header )( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		} elseif ( self::is_active_content( $content_type ) ) {
+			( $this->header )( 'Content-Disposition: attachment' );
 		}
 
 		// D6: only while there is a buffer to end, so PHP 8 raises no notice.
