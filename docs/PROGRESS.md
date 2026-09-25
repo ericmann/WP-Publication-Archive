@@ -37,7 +37,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P2-07 admin-media.js replaces Thickbox and inline scripts (D13)
 - [x] P2-08 Site-timezone dates and dead-code delegates (D7, D8 delegates)
 - [x] P2-09 Widgets in the Legacy Widget block, id_base preservation, shortcode check (D14)
-- [ ] P2-10 Gate 2 — compatibility verified, constraints locked, branch pushed
+- [x] P2-10 Gate 2 — compatibility verified, constraints locked, branch pushed
 - [ ] P3-01 uninstall.php, .distignore and composer build
 - [ ] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
 - [ ] P3-03 Final gate — verify, build, push
@@ -293,3 +293,14 @@ New tests/integration/test-widgets.php: test_d14_every_widget_shows_instance_in_
 Two real findings from reading WP core, not guessed: (1) the widget-types encode REST endpoint's form_data param must be a urlencoded string shaped widget-<id_base>[<number>][<field>]=<value> (wp_parse_str() + array_first() recovers one instance), not a JSON instance.raw object. (2) WP_Widget_Factory::_register_widgets() silently drops any queued widget whose id_base is already registered, so re-proving a 3.0.1-shaped option renders means calling ->_register() directly on the already-booted widget object ($wp_widget_factory->get_widget_object($id_base)), not register_widget() again. test_widget_renders_from_301_shaped_option's tear_down() deliberately leaves $wp_widget_factory/$wp_registered_widgets alone — an earlier draft nulled them and broke every later test file that depends on Plugin's one-time widgets_init registration (e.g. characterisation output's the_widget() calls).
 
 foundry_verify green (constraints, lint, analyse, test:map, test:unit; composer test's 300s timeout too short for the DAM suite on this machine, as in prior tasks). WPPA_DAM=0 composer test: 291/291 green (1 expected skip) on a clean run; one run hit the recurring create_upload_object()/WP_Error environment flake already logged via foundry_feedback_log.
+
+### P2-10 — 579a4e7
+Appended the no-thickbox and no-allow-url-fopen constraint entries to docs/foundry.json exactly as specified. Fixed a real names-in-keys-only hit the whole-repo scan surfaced only now: P2-09's test-widgets.php used a literal 'wppa-test-sidebar' sidebar id four times, renamed to 'test-widgets-sidebar' (behaviour unchanged).
+
+Verified: composer verify (DAM loaded) green — lint, analyse, test:map, 309/309 tests (1 expected skip); WPPA_DAM=0 composer test 291/291 green (1 expected skip); tests/integration/test-aliases.php green in both modes (8/8, 302 assertions); foundry_verify green including both new constraints self-tested and clean repo-wide; wp publication-archive doctor shows all nine rows passing.
+
+One composer verify run hit 11 errors + 2 failures — the recurring create_upload_object()/WP_Error flake (already logged via foundry_feedback_log) plus two Test_Dam_Bridge_Dam (D17/D18) failures; a clean re-run on an idle machine went 309/309, and an isolated Test_Dam_Bridge_Dam run (12/12) confirmed those two were the same load-dependent flake, not a regression.
+
+Push/CI: git push fails with "ERROR: This repository was archived so it is read-only" — the same known limitation P0-16 and P1-09 already logged at their own pushes. Not task-blocking (operator-level GitHub repo state, not a code defect). CI: NOT VERIFIED (repository archived/read-only, push rejected).
+
+Manual check: NOT VERIFIED (human) — SPEC §8 Phase 2's three checks (block editor meta boxes + media modal upload; Legacy Widget block previews all three widgets; list/dropdown shortcodes and single/archive pages render with no debug.log notices, DAM active and inactive) need a human.
