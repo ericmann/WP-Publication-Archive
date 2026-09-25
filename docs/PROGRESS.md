@@ -49,7 +49,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R1-06 admin-media.js uses jQuery only for document delegation
 - [x] R1-07 3.1.0 release notes describe D5 accurately
 - [x] R2-01 Meta box save keeps '&' in URLs (R1-04 regression)
-- [ ] R2-02 Delivery drops its Icons dependency (SPEC §4.2 module map)
+- [x] R2-02 Delivery drops its Icons dependency (SPEC §4.2 module map)
 - [ ] R2-03 Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
 - [ ] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
 - [ ] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
@@ -369,3 +369,6 @@ Reworded the D5 bullet in readme.txt and CHANGELOG.md from "Fix a rewrite-rule c
 
 ### R2-01 — 72b9dee
 Replaced wp_kses_post() with wp_strip_all_tags() as immediate sanitiser for FIELD_DOC/FIELD_IMAGE and as map_deep() callback for alternate URLs, keeping Url_Policy::normalise -> esc_url_raw -> validated_url chain. Cast posted description/url collections to (array) and skip non-string url elements before count()/normalise(). Added test_save_preserves_ampersands_in_urls (fails on old wp_kses_post code, passes now). All existing percent-encoded/pipe-form/D1/D2/D10 tests still pass. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
+
+### R2-02 — 07fa6f7
+Removed Icons constructor param, $icons property, icons() accessor from Delivery. New signature: __construct( Url_Policy, Streamer, Dam_Bridge, ?callable $exit, ?callable $header ). proxy() now computes content type via wp_check_filetype(basename(wp_parse_url($url, PHP_URL_PATH)))['type'], falling back to response content-type header then Keys::CONTENT_TYPE_FALLBACK - same logic Icons::mime_for used internally. Updated Plugin::__construct() wiring and both test files' Delivery constructions. Added test_delivery_constructor_takes_no_icons using ReflectionMethod, asserting no Icons-typed param and no icons() method. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
