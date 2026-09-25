@@ -2,8 +2,122 @@
 
 Branch: `build/2026-09-24`
 Base: `e52acc84a75e`
-Head: `bcd1150`
-Tasks: 38 total, 38 done, 0 blocked, 0 skipped, 0 open.
+Head: `e21ce4c`
+Tasks: 45 total, 45 done, 0 blocked, 0 skipped, 0 open.
+
+## Round 1 (review-fix)
+
+Branch: `build/2026-09-24`
+Head before this round: `7f444e5` (`chore: start review-fix round 1`)
+Head after this round: `e21ce4c`
+Tasks this round: 7 total (R1-01..R1-07), 7 done, 0 blocked, 0 skipped, 0 open.
+
+### Blocked / skipped tasks
+
+None. All seven R1 fix tasks reached `[x]` on the first attempt.
+
+### What each R1 task fixed (REVIEW findings 1-7)
+
+- **R1-01** (`f74e535`): added `"process-timeout": 0` to `composer.json`'s
+  `config` block so `composer test`/`verify` can run past Composer's
+  default 300s process timeout without a caller-side
+  `COMPOSER_PROCESS_TIMEOUT` override. New
+  `tests/unit/test-composer-config.php`. Verified `composer test` running
+  654s-800s+ across this round with no timeout and no leftover `phpunit`
+  process in the `tests-cli` container afterward.
+- **R1-02** (`8c9e258`): removed the hard-coded `'edit_publications'`/
+  `'administrator'` literals from `Cli::caps_granted_row()`; added
+  `Keys::ROLE_ADMINISTRATOR`; added the `capability-names-in-keys`
+  constraint to `docs/foundry.json` so an unprefixed `*_publications`
+  capability literal cannot reappear outside `Keys` un-caught.
+- **R1-03** (`e695fc9`): `Publication_Item::the_thumbnail()` now echoes
+  through `wp_kses( $html, 'post', wp_allowed_protocols() + 'data' )`
+  instead of `wp_kses_post()`, so the DAM's `data:` placeholder URI for a
+  withheld image survives being echoed (it was being stripped before);
+  `get_the_thumbnail()` now normalises the raw stored value through
+  `Url_Policy::normalise()` before `Dam_Bridge::display_url()`, so legacy
+  `http|`/`https|` pipe-form thumbnails resolve correctly again.
+- **R1-04** (`c4d1c39`): `Meta_Boxes::save()` was silently deleting `%xx`
+  octets out of every stored doc/thumbnail/alternate URL because
+  `sanitize_text_field()` decodes/strips percent-escapes. It now
+  sanitises with `wp_kses_post()` (the immediate wrap
+  `WordPress.Security.ValidatedSanitizedInput.InputNotSanitized` needs),
+  then `Url_Policy::normalise()`, then `esc_url_raw()`, then
+  `validated_url()` — see this task's Interpretation note below for why
+  the order matters.
+- **R1-05** (`f42cd92`): `Delivery::deliver()` had lost 3.0.1's no-op for
+  view/download query vars on a non-publication post, and `resolve_uri()`
+  was instantiating `Publication_Item` (calling `setup_postdata()` and
+  building an excerpt on every delivery, and reaching outside
+  `Delivery`'s module-map imports). Fixed both: `deliver()` now checks
+  `Keys::POST_TYPE === $post->post_type`, and `resolve_uri()` reads
+  `Keys::META_DOC`/`Keys::META_ALTERNATES` with `get_post_meta()`
+  directly.
+- **R1-06** (`6b6d834`): `assets/js/admin-media.js` used `$( this )` and a
+  jQuery-wrapped `$row` for the alternates row upload/delete handlers,
+  contradicting the SPEC §6.7/P2-07 rule that the only jQuery use is
+  `jQuery( document ).on()` delegation. Replaced with
+  `this.closest( 'tr' )`, a plain `querySelector(...).value = url`, and
+  `Element.remove()`.
+- **R1-07** (`5ab486c`): reworded the D5 changelog bullet in `readme.txt`
+  and `CHANGELOG.md`, which claimed a rewrite-rule fix that P2-05 (round
+  0) found was not reproducible/needed — D5 was closed by adding
+  regression tests, not by fixing a collision that didn't exist.
+
+### Interpretation choices this round (by task ID)
+
+- **R1-04**: the task's design-constraint example order was
+  `esc_url_raw( Url_Policy::normalise( wp_unslash( … ) ) )`, i.e.
+  `esc_url_raw()` as the outermost call. That order fails
+  `WordPress.Security.ValidatedSanitizedInput.InputNotSanitized`, which
+  (confirmed empirically) only recognises a sanitiser as the function
+  **immediately** wrapping the `$_POST`/`wp_unslash()` expression, not a
+  sanitiser further out in the call chain. It also breaks the legacy
+  pipe-form case: `esc_url_raw()` prepends `http://` to any string with
+  no `:` in it, so calling it on the raw `"https|example.com/a.pdf"`
+  *before* `normalise()` corrupts it into
+  `"http://https|example.com/a.pdf"`. The implemented order is
+  `wp_kses_post( wp_unslash( … ) )` (the immediate, percent-encoding-safe
+  sanitiser the sniff wants) → `Url_Policy::normalise()` (pipe-form fix,
+  now safe since `wp_kses_post()` leaves both `%xx` and the pipe
+  character untouched) → `esc_url_raw()` (final hardening pass, now safe
+  since `normalise()` has already given every valid input a real scheme)
+  → `validated_url()`. All of D1/D2/D10, the existing pipe-form save
+  test, and the new percent-encoding test pass with this order; verified
+  by hand with `wp eval` against `esc_url_raw()`/`wp_kses_post()` on the
+  exact fixture strings before writing the final version.
+- All other R1 tasks matched their design constraints exactly with no
+  open interpretation.
+
+### ⚠️ ASSUMPTION config keys
+
+No new `⚠️ ASSUMPTION` keys were introduced this round. `Keys::DEFAULT_PROXY_TIMEOUT`/`Keys::DEFAULT_PROXY_MAX_BYTES` from round 0
+are unchanged.
+
+### What a human must check by hand this round
+
+- **R1-06**: NOT VERIFIED (human) — in wp-admin, on a publication's edit
+  screen, confirm Upload still fills the doc/thumbnail/alternate-row
+  inputs via the media modal, and that Add Row/Delete Row still work
+  after the jQuery-to-DOM rewrite of the click handlers.
+- Round 0's Phase 0/2/3 manual-check items (listed below, unchanged by
+  this round) are still outstanding and were not re-verified here since
+  none of R1-01..R1-07 touch those surfaces.
+
+### Notes for the reviewer (this round)
+
+- Every fix in this round is scoped to the file(s) the reviewer named in
+  its finding; no other production code changed.
+- `foundry_verify` (all constraints + `lint`/`analyse`/`test:map`/
+  `test:unit`/`test`) is green on every task's commit and again on the
+  full tree at the end of the round. `WPPA_DAM=0 composer test` was also
+  run to green after R1-01, R1-03, R1-04's dependency chain, and again
+  after R1-05 and R1-06 (the two touching `Delivery`/admin JS), each
+  confirmed independently in this session's shell output.
+- R1-02's new `capability-names-in-keys` constraint's own `shouldMatch`
+  fixture is the literal offending line from before the fix, so its
+  self-test alone would have caught REVIEW finding 1 had it existed
+  before round 0 shipped.
 
 ## Blocked / skipped tasks
 
