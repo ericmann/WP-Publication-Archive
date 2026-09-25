@@ -335,7 +335,7 @@
     },
     {
       "id": "no-globals",
-      "description": "SPEC §3 P8: no 'global $' except $wpdb and $wp_version; the widget template global $wppa_publications only in includes/compat/.",
+      "description": "SPEC §3 P8: no 'global $' except $wpdb and $wp_version.",
       "paths": [
         "includes/",
         "blocks/",
@@ -349,9 +349,6 @@
       "shouldNotMatch": [
         "global $wpdb;",
         "global $wp_version;"
-      ],
-      "exclude": [
-        "includes/compat/"
       ]
     },
     {
@@ -618,7 +615,7 @@
     },
     {
       "id": "v3-meta-quarantined",
-      "description": "SPEC §3 P17: Keys::V3_* only under includes/upgrade/ and includes/compat/.",
+      "description": "SPEC §3 P17: Keys::V3_* only under includes/upgrade/.",
       "paths": [
         "includes/",
         "blocks/",
@@ -626,7 +623,6 @@
       ],
       "exclude": [
         "includes/upgrade/",
-        "includes/compat/",
         "includes/class-keys.php"
       ],
       "pattern": "Keys::V3_",
@@ -730,6 +726,31 @@
         "Keys::ICON_DIR",
         "'assets/icons/'",
         "'languages'"
+      ]
+    },
+    {
+      "id": "no-legacy-surface",
+      "description": "SPEC §6.15: no 3.x class names, shortcode, widgets or WP_PUB_ARCH_* constants anywhere in the plugin.",
+      "paths": [
+        "includes/",
+        "blocks/",
+        "templates/",
+        "wp-publication-archive.php",
+        "uninstall.php"
+      ],
+      "pattern": "\\bWP_Publication_Archive(_[A-Za-z_]+)?\\b|\\bWP_PUB_ARCH_[A-Z]+\\b|\\badd_shortcode\\s*\\(|\\bregister_widget\\s*\\(|extends\\s+\\\\?WP_Widget\\b|\\bclass_alias\\s*\\(",
+      "shouldMatch": [
+        "class_alias( Legacy::class, 'WP_Publication_Archive' );",
+        "define( 'WP_PUB_ARCH_URL', plugin_dir_url( __FILE__ ) );",
+        "add_shortcode( Keys::SHORTCODE, $cb );",
+        "register_widget( Archive_Widget::class );",
+        "final class Archive_Widget extends \\WP_Widget {",
+        "$item = new WP_Publication_Archive_Item( $post );"
+      ],
+      "shouldNotMatch": [
+        "register_block_type( $dir );",
+        "$pub = Publication::from_post( $post );",
+        "// Plugin Name: WP Publication Archive"
       ]
     }
   ]
