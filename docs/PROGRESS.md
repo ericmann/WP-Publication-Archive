@@ -41,7 +41,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] P3-01 uninstall.php, .distignore and composer build
 - [x] P3-02 readme.txt, CHANGELOG.md, version 3.1.0 and the HOOKS.md final pass
 - [x] P3-03 Final gate — verify, build, push
-- [ ] R1-01 Disable Composer's process timeout so composer test/verify can finish
+- [x] R1-01 Disable Composer's process timeout so composer test/verify can finish
 - [ ] R1-02 Cli caps_granted row reads capability and role names from Keys; lock the shape with a constraint
 - [ ] R1-03 the_thumbnail() keeps the DAM data: placeholder; thumbnail read path normalises the pipe form
 - [ ] R1-04 Meta box save preserves percent-encoded URLs
@@ -340,3 +340,6 @@ Deactivated then reactivated wp-publication-archive with the DAM active, and aga
 Push/CI: git push fails with "ERROR: This repository was archived so it is read-only" — same known limitation P0-16, P1-09 and P2-10 already logged at their own pushes. Not task-blocking. CI: NOT VERIFIED (repository archived/read-only, push rejected).
 
 Manual check: NOT VERIFIED (human) — SPEC §8 Phase 3's checks (install dist/wp-publication-archive.zip on a fresh WP 7.1 site restored from a 3.0.1 database: no activation errors, every G5 URL resolves, German translation loads with WPLANG=de_DE; repeat with the DAM active; mark the PR ready if the summarizer could not) need a human.
+
+### R1-01 — f74e535
+Added tests/unit/test-composer-config.php (test_process_timeout_is_disabled) decoding composer.json and asserting config.process-timeout === 0. Added "process-timeout": 0 to composer.json's config block; no other keys changed. Verified: composer lint/analyse/test:map/test:unit/test all green via foundry_verify. composer test ran 654s in the tests-cli container with no COMPOSER_PROCESS_TIMEOUT override and exited 0; confirmed no leftover phpunit process afterward via `npx wp-env run tests-cli ps aux`.
