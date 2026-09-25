@@ -82,8 +82,8 @@ It extends them with modules; it does not replace them. The 3.1.0 classes move i
 **Goals**
 
 - **G1. Files are attachments.** Publications are attachments plus metadata. No URL strings stand in for files. The thumbnail is the featured image. Everything is registered meta with a REST schema.
-- **G2. A safe upgrade.** The upgrade from 3.0.1 and from 3.1.0 is forced, idempotent and resumable. It preserves every public URL, and never deletes or unpublishes a publication.
-- **G3. Blocks for the front end.** Every front-end surface has a block and a block template. The shortcode and the legacy widgets remain as thin shims that render blocks. Classic themes get PHP fallbacks. A theme's own override of a 3.x template is still honoured (§6.15).
+- **G2. A safe upgrade.** The upgrade from 3.0.1 and from 3.1.0 is forced, idempotent and resumable. It preserves every pretty-permalink public URL, and never deletes or unpublishes a publication. The 3.x plain-permalink query forms are retired (§6.7).
+- **G3. Blocks for the front end.** Every front-end surface has a block and a block template. The `[wp-publication-archive]` shortcode is removed in favour of the `publication-list` and `publication-dropdown` blocks (§6.15). The legacy widgets remain as thin shims that render blocks. Classic themes get PHP fallbacks. A theme's own override of a 3.x template is still honoured (§6.15).
 - **G4. Full-text extraction.** PHP extracts DOCX, PPTX, ODT, PDF (the text layer), plain text and HTML. A provider interface allows hosted parsers. Chunking is deterministic. Full text is searchable through MySQL FULLTEXT on any host, and through ElasticPress/Enterprise Search where present.
 - **G5. Embeddings and vector storage are separate concerns.**
   - Embeddings come through a provider interface: OpenAI-compatible endpoints including Voyage, the Automattic AI proxy, and a stub for the WordPress AI Client.
@@ -95,7 +95,7 @@ It extends them with modules; it does not replace them. The 3.1.0 classes move i
   - A file is delivered by redirecting to the file's own URL.
   - Restricted publications use VIP Files ACL where it is available, and a capability-checked endpoint elsewhere.
   - Files the DAM withholds are never delivered to people who cannot edit them.
-  - The 3.x endpoint URLs keep resolving.
+  - The 3.x pretty-permalink endpoint URLs keep resolving. Plain permalinks are not supported (§6.7).
 - **G8. Abilities.** Search, related, get, cite, verify and ingest are registered through the Abilities API, and marked MCP-public where that is safe. They follow the DAM's ability conventions (§6.12).
 - **G9. Provenance through the Encypher plugin only.**
   - Detect the plugin.
@@ -159,7 +159,7 @@ These are unchanged in meaning. Only paths widen to the new module directories.
 - **P5. Stubs fail loudly.** `throw new NotImplementedException( __METHOD__ );`, never TODO or FIXME. `[constraint: no-stub-markers]`
 - **P6. Lint is clean with reasons.** Every `phpcs:ignore` carries `-- reason:`, and none silences `WordPress.Security`. `[constraint: phpcs-ignore-needs-reason]` `[constraint: no-security-ignores]`
 - **P7. No wall clock.** Time and date-formatting functions appear only in `includes/class-clock.php`. That covers `time`, `current_time`, `date`, `gmdate`, `microtime`, `strtotime`, `wp_date` and `date_i18n`. It also makes the pure files deterministic: the Chunker, Math, Citation and `Url_Policy`. `created_at` columns and signed-URL expiries take `Clock::now()`. `[constraint: no-wall-clock]`
-- **P8. Namespaced, no globals.** No functions at file scope. No `global $` except `$wpdb`, `$wp_version` and the two frozen template globals, which live only in `includes/compat/`. `[constraint: no-file-scope-functions]` `[constraint: no-globals]`
+- **P8. Namespaced, no globals.** No functions at file scope. No `global $` except `$wpdb`, `$wp_version` and the frozen widget template global `$wppa_publications`, which lives only in `includes/compat/`. `[constraint: no-file-scope-functions]` `[constraint: no-globals]`
 - **P9. Every class has a test with the same slug, written in the same task.**
   - `composer test:map` checks that every `includes/**/class-*.php` and `interface-*.php` has `tests/unit/test-<slug>.php` or `tests/integration/test-<slug>.php`.
   - It also checks a `WPPA` or `WPPA\…` namespace, a `SPEC.md §` reference, an `@author` tag, and `declare( strict_types=1 );` (P16).
@@ -169,7 +169,7 @@ These are unchanged in meaning. Only paths widen to the new module directories.
   - WP-CLI only in `Cli`, `Plugin` and `includes/cli/`. `[constraint: wp-cli-confined]`
   - The pure leaves in §4.2 import nothing. `[constraint: leaf-files-import-nothing]`
   - No `extract()`. `[constraint: no-extract]`
-  - Superglobals only in the 3.x shortcode shim. `[constraint: superglobals-confined]`
+  - No superglobals under `includes/`; request data comes through `WP_REST_Request` or `get_query_var()`. `[constraint: superglobals-confined]`
   - No reference to the removed 3.0.1 paths. `[constraint: no-legacy-asset-paths]`
 
 ### 3.2 Added for 4.0
@@ -317,7 +317,7 @@ flowchart TB
     subgraph Front["Front end"]
         BL[Blocks + Interactivity stores]
         TPL[Block templates + classic fallbacks]
-        SH[Shortcode and widget shims]
+        SH[Widget shims, retired-shortcode stub]
     end
     SP --> M
     M --> ING
@@ -666,14 +666,17 @@ Rewrite rules (registered at `'bottom'`, plus the reserved-slug rule from 3.1.0)
 
 - `^publication/(view|download)/([^/]+)/?$` → `index.php?publication=$matches[2]&wppa_endpoint=$matches[1]`
 - `^publication/(altview|altdown)/([^/]+)/([^/]+)/?$` → `index.php?publication=$matches[2]&wppa_endpoint=$matches[1]&wppa_alt=$matches[3]`
-- Query-string forms `?wppa_open=yes`, `?wppa_download=yes`, `?wppa_alt=` (from 3.x plain-permalink installs) map to the same query vars.
+- **Plain permalinks are not supported.** The file endpoints exist only as the pretty rules above, and links are always built as `home_url( 'publication/<endpoint>/<slug>/' )`. 4.0 drops the 3.x query-string forms (`?wppa_open=yes`, `?wppa_download=yes`, `?wppa_alt=`) and the 3.x plain-permalink link builder. That builder produced broken `?view=yes` links, which 3.1.0 kept only for back-compat.
+  - When `permalink_structure` is empty, the admin shows a persistent notice under Publications: "WP Publication Archive needs pretty permalinks for file links". `doctor` gains a failing `permalinks` row. The file endpoints are unreachable. Landing pages still resolve through core's `?publication=<slug>`.
+  - The readme upgrade notice says that 3.x plain-permalink file links stop working in 4.0.
+  - Test: with `permalink_structure` set to `''`, the notice renders, `doctor` exits 1, and a request for `?wppa_open=yes` on a publication does nothing (404 on the file, landing page unaffected).
 
 `Endpoints::handle()` on `template_redirect`: resolves the publication; picks the file: canonical for `view`/`download`, or the alternate whose `label` equals the URL-decoded `wppa_alt` (3.x matched on description; labels are the migrated descriptions) or whose `attachment_id` equals it when numeric; 404 when none. Access check via `Access::can_read( Publication, File, WP_User|null )`: public publications are always readable; restricted ones require the capability; in both cases a file the DAM withholds (`Dam_Bridge::is_withheld_attachment()`, §6.14) is unreadable for a user who cannot `edit_post` it, so the endpoint 404s. Then:
 
 - If the file has `external_url`: `wp_safe_redirect( external_url, 302 )` when the URL still validates (`Upgrade\Url_Policy::validate()`, the 3.1.0 validator); else 404.
 - Public file: `wp_redirect( wp_get_attachment_url(), 302 )`. The `download` endpoint appends nothing; the readme explains that `Content-Disposition` cannot be forced on a redirect and that the File block offers a `download` attribute (HTML5 `download` on same-origin links).
 - Restricted file on VIP with Files ACL (`Platform::has_vip_files_acl()` true, i.e. `function_exists( 'Automattic\VIP\Files\Acl\get_file_visibility' )` ⚠️ ASSUMPTION on the function/filter names; config `delivery.vip_acl_filter` default `vip_files_acl_file_visibility`): the plugin adds a filter on that hook that returns "private and allowed" when `Access::can_read()` holds for the current user and the file path belongs to a restricted publication (looked up through `attachment_url_to_postid()` on the path, cached in a transient keyed by path), "private and denied" otherwise; the endpoint then redirects as for public files and the edge enforces access.
-- Restricted file elsewhere: the endpoint issues a `SignedUrl` (`/wp-json/wppa/v1/files/{attachment_id}?exp={ts}&sig={hmac}`, HMAC-SHA256 over `attachment_id|exp|user_id` with `wp_salt( 'auth' )`, TTL `delivery.signed_url_ttl`) and redirects to it. The REST handler verifies signature and expiry, re-checks `Access::can_read()`, and either sends `delivery.sendfile_header` with the file's server path (from `get_attached_file()`) and exits, or, when the header is empty, `Streamer::send( $path, $mime, $filename )` (the only `readfile`/`fpassthru` in the plugin; 8 KiB `fpassthru` after headers; `ob_end_clean()` while `ob_get_level() > 0`).
+- Restricted file elsewhere: the endpoint issues a `SignedUrl` (`/wp-json/wppa/v1/files/{attachment_id}?exp={ts}&sig={hmac}`, HMAC-SHA256 over `attachment_id|exp|user_id` with `wp_salt( 'auth' )`, TTL `delivery.signed_url_ttl`) and redirects to it. The REST handler verifies signature and expiry, re-checks `Access::can_read()`, and either sends `delivery.sendfile_header` with the file's server path (from `get_attached_file()`) and exits, or, when the header is empty, `Streamer::send( $path, $mime, $filename )` (the only `readfile`/`fpassthru` in the plugin; 8 KiB `fpassthru` after headers; `ob_end_clean()` while `ob_get_level() > 0`). `Streamer` always sends `X-Content-Type-Options: nosniff`, and for active content types (`text/html`, `application/xhtml+xml`, `image/svg+xml`, `text/xml`, `application/xml`, `text/javascript`, `application/javascript`, a list held in `Keys::ACTIVE_CONTENT_TYPES`) it always sends `Content-Disposition: attachment`, even for a view request. The sendfile path sets the same two headers before handing off. The plugin never serves HTML inline from the site's origin. Tests: an `.html` and an `.svg` restricted file each arrive with `nosniff` and `attachment`; a PDF arrives with `nosniff` and inline disposition on view.
 
 Download counter: when `delivery.count_downloads` is true, the File block adds `data-wp-on--click` that `navigator.sendBeacon()`s to `POST wppa/v1/downloads` with `{ id }`; the handler increments `_wppa_downloads` with a single `UPDATE` through `Storage` (not read-modify-write) and returns 204. Public, nonce-free, rate-limited to one increment per IP+ID per 60 seconds ⚠️ (`delivery.count_rate_seconds`) via transient.
 
@@ -872,19 +875,25 @@ This is a convention the reviewer checks, not a dependency: nothing imports DAM 
   - **Retired.** Any other 3.1.0 public method calls `_deprecated_function( __METHOD__, '4.0.0' )` and returns its first argument, or `null` when it has none.
   - **Upgrade.** `upgrade()` delegates to `Upgrader::maybe_run()`.
   - **Checked.** `tests/integration/test-aliases.php` from 3.1.0 is updated, not deleted. Its list of methods now records, for each one, `delegated` or `deprecated`.
-- **Theme template overrides (`compat/class-legacy-templates.php`).** If a theme provides one of the five 3.x template names (§6.5 of the 3.1.0 spec), it is still used:
-  - `template.wppa_publication_list.php` and `template.wppa_publication_dropdown.php`, from the shortcode;
+- **Shortcode removed (`compat/class-shortcode.php`).** `[wp-publication-archive]` is retired in favour of the `publication-list` and `publication-dropdown` blocks. The tag stays registered only so that old content does not print raw shortcode text:
+  - visitors get an empty string;
+  - a user who can `edit_post` the current post gets a one-line notice: "The Publication Archive shortcode was removed in 4.0. Replace it with the Publication List block."
+  - the Tools page lists every post whose content contains the shortcode, with an edit link;
+  - no attribute mapping and no paging, so the shim reads no request data.
+
+  The readme upgrade notice says so. Tests: the visitor output is `''`, an editor sees the notice, and the Tools page lists a fixture post that uses the shortcode.
+- **Theme template overrides (`compat/class-legacy-templates.php`).** If a theme provides one of the three remaining 3.x template names (§6.5 of the 3.1.0 spec), it is still used. The shortcode's `template.wppa_publication_list.php` and `template.wppa_publication_dropdown.php` retire with the shortcode:
   - `template.wppa_widget.php`, from the archive widget;
   - `single-publication.php` and `archive-publication.php`, from `template_include`, only on classic themes.
 
-  The shim builds `$wppa_container` / `$wppa_publications` exactly as 3.1.0 did, from 4.0 data. `_deprecated_file()` fires once per request. Without a theme override, blocks render. Tests: a fixture theme under `tests/fixtures/themes/legacy/` with copies of the 3.1.0 templates renders; without it, the block output renders.
+  The shim builds `$wppa_publications` exactly as 3.1.0 did, from 4.0 data. `_deprecated_file()` fires once per request. Without a theme override, blocks render. Tests: a fixture theme under `tests/fixtures/themes/legacy/` with copies of the 3.1.0 templates renders; without it, the block output renders.
 - **Filters (`Compat\LegacyFilters`).**
-  - **Kept, with 3.x signatures**, applied at the equivalent points: `wppa_open_url`, `wppa_download_url`, `wppa_publication_icon`, `wppa_list_limit`, `wpa-title`, `wpa-summary`, `wpa-authors` and `wp_pubarch_open_in_blank`.
-  - **Kept only while a theme override is in use:** `wppa_list_template`, `wppa_dropdown_template`, `wppa_widget_template`, `wppa_single_template`, `wppa_archive_template` and `wppa_publication_list_container`. They are applied inside `LegacyTemplates`.
+  - **Kept, with 3.x signatures**, applied at the equivalent points: `wppa_open_url`, `wppa_download_url`, `wppa_publication_icon`, `wpa-title`, `wpa-summary`, `wpa-authors` and `wp_pubarch_open_in_blank`.
+  - **Kept only while a theme override is in use:** `wppa_widget_template`, `wppa_single_template` and `wppa_archive_template`. They are applied inside `LegacyTemplates`. The shortcode-only filters (`wppa_list_template`, `wppa_dropdown_template`, `wppa_publication_list_container`, `wppa_list_limit`, `wpa-pubs_per_page`) are deprecated with the shortcode.
   - **Every other 3.x filter name** fires `_deprecated_hook()` once per request when a callback is attached (`has_filter()`), and is otherwise ignored.
   - `wppa_mask_url` and the two proxy tunables from 3.1.0 are deprecated: 4.0 never proxies public files (§2). Their callbacks trigger `_deprecated_hook()` and are otherwise ignored. The readme upgrade notice says so.
 - **Widgets.** The `id_base` values stay (the 3.1.0 `Keys` literals). The widgets now render the equivalent block.
-- **URLs.** Every URL in the 3.1.0 spec's G5 still resolves (§6.7). The 3.1.0 reserved-slug rewrite rule is kept.
+- **URLs.** Every pretty-permalink URL in the 3.1.0 spec's G5 still resolves (§6.7). The 3.1.0 reserved-slug rewrite rule is kept. The `?wppa_open=yes` / `?wppa_download=yes` query forms are retired (§6.7).
 
 ## 7. Commands
 
@@ -1068,15 +1077,15 @@ A wave has at most four workstreams. The planner may split a workstream further 
   |---|---|---|
   | `blocks-list` | `publication-list`, `publication-dropdown`, `publication-categories`, and the Interactivity stores for list and dropdown | `blocks/publication-list/`, `blocks/publication-dropdown/`, `blocks/publication-categories/`, `js/interactivity/list.js`, matching tests |
   | `blocks-item` | `publication-file`, `publication-files`, `publication-meta`, `publication-citation`, `Citation\*`, `Blocks\Icons`. Withheld files render nothing (§6.14). `Citation\Formatter` is pure, with fixture tests for one, two, three and eight authors, a missing DOI and a missing publisher. `JsonLd` and `ScholarTags` tests assert the exact head output | `blocks/publication-file/`, `blocks/publication-files/`, `blocks/publication-meta/`, `blocks/publication-citation/`, `includes/citation/`, `includes/blocks/class-icons.php`, matching tests |
-  | `templates-compat` | Block templates and classic fallbacks. Tests: `get_block_templates()` includes both; the classic fallback returns the plugin file when the theme has none. `Compat\Shortcode`: `[wp-publication-archive categories= author= limit= showas=]` renders `publication-list` or `publication-dropdown` with mapped attributes, and tests compare it to the block's output. `Compat\LegacyTemplates` (§6.15), the widgets rendering blocks, and the alias method table | `includes/templates/`, `templates/`, `includes/compat/`, matching tests |
+  | `templates-compat` | Block templates and classic fallbacks. Tests: `get_block_templates()` includes both; the classic fallback returns the plugin file when the theme has none. `Compat\Shortcode` as the retired stub in §6.15, with the Tools page listing. `Compat\LegacyTemplates` (§6.15), the widgets rendering blocks, and the alias method table | `includes/templates/`, `templates/`, `includes/compat/`, matching tests |
   | `editor` | The Files, Metadata and Authors panels, including the DAM rights pre-fill and file notices from §6.14. JS unit tests for the reducer that keeps a single canonical row. e2e: add a file, set metadata, save, reload, check it persisted; `dam.spec.js` | `js/editor/`, `includes/admin/class-editor-assets.php`, `tests/e2e/editor.spec.js`, `tests/e2e/dam.spec.js` |
 - **Gate 3.**
   - **Manual check:**
     - in Twenty Twenty-Five, view a landing page and the archive;
     - on a classic theme (Twenty Twenty-One), view both;
-    - the shortcode renders a list and a dropdown;
+    - a page still containing the shortcode shows nothing to a visitor, the retirement notice to an editor, and appears in the Tools page listing;
     - the Legacy Widget block previews the archive widget;
-    - a theme holding a 3.x `template.wppa_publication_list.php` still renders it, with one deprecation notice;
+    - a theme holding a 3.x `template.wppa_widget.php` still renders it, with one deprecation notice;
     - with the DAM, the Files panel's media modal shows DAM folders.
 
 ### Phase 4 — Ingestion and keyword search

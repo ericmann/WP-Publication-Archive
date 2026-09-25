@@ -335,7 +335,7 @@
     },
     {
       "id": "no-globals",
-      "description": "SPEC §3 P8: no 'global $' except $wpdb and $wp_version; the two 3.x template globals only in includes/compat/.",
+      "description": "SPEC §3 P8: no 'global $' except $wpdb and $wp_version; the widget template global $wppa_publications only in includes/compat/.",
       "paths": [
         "includes/",
         "blocks/",
@@ -659,16 +659,13 @@
     },
     {
       "id": "superglobals-confined",
-      "description": "SPEC §3: $_POST/$_GET/$_REQUEST only in the 3.x shortcode shim (paging).",
+      "description": "SPEC §3: no $_POST/$_GET/$_REQUEST under includes/, blocks/ or templates/ (request data comes through WP_REST_Request or get_query_var).",
       "paths": [
         "includes/",
         "blocks/",
         "templates/",
         "wp-publication-archive.php",
         "uninstall.php"
-      ],
-      "exclude": [
-        "includes/compat/class-shortcode.php"
       ],
       "pattern": "\\$_(POST|GET|REQUEST)\\b",
       "shouldMatch": [
