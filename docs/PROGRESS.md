@@ -53,7 +53,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R2-03 Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
 - [x] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
 - [x] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
-- [ ] R3-01 Pin the named attachment filename on active-content proxy views (SPEC §6.2 step 4)
+- [x] R3-01 Pin the named attachment filename on active-content proxy views (SPEC §6.2 step 4)
 
 ## Log
 (one entry per task, appended by implement)
@@ -382,3 +382,7 @@ Added 'contributor' to Keys::CAP_ROLES (after 'author'); grant()'s has_cap()-bas
 
 ### R2-05 — e2ac0c1
 Test-only. Added five characterisation tests pinning plain-permalink (set_permalink_structure('')) behaviour beyond the existing get_open_link() pin: download link ('&download=yes'), alternate open link ('&altview=yes&alt=English'), alternate download link ('&altdown=yes&alt=English') - the alternate tests fail if Rewrites::link()'s add_query_arg(Keys::QUERY_ALT_KEY, ...) is deleted - plus open/download query-form resolution tests (?publication=...&wppa_open|wppa_download=yes) with plain permalinks, mirroring the existing pretty-permalink query-form tests. All use the 3.0.1 public API and Keys constants, no production code touched. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
+
+### R3-01 — a6c91b5
+Tightened test_proxy_view_of_html_is_attachment_with_nosniff and test_proxy_view_of_svg_is_attachment_with_nosniff in tests/integration/test-delivery.php to assert exact headers 'Content-Disposition: attachment; filename="a.html"' / '"a.svg"' (assertContains on $this->headers) instead of a loose substring check on 'Content-Disposition: attachment'. Confirmed Streamer::send() produces exactly this string when Delivery::proxy() passes a non-null $filename, and that Delivery::proxy()'s filename ternary only becomes non-null via ($is_download || Streamer::is_active_content($content_type)) — the surviving mutation from the R2-03 finding. Also fixed CLAUDE.md's class-delivery.php module-map row: removed the stale `Icons` entry (R2-02 made Delivery no longer import Icons per SPEC §4.2).
+No production code touched. foundry_verify (lint, analyse, test:map, test:unit, composer test with DAM) all green; all constraints clean.
