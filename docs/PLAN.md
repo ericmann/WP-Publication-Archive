@@ -1790,3 +1790,14 @@ Serial; small, and every file is a hotspot. SPEC §8 Phase 3.
 **Out of scope:** Changing any link output; wppa_open-style link generation (retired in 4.0).
 **Verification:** foundry_verify with files [tests/integration/test-characterisation-routing.php]: all verify commands green, composer test green with the DAM.
 **Depends on:** none
+
+## Review fixes (round 3)
+
+### R3-01: Pin the named attachment filename on active-content proxy views (SPEC §6.2 step 4)
+**Goal:** Make the R2-03 Delivery mechanic that names the file on an active-content view testable: today replacing `( $is_download || Streamer::is_active_content( $content_type ) )` with `$is_download` in Delivery::proxy() survives the full suite, because Streamer's bare `Content-Disposition: attachment` backstop satisfies the existing substring assertions. Also remove the stale `Icons` entry from CLAUDE.md's module-map row for class-delivery.php, which R2-02 made wrong.
+**Files touched:** tests/integration/test-delivery.php, CLAUDE.md
+**Design constraints:** Test and doc only; no production code changes. In tests/integration/test-delivery.php, tighten test_proxy_view_of_html_is_attachment_with_nosniff to assert the headers contain exactly `Content-Disposition: attachment; filename="a.html"` and test_proxy_view_of_svg_is_attachment_with_nosniff to assert exactly `Content-Disposition: attachment; filename="a.svg"` (the fixture URLs are home_url( '/wp-content/uploads/a.html' ) and '.svg'), e.g. assertContains on $this->headers. Keep the nosniff assertion and the PDF test unchanged. No plugin-prefixed string literals (names-in-keys-only). In CLAUDE.md, the `class-delivery.php` module-map row's import list becomes `Keys`, `Hooks`, `Flags`, `Url_Policy`, `Streamer`, `Dam_Bridge` (matching SPEC §4.2); change nothing else in CLAUDE.md.
+**Acceptance tests:** tests/integration/test-delivery.php: test_proxy_view_of_html_is_attachment_with_nosniff and test_proxy_view_of_svg_is_attachment_with_nosniff assert the exact named-attachment header. Both must fail when Delivery::proxy()'s `( $is_download || Streamer::is_active_content( $content_type ) )` is mutated to `$is_download` (the finding's surviving mutation), and pass on the current code.
+**Out of scope:** Streamer::send() and its backstop; Delivery production code; PLAN.md's historical P0-09 text; readme/CHANGELOG.
+**Verification:** foundry_verify with files [tests/integration/test-delivery.php, CLAUDE.md]: constraints clean, lint/analyse/test:map/test:unit green, composer test green with the DAM. Then foundry_mutate on includes/class-delivery.php replacing `( $is_download || Streamer::is_active_content( $content_type ) )` with `$is_download` must report killed: true.
+**Depends on:** none
