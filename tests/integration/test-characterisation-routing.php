@@ -180,6 +180,75 @@ class Test_Characterisation_Routing extends \WP_UnitTestCase {
 	}
 
 	/**
+	 * Pin (spec issues): with plain permalinks, get_link() appends the
+	 * literal endpoint name (download), not the value of Keys::QV_DOWNLOAD,
+	 * as a query arg on the post's own (query-string) permalink.
+	 */
+	public function test_download_link_with_plain_permalinks_matches_301() {
+		$this->set_permalink_structure( '' );
+
+		$link = \WP_Publication_Archive::get_download_link( $this->data['attached'] );
+
+		$this->assertSame( home_url( '/?publication=attached-report&download=yes' ), $link );
+	}
+
+	/**
+	 * Pin (spec issues): with plain permalinks, get_alternate_open_link()
+	 * appends the literal endpoint name (altview) and Keys::QUERY_ALT_KEY
+	 * ('alt') as query args on the post's own (query-string) permalink.
+	 * SPEC G5: this fails if Rewrites::link()'s
+	 * add_query_arg( Keys::QUERY_ALT_KEY, … ) is deleted.
+	 */
+	public function test_alternate_open_link_with_plain_permalinks_matches_301() {
+		$this->set_permalink_structure( '' );
+
+		$link = \WP_Publication_Archive::get_alternate_open_link( $this->data['alternates'], 'English' );
+
+		$this->assertSame( home_url( '/?publication=alternates-report&altview=yes&alt=English' ), $link );
+	}
+
+	/**
+	 * Pin (spec issues): with plain permalinks, get_alternate_download_link()
+	 * appends the literal endpoint name (altdown) and Keys::QUERY_ALT_KEY
+	 * ('alt') as query args on the post's own (query-string) permalink.
+	 * SPEC G5: this fails if Rewrites::link()'s
+	 * add_query_arg( Keys::QUERY_ALT_KEY, … ) is deleted.
+	 */
+	public function test_alternate_download_link_with_plain_permalinks_matches_301() {
+		$this->set_permalink_structure( '' );
+
+		$link = \WP_Publication_Archive::get_alternate_download_link( $this->data['alternates'], 'English' );
+
+		$this->assertSame( home_url( '/?publication=alternates-report&altdown=yes&alt=English' ), $link );
+	}
+
+	/**
+	 * Pin: with plain permalinks, the ?publication=…&<QV>=yes query form
+	 * (the registered query var, not the literal endpoint name get_link()
+	 * writes) still resolves to the publication, same as with the pretty
+	 * permastruct.
+	 */
+	public function test_open_query_form_resolves_with_plain_permalinks() {
+		$this->set_permalink_structure( '' );
+
+		$this->go_to( add_query_arg( array( 'publication' => 'attached-report', Keys::QV_OPEN => 'yes' ), home_url( '/' ) ) );
+
+		global $wp_query;
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_OPEN ] );
+		$this->assertSame( $this->data['attached'], get_queried_object_id() );
+	}
+
+	public function test_download_query_form_resolves_with_plain_permalinks() {
+		$this->set_permalink_structure( '' );
+
+		$this->go_to( add_query_arg( array( 'publication' => 'attached-report', Keys::QV_DOWNLOAD => 'yes' ), home_url( '/' ) ) );
+
+		global $wp_query;
+		$this->assertSame( 'yes', $wp_query->query_vars[ Keys::QV_DOWNLOAD ] );
+		$this->assertSame( $this->data['attached'], get_queried_object_id() );
+	}
+
+	/**
 	 * D8 (P2-01): the post_type_link hijack is dead code, deleted rather
 	 * than ported. Generating one publication's open link no longer changes
 	 * how any other publication's permalink resolves.
