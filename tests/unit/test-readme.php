@@ -65,4 +65,35 @@ class Test_Readme extends \PHPUnit\Framework\TestCase {
 			$this->assertMatchesRegularExpression( '/\bD' . $d . '\b/', $contents, 'CHANGELOG.md is missing D' . $d );
 		}
 	}
+
+	private function d5_line( string $contents ): string {
+		$lines = explode( "\n", $contents );
+
+		foreach ( $lines as $index => $line ) {
+			if ( false !== strpos( $line, '(D5)' ) ) {
+				$previous = $lines[ $index - 1 ] ?? '';
+
+				return trim( $previous ) . ' ' . trim( $line );
+			}
+		}
+
+		return '';
+	}
+
+	public function test_d5_entry_does_not_claim_a_rule_fix() {
+		$readme_entry = $this->d5_line( $this->readme() );
+
+		$this->assertStringContainsString( 'regression test', $readme_entry );
+		$this->assertStringNotContainsString( 'Fix a rewrite-rule collision', $readme_entry );
+
+		$path = dirname( __DIR__, 2 ) . '/CHANGELOG.md';
+		// phpcs:ignore WordPressVIPMinimum.Performance.FetchingRemoteData.FileGetContentsUnknown -- reason: local source file, not remote data.
+		$changelog_contents = file_get_contents( $path );
+		$this->assertNotFalse( $changelog_contents );
+
+		$changelog_entry = $this->d5_line( $changelog_contents );
+
+		$this->assertStringContainsString( 'regression test', $changelog_entry );
+		$this->assertStringNotContainsString( 'Fix a rewrite-rule collision', $changelog_entry );
+	}
 }

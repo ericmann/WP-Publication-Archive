@@ -16,8 +16,8 @@ change beyond the fixes below.
   end (D10).
 - Remove a dead, unsafe search filter that rewrote WordPress 3.x-era SQL
   and interpolated the raw search term into a regex (D4).
-- Fix a rewrite-rule collision that made a publication slugged "view" or
-  "download" unreachable at its own permalink (D5).
+- Confirmed that publications slugged "view" or "download" stay reachable
+  at their own permalinks; regression tests added (D5).
 - Fix a PHP 8 notice from calling `ob_clean()` with no output buffer open
   during file delivery (D6).
 - Publication dates are now formatted in the site's own timezone and
