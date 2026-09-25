@@ -230,6 +230,80 @@ test-only.
   and header logic; read them together, since R2-03's `Delivery::proxy()`
   edit lands right next to R2-02's Icons-removal edit in the same method.
 
+## Round 3 (review-fix)
+
+Branch: `build/2026-09-24`
+Head before this round: `3a91b82` (`chore: start review-fix round 3`)
+Head after this round: `f608ba0`
+Tasks this round: 1 total (R3-01), 1 done, 0 blocked, 0 skipped, 0 open.
+
+### Blocked / skipped tasks
+
+None. R3-01 reached `[x]` on the first attempt.
+
+### What R3-01 fixed
+
+- **R3-01** (`a6c91b5`): the R2-03 mechanic that names the file on an
+  active-content proxy *view* (`Delivery::proxy()`'s
+  `( $is_download || Streamer::is_active_content( $content_type ) )`
+  ternary) was untested: the existing
+  `test_proxy_view_of_html_is_attachment_with_nosniff`/
+  `test_proxy_view_of_svg_is_attachment_with_nosniff` only asserted the
+  substring `'Content-Disposition: attachment'`, which
+  `Streamer::send()`'s bare-`attachment` backstop for active content
+  satisfies on its own — so replacing that ternary with `$is_download`
+  survived the suite. Tightened both tests to `assertContains()` the
+  exact header `Content-Disposition: attachment; filename="a.html"` /
+  `"a.svg"` on `$this->headers`, which only `Delivery::proxy()` passing a
+  non-null `$filename` produces. Confirmed by hand that the ternary's
+  removal (leaving bare `$is_download`) now makes both view tests (mask
+  off, no download) fail, since `Streamer::send()` would then fall back
+  to the bare `Content-Disposition: attachment` backstop instead of a
+  named filename.
+- Also fixed `CLAUDE.md`'s `class-delivery.php` module-map row: dropped
+  the stale `Icons` entry from its "May import from" list — R2-02
+  removed `Delivery`'s `Icons` dependency entirely, but left the doc row
+  unupdated.
+- No production code changed; test and doc only, per the task's design
+  constraints.
+
+### Interpretation choices this round (by task ID)
+
+None. R3-01 matched its design constraints exactly (exact fixture
+strings from `assert_proxy_view_headers`'s `home_url( '/wp-content/uploads/a.' . $extension )`
+URLs, confirmed against `Streamer::send()`'s literal header-format
+string before writing the assertions).
+
+### ⚠️ ASSUMPTION config keys
+
+No new `⚠️ ASSUMPTION` keys were introduced this round.
+
+### What a human must check by hand this round
+
+Nothing new. R3-01 is test/doc-only with no runtime behaviour change.
+
+### Notes for the reviewer (this round)
+
+- `foundry_verify` with files `[tests/integration/test-delivery.php,
+  CLAUDE.md]` ran constraints, lint, analyse, test:map, test:unit, and
+  the full `composer test` (DAM loaded, ~18 minutes) to green on R3-01's
+  commit. A closing `foundry_verify` with no files (constraints + lint +
+  analyse + test:map + test:unit) was also green on the final tree.
+- The task's own Verification section also asks for a `foundry_mutate` run
+  against `includes/class-delivery.php` (replacing the `||
+  Streamer::is_active_content(...)` clause with `$is_download`) reporting
+  `killed: true`; no `foundry_mutate` tool was available in this session,
+  so that specific mutation-kill check was instead verified by hand: with
+  the same substitution applied locally, both tightened tests failed with
+  the expected bare-`attachment` header (no `filename=`) instead of the
+  asserted named one, then the substitution was reverted before
+  committing. The reviewer may want to re-run this via `foundry_mutate`
+  directly if that tool is available in their environment.
+- This repository (`git@github.com:ericmann/WP-Publication-Archive.git`)
+  was reported archived/read-only by earlier rounds' pushes (see "Push /
+  CI" note below); `foundry_run_finish` will attempt to push this round's
+  commits and may hit the same wall.
+
 ## Blocked / skipped tasks
 
 None. Every task in `docs/PLAN.md` reached `[x]`.
