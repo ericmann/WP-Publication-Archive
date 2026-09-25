@@ -372,6 +372,49 @@ class Test_Streamer extends \PHPUnit\Framework\TestCase {
 	}
 
 	/**
+	 * D6: send() must discard any buffered output sitting above its floor
+	 * before it streams the file, so a stray echo from elsewhere in the
+	 * request never leaks into the response ahead of the file bytes.
+	 */
+	public function test_d6_discards_buffered_output_above_the_floor() {
+		$floor = ob_get_level();
+
+		ob_start();
+
+		try {
+			$streamer = new Streamer(
+				$this->temp_dir,
+				static function () {
+					throw new \RuntimeException( 'exit called' );
+				},
+				static function () {},
+				$floor + 1
+			);
+
+			ob_start();
+			echo 'stray-output'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reason: test-only literal, not user input.
+
+			$path = $this->make_file( 'file-bytes' );
+
+			try {
+				$streamer->send( $path, 'text/plain', null );
+				$this->fail( 'Expected the exit callable to run.' );
+			} catch ( \RuntimeException $e ) {
+				unset( $e );
+			}
+
+			$output = ob_get_clean();
+
+			$this->assertSame( 'file-bytes', $output );
+			$this->assertSame( $floor, ob_get_level() );
+		} finally {
+			while ( ob_get_level() > $floor ) {
+				ob_end_clean();
+			}
+		}
+	}
+
+	/**
 	 * D6: ob_end_clean() must not run when there is no buffer to end.
 	 * Spawns a child process with zero output buffers so PHP 8's notice, if
 	 * any, would land on the child's stderr rather than this process' own
