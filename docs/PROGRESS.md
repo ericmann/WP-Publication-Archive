@@ -52,7 +52,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R2-02 Delivery drops its Icons dependency (SPEC §4.2 module map)
 - [x] R2-03 Streamer sends nosniff and forces attachment for active content (SPEC §6.2 steps 3-4)
 - [x] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
-- [ ] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
+- [x] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
 
 ## Log
 (one entry per task, appended by implement)
@@ -378,3 +378,6 @@ Added Keys::ACTIVE_CONTENT_TYPES (html/xhtml/svg/xml x2/js x2). Added static Str
 
 ### R2-04 — d3a3125
 Added 'contributor' to Keys::CAP_ROLES (after 'author'); grant()'s has_cap()-based mapping unchanged so contributor gets edit_publications and delete_publications only (default contributor role has edit_posts/delete_posts but not publish_posts/edit_others_posts/edit_published_posts). Updated "three §6.1 roles" docblocks in class-capabilities.php and test-capabilities.php to "four". New tests: test_grant_gives_contributor_the_same_subset_as_for_post (integration), test_contributor_can_edit_own_draft_but_not_publish_or_edit_others (creates two contributor users, asserts current_user_can edit_post on own draft, not publish_post, not edit_post on another's draft, and has generic edit_publications cap). test-keys.php CAP_ROLES assertion updated. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
+
+### R2-05 — e2ac0c1
+Test-only. Added five characterisation tests pinning plain-permalink (set_permalink_structure('')) behaviour beyond the existing get_open_link() pin: download link ('&download=yes'), alternate open link ('&altview=yes&alt=English'), alternate download link ('&altdown=yes&alt=English') - the alternate tests fail if Rewrites::link()'s add_query_arg(Keys::QUERY_ALT_KEY, ...) is deleted - plus open/download query-form resolution tests (?publication=...&wppa_open|wppa_download=yes) with plain permalinks, mirroring the existing pretty-permalink query-form tests. All use the 3.0.1 public API and Keys constants, no production code touched. foundry_verify: constraints, lint, analyse, test:map, test:unit, composer test (with DAM) all green.
