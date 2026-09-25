@@ -54,7 +54,7 @@ Started: 2026-09-24T15:54:27.940Z
 - [x] R2-04 Contributors get their post-equivalent publication caps (SPEC §6.1)
 - [x] R2-05 Pin every plain-permalink link generator and query form at 3.0.1 behaviour (SPEC G5)
 - [x] R3-01 Pin the named attachment filename on active-content proxy views (SPEC §6.2 step 4)
-- [ ] R4-01 Test that Streamer::send() discards buffered output above its floor (SPEC §6.2 step 5, D6)
+- [x] R4-01 Test that Streamer::send() discards buffered output above its floor (SPEC §6.2 step 5, D6)
 
 ## Log
 (one entry per task, appended by implement)
@@ -387,3 +387,18 @@ Test-only. Added five characterisation tests pinning plain-permalink (set_permal
 ### R3-01 — a6c91b5
 Tightened test_proxy_view_of_html_is_attachment_with_nosniff and test_proxy_view_of_svg_is_attachment_with_nosniff in tests/integration/test-delivery.php to assert exact headers 'Content-Disposition: attachment; filename="a.html"' / '"a.svg"' (assertContains on $this->headers) instead of a loose substring check on 'Content-Disposition: attachment'. Confirmed Streamer::send() produces exactly this string when Delivery::proxy() passes a non-null $filename, and that Delivery::proxy()'s filename ternary only becomes non-null via ($is_download || Streamer::is_active_content($content_type)) — the surviving mutation from the R2-03 finding. Also fixed CLAUDE.md's class-delivery.php module-map row: removed the stale `Icons` entry (R2-02 made Delivery no longer import Icons per SPEC §4.2).
 No production code touched. foundry_verify (lint, analyse, test:map, test:unit, composer test with DAM) all green; all constraints clean.
+
+### R4-01 — 22b114e
+Added test_d6_discards_buffered_output_above_the_floor to tests/unit/test-streamer.php.
+Records $floor before an outer ob_start(); constructs Streamer with ob_floor = $floor+1;
+opens an inner buffer with a stray echo, calls send() on a temp file with 'file-bytes',
+asserts the outer ob_get_clean() output is exactly 'file-bytes' and ob_get_level() === $floor.
+finally block drains any buffers left above $floor.
+Verified: foundry_verify (files=[tests/unit/test-streamer.php]) all green: constraints,
+lint, analyse, test:map, test:unit, and composer test (with DAM) all pass.
+Manually mutated includes/class-streamer.php to delete the
+`while ( ob_get_level() > $this->ob_floor ) { ob_end_clean(); }` loop and re-ran
+composer test:unit: the new test failed with 'stray-outputfile-bytes' !== 'file-bytes',
+confirming it kills the mutation (foundry_mutate tool not available in this environment).
+Reverted the mutation before committing; git diff on class-streamer.php is clean.
+No production code changed.
